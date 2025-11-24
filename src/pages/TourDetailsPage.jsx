@@ -1,16 +1,15 @@
 // src/pages/TourDetailsPage.jsx
 
-import { useParams } from "react-router-dom"; 
-// Check: Relative path is correct if mockTours.js is in src/data
-import { getTourById } from "../data/mockTours"; 
+import { useParams } from "react-router-dom";
+import { getTourById } from "../data/mockTours";
 import { useState } from "react";
-import BookingSidebar from "../components/BookingSidebar"; 
+import BookingSidebar from "../components/BookingSidebar";
 import { FaMapMarkerAlt, FaCalendarAlt, FaStar, FaRupeeSign, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { motion } from "framer-motion";
 
 export default function TourDetailsPage() {
-  const { tourId } = useParams(); 
-  const tour = getTourById(tourId); 
+  const { id } = useParams();            // <-- FIXED: get 'id' param, not 'tourId'
+  const tour = getTourById(id);          // Pass correct id for lookup
   const [activeTab, setActiveTab] = useState('itinerary');
 
   if (!tour) {
@@ -125,7 +124,7 @@ export default function TourDetailsPage() {
             </div>
           )}
 
-          {/* MAP CONTENT (High-fi feature) */}
+          {/* MAP CONTENT */}
           {activeTab === 'map' && (
             <div>
               <h3 className="text-2xl font-bold mb-4 text-[var(--dark)] flex items-center gap-2">
