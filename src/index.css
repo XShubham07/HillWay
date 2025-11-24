@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* -----------------------------------
+   THEME COLORS (Nature Inspired)
+----------------------------------- */
+:root {
+  /* Primary: Teal (Mountain Rivers/Ice) */
+  --p1: #0891b2; 
+  /* Secondary: Deep Sky Blue (High Altitude Sky) */
+  --p2: #0284c7; 
+  /* Text/Dark Elements */
+  --dark: #0f172a; 
+}
+
+/* -----------------------------------
+   BACKGROUND DESIGN (Themed)
+----------------------------------- */
+body {
+  /* Fallback color */
+  background-color: #ecfeff;
+
+  /* Layered Design:
+     1. A semi-transparent white gradient (Mist effect) to keep text readable.
+     2. Your mountain image fixed in the background.
+  */
+  background-image: 
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.0), rgba(0, 0, 0, 0.0)),
+    url('/g2.jpeg');
+
+  /* Ensures the background covers the screen and stays fixed while scrolling */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  color: var(--dark);
+  overflow-x: hidden;
+}
+
+/* -----------------------------------
+   GLOBAL UTILITIES
+----------------------------------- */
+html, body {
+  width: 100%;
+  height: auto;
+}
+
+#root {
+  isolation: isolate;
+}
+
+/* -----------------------------------
+   BUTTON EFFECTS
+----------------------------------- */
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-ripple::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0.4) 10%, transparent 70%);
+  transform: scale(0);
+  opacity: 0;
+  transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+.btn-ripple:active::after {
+  transform: scale(3);
+  opacity: 1;
+  transition: 0s;
+}
