@@ -1,21 +1,19 @@
 // src/pages/Tours.jsx
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"; 
 import SearchBar from "../components/SearchBar";
 import PackageGrid from "../components/PackageGrid";
 import Filters from "../components/Filters";
-import { tourData } from "../data/mockTours"; // <-- Importing mock data for IDs
+import { tourData } from "../data/mockTours"; // <-- Import real data
 
 export default function Tours(){
   const navigate = useNavigate();
 
-  // 1. Combine real tours and mock tours
-  // First 3 tours will use actual data (ID: pkg-gangtok, pkg-lachung, pkg-pelling)
+  // 1. First 3 tours from real data
   const realTours = tourData.map(tour => ({
     id: tour.id, 
     title: tour.title.split(' - ')[0], 
-    // Extract days from title for display
     days: tour.title.match(/(\d+)\s*N\s*\/\s*(\d+)\s*D/)?.[0] || 'Custom Days',
     price: '₹' + tour.basePrice.toLocaleString('en-IN'),
     img: tour.img,
@@ -23,7 +21,6 @@ export default function Tours(){
   }));
 
   // 2. Generate generic mock data for the rest (Tours 4-9)
-  // These tours will hit the 404 page until you add their data to mockTours.js
   const genericTours = Array.from({length: 6}).map((_, i) => ({
     // Using unique string IDs that won't clash
     id: `generic-${i + 4}`, 

@@ -1,19 +1,18 @@
 // src/pages/TourDetailsPage.jsx
 
-import { useParams } from "react-router-dom"; // <-- useParams to read ID
-import { getTourById } from "../data/mockTours"; // <-- Import data utility
+import { useParams } from "react-router-dom"; 
+// Check: Relative path is correct if mockTours.js is in src/data
+import { getTourById } from "../data/mockTours"; 
 import { useState } from "react";
-import BookingSidebar from "../components/BookingSidebar"; // Assuming this exists
+import BookingSidebar from "../components/BookingSidebar"; 
 import { FaMapMarkerAlt, FaCalendarAlt, FaStar, FaRupeeSign, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { motion } from "framer-motion";
 
 export default function TourDetailsPage() {
-  const { tourId } = useParams(); // URL se ID nikalna
-  const tour = getTourById(tourId); // ID ke basis par data fetch karna
-
+  const { tourId } = useParams(); 
+  const tour = getTourById(tourId); 
   const [activeTab, setActiveTab] = useState('itinerary');
 
-  // Agar tour nahi mila to 404 page dikhana
   if (!tour) {
     return (
       <div className="max-w-7xl mx-auto py-20 text-center">
