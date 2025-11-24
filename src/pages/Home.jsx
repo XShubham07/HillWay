@@ -6,31 +6,29 @@ import PackageGrid from "../components/PackageGrid";
 import ReviewsCarousel from "../components/ReviewsCarousel";
 import FAQ from "../components/FAQ";
 import Features from "../components/Features";
-import { tourData } from "../data/mockTours"; // <-- Import full data
+import { tourData } from "../data/mockTours"; // Import your real tour data array
 
 export default function Home(){
   const navigate = useNavigate(); 
 
-  // Featured packages ko mockTours se nikal rahe hain
-  // Hum pehle teen packages ko featured bana rahe hain
+  // Get the top 3 featured packages from your mock data
   const featured = tourData.slice(0, 3).map(tour => ({
     id: tour.id,
-    title: tour.title.split(' - ')[0], // Title ko chota kar diya
+    title: tour.title.split(' - ')[0], // Shorter headline
     subtitle: tour.subtitle,
     basePrice: tour.basePrice,
     img: tour.img
   }));
-  
+
   function onView(p){ 
-    navigate(`/tours/${p.id}`); // Correct navigation
+    navigate(`/tours/${p.id}`); // Use correct path for navigation
   }
 
-  // ... (rest of the component is same as before) ...
   return (
     <>
       <Hero />
       
-      {/* Features Section from previous step */}
+      {/* Features Section (optional, if you have a Features component) */}
       <Features />
 
       <section className="max-w-7xl mx-auto px-6 mt-12">
@@ -46,7 +44,7 @@ export default function Home(){
             View All Tours →
           </button>
         </div>
-        {/* Updated list prop to use the new featured data */}
+        {/* Pass featured with ID to PackageGrid */}
         <PackageGrid list={featured} onView={onView} /> 
       </section>
 
