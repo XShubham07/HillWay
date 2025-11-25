@@ -26,7 +26,7 @@ export default function Tours(){
     id: `generic-${i + 4}`, 
     title: `Adventure Trek ${i + 4}`,
     days: (4 + (i % 3)) + 'N/' + (5 + (i % 3)) + 'D',
-    img: i % 2 === 0 ? '/g3.webp' : '/g2.webp', 
+    img: i % 2 === 0 ? '/g3.webp' : '/g69.webp', 
     price: '₹' + (15000 + i * 1500).toLocaleString('en-IN'),
     summary: 'A thrilling high-altitude trek for seasoned adventurers.',
   }));

@@ -12,21 +12,21 @@ const SAMPLE_PACKAGES = [
     title: "Gangtok Classic 3N/4D",
     subtitle: "Scenic drives • Local guide • Comfortable hotels",
     basePrice: 12500,
-    img: "/g1.webp",
+    img: "/g5.jpeg",
   },
   {
     id: "p2",
-    title: "Lachung & Yumthang 4N/5D",
+    title: "Lachung & Yumthang 4N/3D",
     subtitle: "Valleys, blooms & sunrise views",
     basePrice: 17000,
-    img: "/g2.webp",
+    img: "/g3.webp",
   },
   {
     id: "p3",
     title: "Pelling Escape 2N/3D",
     subtitle: "Waterfalls • Monasteries • Viewpoints",
     basePrice: 9999,
-    img: "/g3.webp",
+    img: "/g2.jpeg",
   },
 ];
 

@@ -22,7 +22,7 @@ export const tourData = [
     title: "Lachung & Yumthang Valley - 4 Nights / 5 Days",
     subtitle: "Experience the Himalayan wonderland of North Sikkim.",
     basePrice: 17000,
-    img: "/g2.webp",
+    img: "/g2.jpeg",
     rating: 4.9,
     mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3550.0461623190867!2d88.63666017502474!3d27.683057176189913!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39e55952c4233771%3A0xf639a04f981e9f1a!2sYumthang%20Valley!5e0!3m2!1sen!2sin!4v1700685600000!5m2!1sen!2sin", // Updated Map Link
     itinerary: [
