@@ -196,11 +196,11 @@ export default function Hero() {
             transition={{ duration: 0.8, delay: 0.3 }}
             className="block text-left text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.5)]"
           >
-            Experience the
+            Your Way to The
           </motion.span>
           
           <span className="block mt-4 text-left">
-            {'Untouched Hills'.split('').map((char, index) => (
+            {'Mountains'.split('').map((char, index) => (
               <motion.span
                 key={index}
                 initial={{ opacity: 0, y: 50, rotateX: -90 }}
