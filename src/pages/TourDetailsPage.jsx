@@ -218,7 +218,7 @@ export default function TourDetailsPage() {
             animate={{ opacity: 1, y: 0 }}
             key={activeTab}
           >
-            
+          
             {activeTab === 'itinerary' && (
               <div className="space-y-6">
                 {tour.itinerary.map((item, index) => (
@@ -310,3 +310,7 @@ export default function TourDetailsPage() {
         <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-white/10 backdrop-blur-md shadow-2xl border-t border-white/20 z-50">
           <BookingSidebar tour={tour} isMobile />
         </div>
+      </motion.div>
+    </div>
+  );
+}
