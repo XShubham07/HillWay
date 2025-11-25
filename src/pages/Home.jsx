@@ -1,5 +1,5 @@
 // src/pages/Home.jsx
-
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Hero from "../components/Hero";
 import PackageGrid from "../components/PackageGrid";
@@ -99,20 +99,7 @@ export default function Home() {
   return (
     <div 
       className="relative min-h-screen overflow-x-hidden"
-      style={{
-        backgroundColor: '#ecfeff',
-        backgroundImage: `
-          linear-gradient(to bottom, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%),
-          url('/g.jpeg')
-        `,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
-      }}
     >
-      <NatureOverlay />
-
       <div className="relative z-10">
         <motion.div variants={fadeInUp} initial="hidden" animate="visible">
           <Hero />
