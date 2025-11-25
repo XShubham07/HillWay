@@ -290,3 +290,157 @@ h1, h2, h3, h4 {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 -8
 }
+/* ============================================
+   MOBILE OPTIMIZATIONS - Add to end of file
+   ============================================ */
+
+/* Mobile-specific spacing and layout */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  /* Prevent horizontal scroll on mobile */
+  html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  
+  /* Better touch targets */
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Optimize font sizes for mobile */
+  h1 {
+    font-size: 2.5rem !important;
+    line-height: 1.2;
+  }
+  
+  h2 {
+    font-size: 2rem !important;
+  }
+  
+  /* Hide large decorative elements on small screens */
+  .absolute.w-\[600px\],
+  .absolute.w-\[520px\],
+  .absolute.w-\[440px\] {
+    display: none;
+  }
+  
+  /* Scale down visible decorative elements */
+  .absolute.w-\[400px\] {
+    width: 200px !important;
+    height: 200px !important;
+  }
+}
+
+/* Safe area insets for modern phones (notch support) */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
+  
+  .fixed.bottom-6 {
+    bottom: max(1.5rem, calc(env(safe-area-inset-bottom) + 1.5rem));
+  }
+}
+
+/* Optimize animations on mobile */
+@media (max-width: 768px) {
+  /* Reduce motion for better performance */
+  * {
+    animation-duration: 0.3s !important;
+    transition-duration: 0.2s !important;
+  }
+  
+  /* Disable complex transforms on scroll for mobile */
+  .mobile-no-transform {
+    transform: none !important;
+  }
+}
+
+/* Touch-friendly interactive elements */
+@media (hover: none) and (pointer: coarse) {
+  /* Remove hover effects on touch devices */
+  .hover\:scale-110:hover {
+    transform: scale(1);
+  }
+  
+  /* Enhance tap feedback */
+  button:active,
+  a:active {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+}
+
+/* Improved text readability on mobile */
+@media (max-width: 640px) {
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  
+  /* Better spacing for mobile content */
+  section {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+  
+  /* Stack elements vertically on small screens */
+  .flex {
+    flex-wrap: wrap;
+  }
+}
+
+/* Performance optimizations */
+@media (max-width: 768px) {
+  /* Hardware acceleration for smooth scrolling */
+  * {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+  
+  /* Optimize images */
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+}
+/* FORCE MOBILE MENU BUTTON TO SHOW - Add at the end of index.css */
+.mobile-menu-btn {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  z-index: 9999 !important;
+  width: 64px !important;
+  height: 64px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: linear-gradient(135deg, #06b6d4, #0284c7) !important;
+  border-radius: 50% !important;
+  box-shadow: 0 8px 32px rgba(6, 182, 212, 0.5) !important;
+  cursor: pointer !important;
+  border: none !important;
+  color: white !important;
+}
+
+@media (min-width: 768px) {
+  .mobile-menu-btn {
+    display: none !important;
+  }
+}
+
+.mobile-menu-btn:active {
+  transform: scale(0.95);
+}

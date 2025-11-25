@@ -2,270 +2,294 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 export default function Hero() {
   const { scrollY } = useScroll();
   const navigate = useNavigate();
   
-  // ZOOM OUT EFFECTS - Background gets smaller as you scroll
-  const yBg = useTransform(scrollY, [0, 800], [0, 400]);
-  const scale = useTransform(scrollY, [0, 800], [1.3, 1]); // Start big, zoom OUT to normal
-  const zoomText = useTransform(scrollY, [0, 400], [1, 0.7]);
-  const opacity = useTransform(scrollY, [0, 400], [1, 0]);
-  const rotate = useTransform(scrollY, [0, 800], [0, -3]); // Slight reverse rotation
+  // Detect mobile device
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // SMOOTH ZOOM UP EFFECT - Background starts zoomed in, zooms OUT as you scroll
+  const scale = useTransform(
+    scrollY, 
+    [0, 800], 
+    isMobile ? [1.2, 1] : [1.5, 1]
+  );
+  
+  const opacity = useTransform(scrollY, [0, 300, 500], [1, 0.8, 0]);
+  const y = useTransform(scrollY, [0, 500], [0, 150]);
 
   return (
     <section className="relative h-screen flex items-center justify-center overflow-hidden">
       
-      {/* MOUNTAIN BACKGROUND - ZOOM OUT EFFECT */}
+      {/* MOUNTAIN BACKGROUND - SMOOTH ZOOM UP EFFECT */}
       <motion.div
-        style={{ 
-          y: yBg,
-          scale: scale, // Zooms OUT from 1.3 to 1
-          rotate: rotate,
+        style={{
+          scale,
+          willChange: 'transform',
         }}
         className="absolute inset-0 z-0"
       >
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ 
+          style={{
             backgroundImage: "url('/mountain.webp')",
-            filter: "brightness(0.65) contrast(1.15) saturate(1.1)"
+            filter: "brightness(0.7) contrast(1.15) saturate(1.2)",
+            transformOrigin: 'center center',
           }}
         />
       </motion.div>
 
-      {/* Animated SVG Cutout Overlays */}
-      <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden">
-        
-        {/* Top Left Blob */}
-        <motion.div
-          initial={{ x: -300, y: -100, opacity: 0, scale: 0.5 }}
-          animate={{ 
-            x: 0, 
-            y: 0, 
-            opacity: 0.5,
-            scale: 1,
-          }}
-          transition={{ 
-            duration: 2, 
-            ease: "easeOut",
-            scale: {
-              repeat: Infinity,
-              duration: 4,
-              repeatType: "reverse"
-            }
-          }}
-          className="absolute -top-32 -left-32 w-[600px] h-[600px] bg-gradient-to-br from-cyan-400/70 to-blue-600/50 rounded-full blur-3xl"
-        />
-        
-        {/* Bottom Right Blob */}
-        <motion.div
-          initial={{ x: 300, y: 100, opacity: 0, scale: 0.5 }}
-          animate={{ 
-            x: 0, 
-            y: 0, 
-            opacity: 0.4,
-            scale: [1, 1.2, 1],
-            rotate: [0, 180, 360],
-          }}
-          transition={{ 
-            duration: 2, 
-            delay: 0.4,
-            scale: {
-              repeat: Infinity,
-              duration: 6,
-              ease: "easeInOut"
-            },
-            rotate: {
-              repeat: Infinity,
-              duration: 20,
-              ease: "linear"
-            }
-          }}
-          className="absolute -bottom-32 -right-32 w-[700px] h-[700px] bg-gradient-to-tl from-purple-500/60 to-pink-400/40 rounded-full blur-3xl"
-        />
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 z-5 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
 
-        {/* Center Accent Blob */}
-        <motion.div
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ 
-            scale: [1, 1.3, 1],
-            opacity: [0.2, 0.4, 0.2],
-          }}
-          transition={{
-            duration: 1.5,
-            delay: 0.8,
-            scale: {
-              repeat: Infinity,
-              duration: 3,
-              ease: "easeInOut"
-            },
-            opacity: {
-              repeat: Infinity,
-              duration: 3,
-              ease: "easeInOut"
-            }
-          }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-gradient-to-br from-teal-400/30 to-cyan-500/20 rounded-full blur-3xl"
-        />
-
-        {/* Floating Particles */}
-        {[...Array(5)].map((_, i) => (
+      {/* Animated Decorative Blobs - Hidden on mobile */}
+      {!isMobile && (
+        <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden">
           <motion.div
-            key={i}
-            className="absolute w-3 h-3 bg-white/70 rounded-full"
-            initial={{ 
-              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1920),
-              y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1080),
-              opacity: 0,
-              scale: 0
-            }}
+            initial={{ x: -300, y: -100, opacity: 0, scale: 0.5 }}
             animate={{
-              y: [0, -50 - Math.random() * 30, 0],
-              x: [0, (Math.random() - 0.5) * 40, 0],
-              opacity: [0, 0.8, 0],
-              scale: [0, 1, 0],
+              x: 0,
+              y: 0,
+              opacity: 0.4,
+              scale: [1, 1.2, 1],
             }}
             transition={{
-              duration: 3 + Math.random() * 3,
+              duration: 2,
+              ease: "easeOut",
+              scale: {
+                repeat: Infinity,
+                duration: 5,
+                repeatType: "reverse"
+              }
+            }}
+            className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-gradient-to-br from-cyan-400/15 to-blue-600/10 rounded-full blur-3xl"
+          />
+
+          <motion.div
+            initial={{ x: 300, y: 100, opacity: 0, scale: 0.5 }}
+            animate={{
+              x: 0,
+              y: 0,
+              opacity: 0.3,
+              scale: [1, 1.3, 1],
+            }}
+            transition={{
+              duration: 1.5,
+              delay: 0.5,
+              scale: {
+                repeat: Infinity,
+                duration: 4,
+                ease: "easeInOut"
+              }
+            }}
+            className="absolute bottom-0 right-0 w-[450px] h-[450px] bg-gradient-to-tl from-blue-500/15 to-purple-600/10 rounded-full blur-3xl"
+          />
+        </div>
+      )}
+
+      {/* Floating Particles */}
+      <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden">
+        {[...Array(isMobile ? 3 : 8)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-2 h-2 bg-white/60 rounded-full"
+            initial={{ 
+              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1920), 
+              y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1080) 
+            }}
+            animate={{
+              x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1920),
+              y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1080),
+            }}
+            transition={{
+              duration: 20 + Math.random() * 15,
               repeat: Infinity,
-              delay: i * 0.2,
-              ease: "easeInOut"
+              repeatType: "reverse",
+              ease: "linear"
             }}
           />
         ))}
-
-        
       </div>
 
-      
       {/* CONTENT */}
-      <motion.div 
+      <motion.div
         className="relative z-10 max-w-7xl mx-auto px-6 w-full"
-        style={{ 
+        style={{
           opacity,
-          scale: zoomText,
+          y,
         }}
       >
-        
         {/* Main Title */}
         <motion.h1
-          initial={{ y: 100, opacity: 0, scale: 0.8 }}
+          initial={{ y: 100, opacity: 0, scale: 0.9 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}
-          transition={{ 
-            duration: 1.2, 
+          transition={{
+            duration: 1,
             ease: [0.6, 0.05, 0.01, 0.9],
             type: "spring",
-            stiffness: 60
+            stiffness: 50
           }}
           className="text-5xl md:text-7xl lg:text-8xl font-black leading-tight"
         >
           <motion.span
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="block text-left text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.5)]"
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="block text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.8)]"
           >
             Your Way to The
           </motion.span>
           
-          <span className="block mt-4 text-left">
+          {/* MOUNTAINS TEXT WITH mountain.webp IMAGE CUTOUT EFFECT */}
+          <motion.span 
+            className="block relative"
+            style={{
+              background: 'url("/mountain.webp")',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center 30%',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              filter: 'brightness(1.5) contrast(1.3) saturate(1.4)',
+              textShadow: 'none',
+            }}
+          >
             {'Mountains'.split('').map((char, index) => (
               <motion.span
                 key={index}
-                initial={{ opacity: 0, y: 50, rotateX: -90 }}
-                animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{
-                  duration: 0.5,
+                  duration: 0.4,
                   delay: 0.5 + index * 0.05,
                   type: "spring",
                   stiffness: 100
-                }}
-                style={{
-                  backgroundImage: "url('/mountain.webp')",
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  backgroundClip: "text",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  display: 'inline-block',
-                  filter: "drop-shadow(0 4px 20px rgba(0,0,0,0.9))",
                 }}
                 className="inline-block"
               >
                 {char === ' ' ? '\u00A0' : char}
               </motion.span>
             ))}
-          </span>
+            
+            {/* White stroke outline for depth */}
+            <span 
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: 'url("/mountain.webp")',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center 30%',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextStroke: '3px rgba(255,255,255,0.4)',
+                WebkitTextFillColor: 'transparent',
+                filter: 'brightness(1.5) contrast(1.3)',
+              }}
+            >
+              Mountains
+            </span>
+          </motion.span>
         </motion.h1>
 
+        {/* Description */}
         <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 1.5 }}
-          className="mt-6 text-lg md:text-xl text-white font-light max-w-2xl drop-shadow-2xl text-left"
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{
+            duration: 0.8,
+            delay: 1.5,
+            type: "spring",
+            stiffness: 80
+          }}
+          className="mt-6 text-base md:text-xl text-white font-light max-w-2xl drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]"
         >
           Premium tours, hidden trails, and luxury stays.
         </motion.p>
 
-        <motion.div
-          initial={{ y: 50, opacity: 0, scale: 0.8 }}
-          animate={{ y: 0, opacity: 1, scale: 1 }}
-          transition={{ 
-            duration: 0.8, 
-            delay: 2.2,
-            type: "spring",
-            stiffness: 100
-          }}
-          className="mt-10"
-        >
+        {/* CTA Button */}
+        <motion.div className="mt-8 md:mt-10">
           <motion.button
             onClick={() => navigate('/tours')}
-            whileHover={{ 
-              scale: 1.1, 
-              boxShadow: "0 0 40px rgba(6, 182, 212, 0.8)",
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{
+              duration: 0.8,
+              delay: 1.8,
+              type: "spring",
+              stiffness: 80
             }}
-            whileTap={{ scale: 0.95 }}
-            className="px-12 py-5 bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-lg font-bold rounded-full shadow-2xl hover:from-cyan-400 hover:to-blue-500 transition-all duration-300 relative overflow-hidden group"
+            whileHover={{ 
+              scale: 1.05, 
+              boxShadow: "0 0 30px rgba(6, 182, 212, 0.6)",
+            }}
+            whileTap={{ scale: 0.98 }}
+            className="relative px-10 md:px-12 py-4 md:py-5 bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-base md:text-lg rounded-xl font-bold shadow-2xl transition-all duration-300 min-h-[48px] overflow-hidden group"
           >
             <motion.span
               className="absolute inset-0 bg-white"
               initial={{ x: "-100%" }}
               whileHover={{ x: "100%" }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.5 }}
               style={{ opacity: 0.2 }}
             />
-            <span className="relative z-10">Explore Tours</span>
+            <span className="relative z-10 flex items-center gap-2">
+              Explore Tours
+              <motion.span
+                initial={{ x: 0 }}
+                whileHover={{ x: 5 }}
+                transition={{ duration: 0.3 }}
+              >
+                →
+              </motion.span>
+            </span>
           </motion.button>
         </motion.div>
       </motion.div>
 
+      {/* Scroll Indicator */}
       <motion.div
-        initial={{ scaleX: 0 }}
-        animate={{ scaleX: 1 }}
-        transition={{ duration: 1.5, delay: 0.8 }}
-        className="absolute bottom-0 left-0 right-0 h-1 z-20"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 2.5, duration: 1 }}
+        style={{
+          opacity: useTransform(scrollY, [0, 200], [1, 0])
+        }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20"
       >
         <motion.div
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-          className="w-full h-full bg-gradient-to-r from-transparent via-cyan-400 to-transparent"
-        />
+          animate={{ y: [0, 10, 0] }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="flex flex-col items-center gap-2 text-white/80"
+        >
+          <span className="text-xs md:text-sm font-light tracking-wider">Scroll Down</span>
+          <motion.div className="w-6 h-10 border-2 border-white/50 rounded-full flex items-start justify-center p-2">
+            <motion.div 
+              className="w-1 h-2 bg-white/80 rounded-full"
+              animate={{ y: [0, 12, 0] }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+          </motion.div>
+        </motion.div>
       </motion.div>
-
-      <motion.div
-        initial={{ width: 0 }}
-        animate={{ width: 100 }}
-        transition={{ duration: 1, delay: 1 }}
-        className="absolute top-20 left-0 h-0.5 bg-gradient-to-r from-cyan-400 to-transparent z-20"
-      />
-      <motion.div
-        initial={{ height: 0 }}
-        animate={{ height: 100 }}
-        transition={{ duration: 1, delay: 1.2 }}
-        className="absolute top-20 left-0 w-0.5 bg-gradient-to-b from-cyan-400 to-transparent z-20"
-      />
     </section>
   );
 }
