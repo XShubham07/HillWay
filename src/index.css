@@ -6,35 +6,24 @@
    THEME COLORS (Nature Inspired)
 ----------------------------------- */
 :root {
-  /* Primary: Teal (Mountain Rivers/Ice) */
-  --p1: #0891b2; 
-  /* Secondary: Deep Sky Blue (High Altitude Sky) */
-  --p2: #0284c7; 
-  /* Text/Dark Elements */
-  --dark: #0f172a; 
+  --p1: #0891b2;
+  --p2: #0284c7;
+  --dark: #0f172a;
 }
 
 /* -----------------------------------
-   BACKGROUND DESIGN (Themed)
+   NATURE THEMED BACKGROUND
 ----------------------------------- */
-body {
-  /* Fallback color */
+body,
+.home-bg {
   background-color: #ecfeff;
-
-  /* Layered Design:
-     1. A semi-transparent white gradient (Mist effect) to keep text readable.
-     2. Your mountain image fixed in the background.
-  */
-  background-image: 
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.0), rgba(0, 0, 0, 0.0)),
+  background-image:
+    linear-gradient(to bottom, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.14) 100%),
     url('/g2.jpeg');
-
-  /* Ensures the background covers the screen and stays fixed while scrolling */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
-
   margin: 0;
   padding: 0;
   font-family: 'Inter', sans-serif;
@@ -42,27 +31,26 @@ body {
   overflow-x: hidden;
 }
 
-/* -----------------------------------
-   GLOBAL UTILITIES
------------------------------------ */
-html, body {
-  width: 100%;
-  height: auto;
-}
-
+/* For full-page sizing, let overlays and cutouts lay properly */
+html,
+body,
 #root {
+  width: 100%;
+  min-height: 100vh;
   isolation: isolate;
 }
 
 /* -----------------------------------
-   BUTTON EFFECTS
+   BUTTON EFFECTS (Ripple)
 ----------------------------------- */
 .btn-ripple {
   position: relative;
   overflow: hidden;
   cursor: pointer;
   user-select: none;
-  -webkit-tap-highlight-color: transparent;
+  background: none;
+  border: none;
+  outline: none;
 }
 
 .btn-ripple::after {
@@ -72,11 +60,48 @@ html, body {
   background: radial-gradient(circle, rgba(255,255,255,0.4) 10%, transparent 70%);
   transform: scale(0);
   opacity: 0;
+  pointer-events: none;
   transition: transform 0.5s ease, opacity 0.5s ease;
 }
-
 .btn-ripple:active::after {
-  transform: scale(3);
+  transform: scale(2.5);
   opacity: 1;
   transition: 0s;
+}
+
+/* -----------------------------------
+   HEADINGS/TEXT
+----------------------------------- */
+h1, h2, h3, h4 {
+  color: var(--dark);
+  font-family: inherit;
+}
+.text-shadow {
+  text-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+/* -----------------------------------
+   SCROLL BAR
+----------------------------------- */
+::-webkit-scrollbar {
+  width: 8px;
+  background: rgba(0, 0, 0, 0.06);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--p1);
+  border-radius: 4px;
+}
+
+/* -----------------------------------
+   SVG BLOB RESPONSIVE OPTIMIZATION
+----------------------------------- */
+@media (max-width: 640px) {
+  .absolute.w-\[520px\],
+  .absolute.w-\[440px\] {
+    display: none;
+  }
+  .absolute.w-36.h-36 {
+    width: 80px !important;
+    height: 80px !important;
+  }
 }
