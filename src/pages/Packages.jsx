@@ -12,7 +12,7 @@ const SAMPLE_PACKAGES = [
     title: "Gangtok Classic 3N/4D",
     subtitle: "Scenic drives • Local guide • Comfortable hotels",
     basePrice: 12500,
-    img: "/g5.jpeg",
+    img: "/g",
   },
   {
     id: "p2",
@@ -26,7 +26,7 @@ const SAMPLE_PACKAGES = [
     title: "Pelling Escape 2N/3D",
     subtitle: "Waterfalls • Monasteries • Viewpoints",
     basePrice: 9999,
-    img: "/g2.jpeg",
+    img: "/g5.webp",
   },
 ];
 

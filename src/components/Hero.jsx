@@ -29,7 +29,7 @@ export default function Hero() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ 
-            backgroundImage: "url('/g4.jpeg')",
+            backgroundImage: "url('/mountain.webp')",
             filter: "brightness(0.65) contrast(1.15) saturate(1.1)"
           }}
         />
@@ -183,7 +183,7 @@ export default function Hero() {
                   stiffness: 100
                 }}
                 style={{
-                  backgroundImage: "url('/g4.jpeg')",
+                  backgroundImage: "url('/mountain.webp')",
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                   backgroundClip: "text",

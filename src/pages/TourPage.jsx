@@ -35,7 +35,7 @@ export default function TourPage({/* route param id */}) {
             </div>
           </div>
 
-          <Gallery images={["/g5.jpeg","/g2.jpeg","/g3.jpg"]}/>
+          <Gallery images={["/"]}/>
 
           {/* Map embed */}
           <div className="bg-white p-2 rounded-lg">
