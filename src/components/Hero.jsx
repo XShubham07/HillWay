@@ -7,21 +7,21 @@ export default function Hero() {
   const { scrollY } = useScroll();
   const navigate = useNavigate();
   
-  // Heavy parallax + zoom effects
-  const yBg = useTransform(scrollY, [0, 500], [0, 250]);
-  const scale = useTransform(scrollY, [0, 500], [1, 1.2]);
-  const zoomText = useTransform(scrollY, [0, 300], [1, 0.8]); // Zoom out on scroll
-  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
-  const rotate = useTransform(scrollY, [0, 500], [0, 5]);
+  // ZOOM OUT EFFECTS - Background gets smaller as you scroll
+  const yBg = useTransform(scrollY, [0, 800], [0, 400]);
+  const scale = useTransform(scrollY, [0, 800], [1.3, 1]); // Start big, zoom OUT to normal
+  const zoomText = useTransform(scrollY, [0, 400], [1, 0.7]);
+  const opacity = useTransform(scrollY, [0, 400], [1, 0]);
+  const rotate = useTransform(scrollY, [0, 800], [0, -3]); // Slight reverse rotation
 
   return (
     <section className="relative h-screen flex items-center justify-center overflow-hidden">
       
-      {/* MOUNTAIN BACKGROUND with Heavy Parallax + Rotation */}
+      {/* MOUNTAIN BACKGROUND - ZOOM OUT EFFECT */}
       <motion.div
         style={{ 
           y: yBg,
-          scale: scale,
+          scale: scale, // Zooms OUT from 1.3 to 1
           rotate: rotate,
         }}
         className="absolute inset-0 z-0"
@@ -38,7 +38,7 @@ export default function Hero() {
       {/* Animated SVG Cutout Overlays */}
       <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden">
         
-        {/* Top Left Blob - Pulsing */}
+        {/* Top Left Blob */}
         <motion.div
           initial={{ x: -300, y: -100, opacity: 0, scale: 0.5 }}
           animate={{ 
@@ -59,7 +59,7 @@ export default function Hero() {
           className="absolute -top-32 -left-32 w-[600px] h-[600px] bg-gradient-to-br from-cyan-400/70 to-blue-600/50 rounded-full blur-3xl"
         />
         
-        {/* Bottom Right Blob - Morphing */}
+        {/* Bottom Right Blob */}
         <motion.div
           initial={{ x: 300, y: 100, opacity: 0, scale: 0.5 }}
           animate={{ 
@@ -86,7 +86,7 @@ export default function Hero() {
           className="absolute -bottom-32 -right-32 w-[700px] h-[700px] bg-gradient-to-tl from-purple-500/60 to-pink-400/40 rounded-full blur-3xl"
         />
 
-        {/* Center Accent Blob - Breathing */}
+        {/* Center Accent Blob */}
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
           animate={{ 
@@ -169,16 +169,16 @@ export default function Hero() {
         className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/70 z-1"
       />
 
-      {/* CONTENT with Zoom Effect */}
+      {/* CONTENT */}
       <motion.div 
         className="relative z-10 max-w-7xl mx-auto px-6 w-full"
         style={{ 
           opacity,
-          scale: zoomText, // Zoom in/out on scroll
+          scale: zoomText,
         }}
       >
         
-        {/* Main Title - SMALLER + LEFT ALIGNED */}
+        {/* Main Title */}
         <motion.h1
           initial={{ y: 100, opacity: 0, scale: 0.8 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}
@@ -190,7 +190,6 @@ export default function Hero() {
           }}
           className="text-5xl md:text-7xl lg:text-8xl font-black leading-tight"
         >
-          {/* "Experience the" - LEFT ALIGNED */}
           <motion.span
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -200,9 +199,8 @@ export default function Hero() {
             Experience the
           </motion.span>
           
-          {/* "Untouched Hills" - Mountain cutout with letter animation */}
           <span className="block mt-4 text-left">
-            {'             Untouched Hills'.split('').map((char, index) => (
+            {'Untouched Hills'.split('').map((char, index) => (
               <motion.span
                 key={index}
                 initial={{ opacity: 0, y: 50, rotateX: -90 }}
@@ -231,7 +229,6 @@ export default function Hero() {
           </span>
         </motion.h1>
 
-        {/* Subtitle - LEFT ALIGNED */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -241,7 +238,6 @@ export default function Hero() {
           Premium tours, hidden trails, and luxury stays.
         </motion.p>
 
-        {/* CTA Button - Redirects to /tours */}
         <motion.div
           initial={{ y: 50, opacity: 0, scale: 0.8 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}
@@ -274,7 +270,6 @@ export default function Hero() {
         </motion.div>
       </motion.div>
 
-      {/* Animated Border Effect */}
       <motion.div
         initial={{ scaleX: 0 }}
         animate={{ scaleX: 1 }}
@@ -288,7 +283,6 @@ export default function Hero() {
         />
       </motion.div>
 
-      {/* Corner Accent Lines */}
       <motion.div
         initial={{ width: 0 }}
         animate={{ width: 100 }}
