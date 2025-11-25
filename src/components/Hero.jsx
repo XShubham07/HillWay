@@ -111,7 +111,7 @@ export default function Hero() {
         />
 
         {/* Floating Particles */}
-        {[...Array(20)].map((_, i) => (
+        {[...Array(5)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute w-3 h-3 bg-white/70 rounded-full"
@@ -136,29 +136,7 @@ export default function Hero() {
           />
         ))}
 
-        {/* Shooting Stars */}
-        {[...Array(3)].map((_, i) => (
-          <motion.div
-            key={`star-${i}`}
-            className="absolute h-0.5 bg-gradient-to-r from-transparent via-white to-transparent"
-            style={{
-              width: Math.random() * 100 + 50,
-              top: `${Math.random() * 50}%`,
-            }}
-            initial={{ x: -200, opacity: 0 }}
-            animate={{
-              x: typeof window !== 'undefined' ? window.innerWidth + 200 : 2000,
-              opacity: [0, 1, 0],
-            }}
-            transition={{
-              duration: 2,
-              delay: i * 3 + 2,
-              repeat: Infinity,
-              repeatDelay: 5,
-              ease: "easeOut"
-            }}
-          />
-        ))}
+        
       </div>
 
       
