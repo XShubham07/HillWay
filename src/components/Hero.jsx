@@ -29,7 +29,7 @@ export default function Hero() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ 
-            backgroundImage: "url('/mountain.jpeg')",
+            backgroundImage: "url('/g4.jpeg')",
             filter: "brightness(0.65) contrast(1.15) saturate(1.1)"
           }}
         />
@@ -161,14 +161,7 @@ export default function Hero() {
         ))}
       </div>
 
-      {/* Dynamic Gradient Overlay */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1.5 }}
-        className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/70 z-1"
-      />
-
+      
       {/* CONTENT */}
       <motion.div 
         className="relative z-10 max-w-7xl mx-auto px-6 w-full"
@@ -212,7 +205,7 @@ export default function Hero() {
                   stiffness: 100
                 }}
                 style={{
-                  backgroundImage: "url('/mountain.jpeg')",
+                  backgroundImage: "url('/g4.jpeg')",
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                   backgroundClip: "text",
