@@ -12,7 +12,7 @@ const SAMPLE_PACKAGES = [
     title: "Gangtok Classic 3N/4D",
     subtitle: "Scenic drives • Local guide • Comfortable hotels",
     basePrice: 12500,
-    img: "/g",
+    img: "/g1.webp",
   },
   {
     id: "p2",

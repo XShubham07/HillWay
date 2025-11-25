@@ -7,17 +7,15 @@
   --p1: #0891b2;
   --p2: #0284c7;
   --dark: #0f172a;
-  --glass-shimmer: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 50%, rgba(255, 255, 255, 0.1) 100%);
 }
 
-/* NATURE THEMED BACKGROUND */
+/* CLEAN BACKGROUND - No blur effects */
 body:not(.home-page) {
   background-color: #ecfeff;
   background-image: linear-gradient(to bottom, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.14) 100%), url('/g.jpeg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  background-attachment: fixed;
 }
 
 body {
@@ -34,7 +32,7 @@ html, body, #root {
   isolation: isolate;
 }
 
-/* BUTTON RIPPLE EFFECTS */
+/* CLEAN BUTTON RIPPLE EFFECTS - No backdrop-filter */
 .btn-ripple {
   position: relative;
   overflow: hidden;
@@ -72,7 +70,7 @@ h1, h2, h3, h4 {
   text-shadow: 0 2px 10px rgba(0,0,0,0.08);
 }
 
-/* SCROLL BAR */
+/* CLEAN SCROLL BAR */
 ::-webkit-scrollbar {
   width: 8px;
   background: rgba(0, 0, 0, 0.06);
@@ -94,204 +92,142 @@ h1, h2, h3, h4 {
   }
 }
 
-/* ULTRA PREMIUM GLASS THEME */
-.navbar-glass {
-  position: relative;
-  backdrop-filter: blur(32px) saturate(180%);
-  -webkit-backdrop-filter: blur(32px) saturate(180%);
-  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
-  transform: translateZ(0);
-  overflow: hidden;
+/* CLEAN NAVBAR STYLES - No glass effects */
+.navbar-clean {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
-.navbar-glass::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: var(--glass-shimmer);
-  animation: shimmer 3s infinite;
-  pointer-events: none;
-  opacity: 0.3;
+.navbar-clean-dark {
+  background: #1f2937;
+  border-bottom: 1px solid #374151;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-@keyframes shimmer {
-  0% { left: -100%; }
-  100% { left: 200%; }
+.navbar-clean-dark:hover {
+  background: #374151;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
-.navbar-glass-dark {
-  background: rgba(0, 0, 0, 0.08);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+.navbar-clean-light {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
-.navbar-glass-dark:hover {
-  background: rgba(0, 0, 0, 0.12);
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3), 0 6px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+.navbar-clean-light:hover {
+  background: #f9fafb;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
 }
 
-.navbar-glass-light {
-  background: rgba(255, 255, 255, 0.65);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.8), inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+/* CLEAN MOBILE MENU */
+.mobile-menu-clean {
+  background: #1f2937;
+  border-top: 1px solid #374151;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.navbar-glass-light:hover {
-  background: rgba(255, 255, 255, 0.75);
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.08), 0 6px 24px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+/* CLEAN LOGO GLOW - Simple text shadow */
+.logo-clean {
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
 }
 
-.mobile-menu-glass {
-  background: linear-gradient(to top, rgba(15, 23, 42, 0.97), rgba(30, 41, 59, 0.95));
-  backdrop-filter: blur(40px) saturate(180%);
-  -webkit-backdrop-filter: blur(40px) saturate(180%);
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.4), 0 -6px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
-  position: relative;
-  overflow: hidden;
+.logo-clean:hover {
+  text-shadow: 0 3px 6px rgba(0,0,0,0.4);
+  transform: scale(1.02);
 }
 
-.mobile-menu-glass::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.6) 20%, rgba(14, 165, 233, 0.6) 50%, rgba(6, 182, 212, 0.6) 80%, transparent);
-  animation: slideGlow 3s ease-in-out infinite;
-}
-
-@keyframes slideGlow {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
-}
-
-.logo-glow {
-  text-shadow: 0 0 20px rgba(6, 182, 212, 0.6), 0 0 40px rgba(6, 182, 212, 0.4), 0 0 60px rgba(6, 182, 212, 0.2), 0 2px 8px rgba(0, 0, 0, 0.4);
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  position: relative;
-}
-
-.logo-glow:hover {
-  text-shadow: 0 0 30px rgba(6, 182, 212, 0.8), 0 0 60px rgba(6, 182, 212, 0.6), 0 0 90px rgba(6, 182, 212, 0.4), 0 2px 12px rgba(0, 0, 0, 0.5);
-  transform: scale(1.05);
-}
-
-.nav-link-glass {
+/* CLEAN NAV LINKS */
+.nav-link-clean {
   position: relative;
   padding: 0.5rem 1rem;
   border-radius: 0.75rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
+  transition: all 0.3s ease;
 }
 
-.nav-link-glass::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 0.75rem;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+.nav-link-clean:hover {
+  background: rgba(6, 182, 212, 0.1);
+  transform: translateY(-1px);
 }
 
-.nav-link-glass:hover::before {
-  opacity: 1;
+.nav-active-clean {
+  background: rgba(6, 182, 212, 0.2);
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  color: #0891b2;
+  font-weight: 600;
 }
 
-.nav-link-glass:hover {
-  backdrop-filter: blur(16px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
+/* CLEAN WHATSAPP BUTTON */
+.whatsapp-btn-clean {
+  background: linear-gradient(135deg, #25d366, #128c7e);
+  color: white;
+  border: none;
+  box-shadow: 0 2px 8px rgba(37, 211, 102, 0.3);
+  transition: all 0.3s ease;
 }
 
-.whatsapp-btn-glass {
-  background: linear-gradient(135deg, rgba(37, 211, 102, 0.9), rgba(37, 211, 102, 0.8));
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 24px rgba(37, 211, 102, 0.3), 0 4px 12px rgba(37, 211, 102, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+.whatsapp-btn-clean:hover {
+  background: linear-gradient(135deg, #34d877, #128c7e);
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+  transform: scale(1.05) translateY(-1px);
 }
 
-.whatsapp-btn-glass:hover {
-  background: linear-gradient(135deg, rgba(37, 211, 102, 1), rgba(37, 211, 102, 0.9));
-  box-shadow: 0 12px 32px rgba(37, 211, 102, 0.4), 0 6px 16px rgba(37, 211, 102, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  transform: scale(1.05) translateY(-2px);
-}
-
-.whatsapp-btn-glass:active {
+.whatsapp-btn-clean:active {
   transform: scale(0.98) translateY(0);
 }
 
-.nav-active-glass {
-  background: rgba(8, 145, 178, 0.15);
-  backdrop-filter: blur(16px);
-  box-shadow: 0 4px 16px rgba(8, 145, 178, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(8, 145, 178, 0.3);
-  border: 1px solid rgba(8, 145, 178, 0.3);
-}
-
-.floating-btn-glass {
-  background: linear-gradient(135deg, rgba(8, 145, 178, 0.9), rgba(2, 132, 199, 0.8));
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+/* CLEAN FLOATING BUTTON */
+.floating-btn-clean {
+  background: linear-gradient(135deg, #0891b2, #0284c7);
+  color: white;
   border: 2px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 12px 32px rgba(8, 145, 178, 0.4), 0 6px 16px rgba(8, 145, 178, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.3), inset 0 -2px 0 rgba(0, 0, 0, 0.2);
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4px 16px rgba(8, 145, 178, 0.3);
+  transition: all 0.3s ease;
 }
 
-.floating-btn-glass:hover {
+.floating-btn-clean:hover {
   transform: scale(1.1) rotate(90deg);
-  box-shadow: 0 16px 48px rgba(8, 145, 178, 0.5), 0 8px 24px rgba(8, 145, 178, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.4);
+  box-shadow: 0 6px 24px rgba(8, 145, 178, 0.4);
 }
 
-.floating-btn-glass:active {
+.floating-btn-clean:active {
   transform: scale(1.05) rotate(90deg);
 }
 
-.drop-shadow-glow {
-  filter: drop-shadow(0 0 12px rgba(6, 182, 212, 0.6)) drop-shadow(0 0 24px rgba(6, 182, 212, 0.3));
+/* CLEAN DROP SHADOW */
+.drop-shadow-clean {
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
   transition: filter 0.3s ease;
 }
 
-.drop-shadow-glow:hover {
-  filter: drop-shadow(0 0 16px rgba(6, 182, 212, 0.8)) drop-shadow(0 0 32px rgba(6, 182, 212, 0.4));
+.drop-shadow-clean:hover {
+  filter: drop-shadow(0 3px 8px rgba(0,0,0,0.2));
 }
 
-.glass-dark {
-  background: rgba(0, 0, 0, 0.05);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  will-change: transform;
-  transform: translateZ(0);
+/* CLEAN GLASS ALTERNATIVES */
+.glass-dark-clean {
+  background: #374151;
+  border-bottom: 1px solid #4b5563;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
-.glass-light {
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  will-change: transform;
-  transform: translateZ(0);
+.glass-light-clean {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
-.glass-menu {
-  background: linear-gradient(to top, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9));
-  backdrop-filter: blur(40px) saturate(180%);
-  -webkit-backdrop-filter: blur(40px) saturate(180%);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 -8
+.glass-menu-clean {
+  background: #1f2937;
+  border-top: 1px solid #374151;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.3);
 }
+
 /* ============================================
-   MOBILE OPTIMIZATIONS - Add to end of file
+   MOBILE OPTIMIZATIONS - Clean version
    ============================================ */
 
 /* Mobile-specific spacing and layout */
@@ -350,17 +286,12 @@ h1, h2, h3, h4 {
   }
 }
 
-/* Optimize animations on mobile */
+/* Clean mobile optimizations */
 @media (max-width: 768px) {
   /* Reduce motion for better performance */
   * {
     animation-duration: 0.3s !important;
     transition-duration: 0.2s !important;
-  }
-  
-  /* Disable complex transforms on scroll for mobile */
-  .mobile-no-transform {
-    transform: none !important;
   }
 }
 
@@ -399,12 +330,10 @@ h1, h2, h3, h4 {
   }
 }
 
-/* Performance optimizations */
+/* Clean performance optimizations */
 @media (max-width: 768px) {
   /* Hardware acceleration for smooth scrolling */
   * {
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
   }
@@ -416,31 +345,141 @@ h1, h2, h3, h4 {
     display: block;
   }
 }
-/* FORCE MOBILE MENU BUTTON TO SHOW - Add at the end of index.css */
-.mobile-menu-btn {
-  position: fixed !important;
-  bottom: 24px !important;
-  right: 24px !important;
-  z-index: 9999 !important;
-  width: 64px !important;
-  height: 64px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: linear-gradient(135deg, #06b6d4, #0284c7) !important;
-  border-radius: 50% !important;
-  box-shadow: 0 8px 32px rgba(6, 182, 212, 0.5) !important;
-  cursor: pointer !important;
-  border: none !important;
-  color: white !important;
+
+/* Simple mobile menu button */
+.mobile-menu-btn-simple {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  width: 3.5rem;
+  height: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0891b2, #0284c7);
+  border-radius: 9999px;
+  box-shadow: 0 4px 16px rgba(8, 145, 178, 0.4);
+  cursor: pointer;
+  border: none;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.mobile-menu-btn-simple:hover {
+  transform: translateX(-50%) scale(1.1);
+  box-shadow: 0 6px 20px rgba(8, 145, 178, 0.5);
+}
+
+.mobile-menu-btn-simple:active {
+  transform: translateX(-50%) scale(0.95);
 }
 
 @media (min-width: 768px) {
-  .mobile-menu-btn {
-    display: none !important;
+  .mobile-menu-btn-simple {
+    display: none;
+  }
+}
+/* 🔥 SIMPLE GREY GRADIENT NAVBAR STYLES */
+
+/* Desktop Grey Gradient */
+.navbar-grey-gradient {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+/* Dynamic blur effect */
+.navbar-grey-gradient.dynamic-blur {
+  transition: backdrop-filter 0.3s ease, background 0.3s ease;
+}
+
+/* Mobile Grey Gradient */
+.navbar-grey-mobile {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+/* Simple hover effects for grey theme */
+.nav-link-grey {
+  transition: all 0.3s ease;
+}
+
+.nav-link-grey:hover {
+  transform: translateY(-1px);
+}
+
+/* Active link style for grey theme */
+.active-link-grey {
+  position: relative;
+}
+
+.active-link-grey::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(14, 165, 233, 0.1));
+  border-radius: inherit;
+}
+
+/* Simple mobile menu button - Grey theme */
+.mobile-btn-grey {
+  transition: all 0.3s ease;
+}
+
+.mobile-btn-grey:hover {
+  transform: translateX(-50%) scale(1.05);
+}
+
+/* Compact mobile menu styles */
+.mobile-menu-compact {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Simple shadow effects */
+.simple-shadow {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.simple-shadow-hover:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* Grey gradient text shadow */
+.text-shadow-grey {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.text-shadow-grey-dark {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Subtle border effects */
+.border-grey-subtle {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.border-grey-subtle-dark {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive adjustments for compact menu */
+@media (max-width: 390px) {
+  .mobile-menu-compact {
+    margin: 0 0.5rem;
+  }
+  
+  .mobile-menu-compact .p-5 {
+    padding: 1rem;
   }
 }
 
-.mobile-menu-btn:active {
-  transform: scale(0.95);
+/* High DPI optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .navbar-grey-gradient,
+  .navbar-grey-mobile {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
 }

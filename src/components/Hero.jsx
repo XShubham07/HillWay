@@ -20,15 +20,29 @@ export default function Hero() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // SMOOTH ZOOM UP EFFECT - Background starts zoomed in, zooms OUT as you scroll
+  // FIXED: SMOOTH ZOOM UP EFFECT - Works on both mobile and desktop
+  // Background starts zoomed in, zooms OUT as you scroll
   const scale = useTransform(
     scrollY, 
     [0, 800], 
-    isMobile ? [1.2, 1] : [1.5, 1]
+    [1.5, 1] // Unified scale values for both mobile and desktop
   );
   
   const opacity = useTransform(scrollY, [0, 300, 500], [1, 0.8, 0]);
   const y = useTransform(scrollY, [0, 500], [0, 150]);
+
+  // NEW: Text zoom-out effect for premium feel
+  const textScale = useTransform(
+    scrollY,
+    [0, 300, 600],
+    [1.1, 1, 0.95] // Starts slightly larger, zooms out smoothly
+  );
+
+  const textOpacity = useTransform(
+    scrollY,
+    [0, 400, 800],
+    [1, 0.9, 0.7]
+  );
 
   return (
     <section className="relative h-screen flex items-center justify-center overflow-hidden">
@@ -131,15 +145,19 @@ export default function Hero() {
           y,
         }}
       >
-        {/* Main Title */}
+        {/* Main Title with Zoom-out Effect */}
         <motion.h1
-          initial={{ y: 100, opacity: 0, scale: 0.9 }}
+          initial={{ y: 100, opacity: 0, scale: 1.1 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}
           transition={{
             duration: 1,
             ease: [0.6, 0.05, 0.01, 0.9],
             type: "spring",
             stiffness: 50
+          }}
+          style={{
+            scale: textScale,
+            opacity: textOpacity,
           }}
           className="text-5xl md:text-7xl lg:text-8xl font-black leading-tight"
         >
@@ -202,7 +220,7 @@ export default function Hero() {
           </motion.span>
         </motion.h1>
 
-        {/* Description */}
+        {/* Description with Enhanced Scroll Effect */}
         <motion.p
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -212,12 +230,16 @@ export default function Hero() {
             type: "spring",
             stiffness: 80
           }}
+          style={{
+            opacity: useTransform(scrollY, [0, 400, 800], [1, 0.8, 0.6]),
+            y: useTransform(scrollY, [0, 500], [0, 100]),
+          }}
           className="mt-6 text-base md:text-xl text-white font-light max-w-2xl drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]"
         >
           Premium tours, hidden trails, and luxury stays.
         </motion.p>
 
-        {/* CTA Button */}
+        {/* CTA Button with Enhanced Scroll Effect */}
         <motion.div className="mt-8 md:mt-10">
           <motion.button
             onClick={() => navigate('/tours')}
@@ -234,6 +256,10 @@ export default function Hero() {
               boxShadow: "0 0 30px rgba(6, 182, 212, 0.6)",
             }}
             whileTap={{ scale: 0.98 }}
+            style={{
+              y: useTransform(scrollY, [0, 600], [0, 80]),
+              opacity: useTransform(scrollY, [0, 500, 800], [1, 0.9, 0.5]),
+            }}
             className="relative px-10 md:px-12 py-4 md:py-5 bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-base md:text-lg rounded-xl font-bold shadow-2xl transition-all duration-300 min-h-[48px] overflow-hidden group"
           >
             <motion.span
@@ -291,5 +317,5 @@ export default function Hero() {
         </motion.div>
       </motion.div>
     </section>
-  );
+  )
 }

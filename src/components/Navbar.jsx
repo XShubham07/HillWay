@@ -2,6 +2,8 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+
+// ICONS
 import { AiOutlineHome } from "react-icons/ai";
 import { MdOutlineTravelExplore } from "react-icons/md";
 import { TbArticle } from "react-icons/tb";
@@ -15,11 +17,9 @@ export default function Navbar() {
   const location = useLocation();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const isHomePage = location.pathname === "/";
@@ -35,83 +35,238 @@ export default function Navbar() {
 
   const whatsappNumber = "919800000000";
   const whatsappMessage = "Hi! I'm interested in booking a tour with HillWay.";
-  const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+  const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+    whatsappMessage
+  )}`;
+
+  const aquamorphicStyles = {
+    background: "rgba(255, 255, 255, 0.12)",
+    backdropFilter: "blur(25px) saturate(200%)",
+    WebkitBackdropFilter: "blur(25px) saturate(200%)",
+    border: "1px solid rgba(255, 255, 255, 0.3)",
+  };
+
+  const darkAquamorphicStyles = {
+    background: "rgba(15, 23, 42, 0.15)",
+    backdropFilter: "blur(25px) saturate(180%)",
+    WebkitBackdropFilter: "blur(25px) saturate(180%)",
+    border: "1px solid rgba(255, 255, 255, 0.15)",
+  };
 
   return (
     <>
-      <motion.nav initial={{ y: -80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.1 }} className="sticky top-0 w-full z-50 hidden md:block">
-        <div className={`navbar-glass ${isDarkBg ? 'navbar-glass-dark' : 'navbar-glass-light'}`}>
+      {/* DESKTOP NAVBAR */}
+      <motion.nav
+        initial={{ y: -80, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+        className="sticky top-0 w-full z-50 hidden md:block"
+      >
+        <div
+          className={`navbar-aquamorphic ${
+            isDarkBg ? "dark-aquamorphic" : "light-aquamorphic"
+          }`}
+          style={
+            isDarkBg
+              ? darkAquamorphicStyles
+              : {
+                  background: "rgba(255, 255, 255, 0.65)",
+                  backdropFilter: "blur(25px)",
+                }
+          }
+        >
           <div className="max-w-7xl mx-auto px-6 py-3.5">
             <div className="flex justify-between items-center">
-              <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.3, duration: 0.6 }}>
-                <Link to="/" className={`text-3xl font-black transition-all duration-300 ${isDarkBg ? 'text-white logo-glow' : 'text-gray-900 hover:text-cyan-600'}`}>HillWay</Link>
-              </motion.div>
-              <motion.div className="flex items-center gap-1" initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, duration: 0.6 }}>
-                {navLinks.map((link, i) => (
-                  <motion.div key={link.path} initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 + i * 0.05, duration: 0.4 }}>
-                    <Link to={link.path} className={`relative px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 ${location.pathname === link.path ? 'text-white' : isDarkBg ? 'text-gray-100 hover:text-white hover:bg-white/10' : 'text-gray-700 hover:text-gray-900 hover:bg-white/60'}`}>
-                      {location.pathname === link.path && <motion.div layoutId="activeTab" className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl shadow-lg shadow-cyan-500/40 -z-10" transition={{ type: "spring", stiffness: 400, damping: 35 }} />}
-                      {link.label}
-                    </Link>
-                  </motion.div>
+              <Link
+                to="/"
+                className={`text-3xl font-black ${
+                  isDarkBg ? "text-white" : "text-gray-900"
+                }`}
+              >
+                HillWay
+              </Link>
+
+              <div className="flex items-center gap-1">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className={`relative px-4 py-2.5 rounded-xl font-semibold text-sm transition-all ${
+                      location.pathname === link.path
+                        ? "text-white bg-gradient-to-r from-cyan-500 to-blue-600"
+                        : isDarkBg
+                        ? "text-gray-100 hover:text-white"
+                        : "text-gray-700 hover:text-gray-900"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
                 ))}
-              </motion.div>
-              <motion.div initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.6, duration: 0.6 }}>
-                <motion.a href={whatsappLink} target="_blank" rel="noopener noreferrer" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }} className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold text-sm rounded-xl shadow-lg">
-                  <IoLogoWhatsapp size={19} />WhatsApp
-                </motion.a>
-              </motion.div>
+              </div>
+
+              <a
+                href={whatsappLink}
+                target="_blank"
+                className="flex items-center gap-2 px-6 py-2.5 bg-green-600 text-white font-semibold rounded-xl shadow-lg"
+              >
+                <IoLogoWhatsapp size={19} />
+                WhatsApp
+              </a>
             </div>
           </div>
         </div>
       </motion.nav>
 
-      <motion.header initial={{ y: -60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.7 }} className="sticky top-0 w-full z-50 md:hidden">
-        <div className={`navbar-glass ${isDarkBg ? 'navbar-glass-dark' : 'navbar-glass-light'}`}>
+      {/* MOBILE STICKY HEADER */}
+      <motion.header
+        initial={{ y: -60, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.7 }}
+        className="fixed top-0 w-full z-50 md:hidden"
+      >
+        <div
+          style={{
+            background: "rgba(255, 255, 255, 0.7)",
+            backdropFilter: "blur(25px)",
+          }}
+          className="border-b border-white/50"
+        >
           <div className="flex justify-between items-center px-4 py-2.5">
-            <Link to="/" className={`text-xl font-black transition-all duration-300 ${isDarkBg ? 'text-white' : 'text-gray-900'}`}>HillWay</Link>
-            <motion.a href={whatsappLink} target="_blank" rel="noopener noreferrer" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }} className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold text-xs rounded-lg">
-              <IoLogoWhatsapp size={15} />WhatsApp
-            </motion.a>
+            <Link to="/" className="text-xl font-black text-gray-900">
+              HillWay
+            </Link>
+
+            <a
+              href={whatsappLink}
+              target="_blank"
+              className="flex items-center gap-1.5 px-3 py-2 bg-green-600 text-white text-xs rounded-lg shadow-md"
+            >
+              <IoLogoWhatsapp size={15} />
+              WhatsApp
+            </a>
           </div>
         </div>
       </motion.header>
 
-      <div className="fixed bottom-0 left-0 w-full flex md:hidden justify-center items-end pointer-events-none z-50">
-        <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.4, type: "spring" }} onClick={() => setOpen(!open)} className="pointer-events-auto mb-8 rounded-full flex items-center gap-3 px-6 h-14 font-bold" style={{ background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.3)', boxShadow: '0 8px 32px rgba(100,180,255,0.18)', color: '#555' }}>
-          <HiMenuAlt3 size={26} /><span className="text-sm uppercase">Navigation</span>
+      {/* MOBILE MENU BUTTON */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 md:hidden">
+        <motion.button
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          onClick={() => setOpen(!open)}
+          className="shadow-2xl rounded-full px-6 h-14 flex items-center gap-3 font-bold border-white/50"
+          style={{
+            background: "linear-gradient(135deg,#06b6d4,#0284c7)",
+            color: "white",
+          }}
+        >
+          <motion.div animate={{ rotate: open ? 180 : 0 }}>
+            <HiMenuAlt3 size={26} />
+          </motion.div>
+          <span>Menu</span>
         </motion.button>
+      </div>
 
-        <AnimatePresence>
-          {open && (
-            <>
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(false)} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 pointer-events-auto" />
-              <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pointer-events-none">
-                <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", stiffness: 330 }} className="rounded-t-3xl w-full max-w-md pointer-events-auto overflow-hidden mx-4" style={{ background: "rgba(255,255,255,0.18)", backdropFilter: "blur(28px)", border: "1px solid rgba(255,255,255,0.3)", boxShadow: "0 8px 40px rgba(100,150,255,0.2)" }}>
-                  <div className="p-6 pb-10">
-                    <div className="flex justify-center mb-4">
-                      <button onClick={() => setOpen(false)} className="w-12 h-12 rounded-full bg-white/40 backdrop-blur-xl shadow-lg flex items-center justify-center">
+      {/* MOBILE OVERLAY */}
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-md z-40"
+            />
+
+            {/* MOBILE POPUP */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 flex items-center justify-center z-50"
+            >
+              <motion.div
+                initial={{ scale: 0.7, opacity: 0, y: 60 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.75, opacity: 0, y: 60 }}
+                transition={{ type: "spring", stiffness: 260, damping: 22 }}
+                className="w-full max-w-sm mx-6 pointer-events-auto relative"
+              >
+                {/* GLASS CONTAINER */}
+                <div
+                  className="rounded-3xl overflow-hidden relative"
+                  style={{
+                    background: "rgba(255,255,255,0.15)",
+                    backdropFilter: "blur(40px) saturate(240%)",
+                    border: "1px solid rgba(255,255,255,0.35)",
+                    boxShadow:
+                      "0 25px 70px rgba(100,180,255,0.28), inset 0 2px 1px rgba(255,255,255,0.5)",
+                  }}
+                >
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background:
+                        "linear-gradient(135deg,rgba(255,255,255,0.4),transparent 40%,rgba(255,255,255,0.25))",
+                      mixBlendMode: "overlay",
+                    }}
+                  />
+
+                  <div className="p-7 relative z-10">
+                    <div className="flex justify-center mb-5">
+                      <motion.button
+                        onClick={() => setOpen(false)}
+                        whileHover={{ rotate: 90 }}
+                        className="w-12 h-12 rounded-full bg-white/30 backdrop-blur-xl border border-white/40 shadow-lg"
+                      >
                         <HiX size={26} className="text-gray-700" />
-                      </button>
+                      </motion.button>
                     </div>
-                    <h3 className="text-center text-2xl font-bold mb-6 text-gray-800">Navigation</h3>
-                    <div className="space-y-3">
-                      {navLinks.map((link) => (
-                        <Link key={link.path} to={link.path} onClick={() => setOpen(false)} className={`flex items-center gap-4 px-6 py-5 rounded-2xl font-bold text-lg border ${location.pathname === link.path ? "bg-white/80 text-gray-900" : "bg-white/25 text-gray-800"}`} style={{ backdropFilter: "blur(12px)" }}>
-                          <span className="text-2xl">{link.icon}</span>{link.label}
-                        </Link>
+
+                    <h3 className="text-center text-xl font-bold mb-6 text-gray-900">
+                      Navigation
+                    </h3>
+
+                    <div className="space-y-4">
+                      {navLinks.map((link, i) => (
+                        <motion.div
+                          key={link.path}
+                          initial={{ x: -40, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          transition={{ delay: 0.1 + i * 0.1 }}
+                        >
+                          <Link
+                            to={link.path}
+                            onClick={() => setOpen(false)}
+                            className={`flex items-center gap-5 px-7 py-4 rounded-2xl text-lg font-bold ${
+                              location.pathname === link.path
+                                ? "text-white bg-cyan-600"
+                                : "text-gray-800 bg-white/40"
+                            } backdrop-blur-xl border border-white/50 shadow-lg`}
+                          >
+                            <span className="text-2xl">{link.icon}</span>
+                            {link.label}
+                          </Link>
+                        </motion.div>
                       ))}
                     </div>
-                    <a href={whatsappLink} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} className="flex items-center justify-center gap-3 w-full mt-8 py-5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold text-lg rounded-2xl">
-                      <IoLogoWhatsapp size={28} />Chat on WhatsApp
-                    </a>
+
+                    <motion.a
+                      href={whatsappLink}
+                      target="_blank"
+                      className="flex items-center justify-center gap-4 w-full mt-8 py-5 rounded-2xl font-bold text-lg text-white bg-green-600"
+                    >
+                      <IoLogoWhatsapp size={30} />
+                      Chat on WhatsApp
+                    </motion.a>
                   </div>
-                </motion.div>
-              </div>
-            </>
-          )}
-        </AnimatePresence>
-      </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 }
