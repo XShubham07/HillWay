@@ -103,7 +103,7 @@ export default function Home() {
         backgroundColor: '#ecfeff',
         backgroundImage: `
           linear-gradient(to bottom, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%),
-          url('/g2.jpeg')
+          url('/g.jpeg')
         `,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
