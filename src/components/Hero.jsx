@@ -6,24 +6,14 @@ import { HiOutlineArrowDown } from "react-icons/h3";
 
 export default function Hero() {
   const { scrollY } = useScroll();
-  // Background moves slower than text creates 3D effect
   const yBg = useTransform(scrollY, [0, 500], [0, 250]);
   const yText = useTransform(scrollY, [0, 300], [0, 100]);
 
   return (
     <section className="relative h-[90vh] flex items-center overflow-hidden">
       
-      {/* Parallax Background - REMOVED BACKGROUND IMAGE */}
-      <motion.div
-        style={{ y: yBg }}
-        className="absolute inset-0 z-0"
-      >
-        {/* Background now comes from Home.jsx parent */}
-      </motion.div>
-
       {/* Dark Overlay Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/30">
-      </motion.div>
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/30"></div>
 
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-6 w-full mt-10">
