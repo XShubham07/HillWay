@@ -1,67 +1,224 @@
 // src/pages/Tours.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import { useNavigate } from "react-router-dom"; 
+import { motion } from "framer-motion"; // Added Animation Library
 import SearchBar from "../components/SearchBar";
 import Filters from "../components/Filters";
 import { tourData } from "../data/mockTours";
 
-// Tour Card Component
-function TourCard({ tour, onView }) {
+// --- ANIMATION VARIANTS (Slide Up + Zoom) ---
+const mobileRowVariant = {
+  hidden: { 
+    opacity: 0, 
+    y: 80,         // Starts 80px down
+    scale: 0.9     // Starts slightly zoomed out (90%)
+  },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1,      // Zooms to 100%
+    transition: { 
+      duration: 0.7, 
+      ease: "easeOut" 
+    }
+  }
+};
+
+// --- MEMOIZED CARD COMPONENT ---
+const TourCard = memo(({ tour, onView, style = {} }) => {
   return (
     <div 
-      className="tour-card-mobile bg-white rounded-xl shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300"
+      className="tour-card-mobile"
       onClick={() => onView(tour)}
-      style={{ minWidth: '280px', maxWidth: '280px', flexShrink: 0 }}
+      style={{ 
+        minWidth: '260px', 
+        width: '260px',
+        backgroundColor: 'white',
+        borderRadius: '24px', 
+        boxShadow: '0 15px 40px rgba(0,0,0,0.12)', 
+        overflow: 'hidden',
+        cursor: 'pointer',
+        flexShrink: 0,
+        ...style 
+      }}
     >
-      <div className="relative" style={{ height: '180px' }}>
+      <div style={{ 
+        position: 'relative', 
+        height: '320px',
+        backgroundColor: '#f3f4f6'
+      }}>
         <img 
           src={tour.img} 
           alt={tour.title}
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          loading="lazy"
+          style={{ 
+            width: '100%', 
+            height: '100%', 
+            objectFit: 'cover'
+          }}
         />
-        <div className="absolute top-3 right-3 bg-white px-3 py-1 rounded-full text-sm font-semibold shadow-md">
+        <div style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 55%)'
+        }} />
+
+        <div style={{
+          position: 'absolute',
+          top: '16px',
+          right: '16px',
+          backgroundColor: 'rgba(255,255,255,0.95)',
+          padding: '6px 14px',
+          borderRadius: '20px',
+          fontSize: '12px',
+          fontWeight: 800,
+          color: '#1f2937',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+        }}>
           {tour.days}
         </div>
-      </div>
-      <div className="p-4">
-        <h3 className="font-bold text-lg mb-2 text-gray-800" style={{
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden'
-        }}>{tour.title}</h3>
-        <p className="text-gray-600 text-sm mb-3" style={{
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden'
-        }}>{tour.summary}</p>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span className="text-xl font-bold text-blue-600">{tour.price}</span>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors">
-            View
-          </button>
+
+        <div style={{ position: 'absolute', bottom: '24px', left: '20px', right: '20px' }}>
+            <h3 style={{
+                fontWeight: 900,
+                fontSize: '24px',
+                color: 'white',
+                marginBottom: '8px',
+                lineHeight: '1.1',
+                textShadow: '0 4px 12px rgba(0,0,0,0.5)'
+            }}>{tour.title}</h3>
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
+                 <span style={{ fontSize: '20px', fontWeight: 800, color: '#fbbf24', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                    {tour.price}
+                 </span>
+                 <button 
+                    style={{
+                        backgroundColor: 'white',
+                        color: 'black',
+                        padding: '10px 24px',
+                        borderRadius: '30px',
+                        fontSize: '13px',
+                        fontWeight: 800,
+                        border: 'none',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.3)'
+                    }}
+                 >
+                    View
+                 </button>
+            </div>
         </div>
       </div>
     </div>
   );
-}
+});
 
+TourCard.displayName = 'TourCard';
+
+// --- STACKED CAROUSEL COMPONENT ---
+const Mobile3DCarousel = ({ items, onView }) => {
+    const scrollRef = useRef(null);
+    const ticking = useRef(false);
+
+    const updateCards = () => {
+        const container = scrollRef.current;
+        if (!container) return;
+
+        const centerPoint = container.scrollLeft + container.offsetWidth / 2;
+        const children = Array.from(container.querySelectorAll('.carousel-item'));
+
+        children.forEach((child) => {
+            const childCenter = child.offsetLeft + (child.offsetWidth / 2);
+            const distance = Math.abs(centerPoint - childCenter);
+            const maxDistance = container.offsetWidth / 1.8; 
+            let progress = Math.min(distance / maxDistance, 1);
+
+            const scale = 1.15 - (0.3 * progress); 
+            const zIndex = 10 - Math.round(progress * 5);
+
+            child.style.transform = `scale(${scale})`;
+            child.style.zIndex = zIndex;
+        });
+
+        ticking.current = false;
+    };
+
+    const handleScroll = () => {
+        if (!ticking.current) {
+            window.requestAnimationFrame(updateCards);
+            ticking.current = true;
+        }
+    };
+
+    useEffect(() => {
+        const container = scrollRef.current;
+        if (container) {
+            updateCards();
+            container.addEventListener('scroll', handleScroll, { passive: true });
+            window.addEventListener('resize', handleScroll);
+        }
+        return () => {
+            container?.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('resize', handleScroll);
+        };
+    }, [items]);
+
+    return (
+        <div 
+            ref={scrollRef}
+            className="mobile-3d-scroll"
+            style={{
+                display: 'flex',
+                overflowX: 'auto',
+                scrollSnapType: 'x mandatory',
+                alignItems: 'center',
+                padding: '30px 16px', 
+                position: 'relative',
+                zIndex: 0,
+                width: '100%',
+                touchAction: 'pan-x pan-y', 
+                WebkitOverflowScrolling: 'touch',
+            }}
+        >
+            <div style={{ minWidth: '18px', flexShrink: 0 }} />
+
+            {items.map((tour) => (
+                <div 
+                    key={tour.id} 
+                    className="carousel-item"
+                    style={{ 
+                        scrollSnapAlign: 'center', 
+                        flexShrink: 0,
+                        margin: '0 -36px', 
+                        transition: 'transform 0.1s ease-out', 
+                        position: 'relative'
+                    }}
+                >
+                    <TourCard tour={tour} onView={onView} />
+                </div>
+            ))}
+
+            <div style={{ minWidth: '18px', flexShrink: 0 }} />
+        </div>
+    );
+};
+
+// --- MAIN PAGE ---
 export default function Tours(){
   const navigate = useNavigate();
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [showFilters, setShowFilters] = useState(false);
   
-  // Real tours from your data
-  const realTours = tourData.map(tour => ({
+  // Data Generation
+  const realTours = tourData.slice(0, 3).map(tour => ({
     id: tour.id, 
     title: tour.title.split(' - ')[0], 
-    days: tour.title.match(/(\d+)\s*N\s*\/\s*(\d+)\s*D/)?.[0] || 'Custom Days',
-    price: '₹' + tour.basePrice.toLocaleString('en-IN'),
+    days: tour.title.match(/(\d+)\s*N\s*\/\s*(\d+)\s*D/)?.[0] || '7Days',
+    price: '₹'+ tour.basePrice.toLocaleString('en-IN'),
     img: tour.img,
     summary: tour.subtitle,
   }));
   
-  // Generic mock tours
   const genericTours = Array.from({length: 6}).map((_, i) => ({
     id: `generic-${i + 4}`, 
     title: `Adventure Trek ${i + 4}`,
@@ -71,106 +228,166 @@ export default function Tours(){
     summary: 'A thrilling high-altitude trek for seasoned adventurers.',
   }));
   
-  const all = [...realTours, ...genericTours];
-  const [list, setList] = useState(all);
-  const [showFilters, setShowFilters] = useState(false);
+  const allTours = [...realTours, ...genericTours];
+  const [list] = useState(allTours);
   
-  // Track window width for responsive behavior
   useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
+    let timeoutId;
+    const handleResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setWindowWidth(window.innerWidth);
+      }, 150);
+    };
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
   
-  // Split tours into rows of 3
-  const rows = [];
-  for (let i = 0; i < list.length; i += 3) {
-    rows.push(list.slice(i, i + 3));
-  }
-  
   const isMobile = windowWidth < 1024;
+
+  const onView = (p) => {
+    navigate(`/tours/${p.id}`);
+  };
   
-  function applyFilters(f){ 
-    setList(all.slice(0, 6)); 
-  }
-  
-  function onView(p){ 
-    navigate(`/tours/${p.id}`); 
-  }
+  const applyFilters = (f) => { };
   
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-6 mb-24">
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 3fr', gap: '32px' }}>
-        {/* Filters Sidebar - Desktop Only */}
+    <div style={{ 
+      maxWidth: '1280px', 
+      margin: '0 auto', 
+      padding: isMobile ? '16px 0' : '24px 16px', 
+      marginBottom: '96px',
+      overflowX: 'hidden',
+      paddingTop: isMobile ? '88px' : undefined,
+      position: 'relative',
+      zIndex: 0
+    }}>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: isMobile ? '1fr' : '1fr 3fr', 
+        gap: '32px',
+        padding: isMobile ? '0 16px' : '0' 
+      }}>
         {!isMobile && (
           <aside>
             <Filters onChange={applyFilters} />
           </aside>
         )}
         
-        {/* Main Content */}
-        <div>
-          <SearchBar onSearch={(q) => console.log('search', q)} />
+        <div style={{ minWidth: 0 }}>
+          <div style={{ padding: isMobile ? '0' : '0' }}>
+             <SearchBar onSearch={(q) => console.log('search', q)} />
+          </div>
           
-          {/* Mobile Filter Button */}
           {isMobile && (
             <button 
-              className="w-full mt-4 bg-white text-gray-700 py-3 rounded-lg font-semibold shadow-md hover:bg-gray-50 transition-colors"
               onClick={() => setShowFilters(!showFilters)}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              style={{
+                width: '100%',
+                marginTop: '16px',
+                backgroundColor: 'white',
+                color: '#374151',
+                padding: '12px',
+                borderRadius: '8px',
+                fontWeight: 600,
+                boxShadow: '0 2px 4px rgba(0,0,0,0.06)',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-              </svg>
-              Filters
+              Filters (Icon)
             </button>
           )}
           
-          {/* Mobile Filters Panel */}
           {isMobile && showFilters && (
             <div style={{ marginTop: '16px' }}>
               <Filters onChange={applyFilters} />
             </div>
           )}
           
-          {/* Tours Display */}
           <div style={{ marginTop: '24px' }}>
-            {/* Mobile: Scrollable rows (3 cards per row) */}
             {isMobile ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                {rows.map((row, idx) => (
-                  <div key={idx}>
-                    <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', marginBottom: '12px', paddingLeft: '4px' }}>
-                      Row {idx + 1}
-                    </h3>
-                    <div 
-                      className="tours-scroll-container"
-                      style={{
-                        display: 'flex',
-                        flexWrap: 'nowrap',
-                        gap: '16px',
-                        overflowX: 'auto',
-                        overflowY: 'hidden',
-                        paddingBottom: '16px',
-                        scrollSnapType: 'x mandatory',
-                        WebkitOverflowScrolling: 'touch',
-                        scrollbarWidth: 'none',
-                        msOverflowStyle: 'none',
-                        width: '100%'
-                      }}
-                    >
-                      {row.map(tour => (
-                        <div key={tour.id} style={{ scrollSnapAlign: 'start', flex: '0 0 auto' }}>
-                          <TourCard tour={tour} onView={onView} />
-                        </div>
-                      ))}
-                    </div>
+              /* MOBILE: STACKED CAROUSELS WITH SCROLL ANIMATION */
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                
+                {/* ROW 1 - Animated */}
+                <motion.div
+                  variants={mobileRowVariant}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, margin: "-10%" }} // Triggers when row is 10% inside screen
+                >
+                  <h3 style={{ 
+                      fontSize: '20px', 
+                      fontWeight: 800, 
+                      color: '#1f2937', 
+                      paddingLeft: '16px', 
+                      marginBottom: '0px'
+                  }}>
+                    Popular Treks
+                  </h3>
+                  <div style={{ margin: '0 -16px' }}> 
+                     <Mobile3DCarousel items={list.slice(0, 3)} onView={onView} />
                   </div>
-                ))}
+                </motion.div>
+
+                {/* ROW 2 - Animated */}
+                <motion.div
+                  variants={mobileRowVariant}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, margin: "-10%" }}
+                >
+                  <h3 style={{ 
+                      fontSize: '20px', 
+                      fontWeight: 800, 
+                      color: '#1f2937', 
+                      paddingLeft: '16px', 
+                      marginBottom: '0px' 
+                  }}>
+                      Best Sellers
+                  </h3>
+                  <div style={{ margin: '0 -16px' }}>
+                     <Mobile3DCarousel items={list.slice(3, 6)} onView={onView} />
+                  </div>
+                </motion.div>
+
+                {/* ROW 3 - Animated */}
+                <motion.div
+                  variants={mobileRowVariant}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, margin: "-10%" }}
+                >
+                  <h3 style={{ 
+                      fontSize: '20px', 
+                      fontWeight: 800, 
+                      color: '#1f2937', 
+                      paddingLeft: '16px', 
+                      marginBottom: '0px' 
+                  }}>
+                      Weekend Trips
+                  </h3>
+                  <div style={{ margin: '0 -16px' }}>
+                     <Mobile3DCarousel items={list.slice(6, 9)} onView={onView} />
+                  </div>
+                </motion.div>
+
               </div>
             ) : (
-              /* Desktop: Grid layout */
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+              /* Desktop Grid - No Scroll Animation Needed Here (or optional) */
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(3, 1fr)', 
+                gap: '24px' 
+              }}>
                 {list.map(tour => (
                   <TourCard key={tour.id} tour={tour} onView={onView} />
                 ))}
@@ -178,37 +395,37 @@ export default function Tours(){
             )}
           </div>
           
-          {/* Results count */}
-          <div style={{ marginTop: '32px', textAlign: 'center', color: '#6b7280', fontSize: '14px' }}>
+          <div style={{ 
+            marginTop: '32px', 
+            textAlign: 'center', 
+            color: '#6b7280', 
+            fontSize: '14px' 
+          }}>
             Showing {list.length} tours
           </div>
         </div>
       </div>
       
+      {/* CSS OVERRIDES */}
       <style>{`
-        .tours-scroll-container {
-          flex-wrap: nowrap !important;
-        }
-        
-        .tours-scroll-container::-webkit-scrollbar {
+        .mobile-3d-scroll::-webkit-scrollbar {
           display: none;
+        }
+        .mobile-3d-scroll {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
         
         .tour-card-mobile {
-          flex-shrink: 0 !important;
+          -webkit-tap-highlight-color: transparent;
+          will-change: transform; 
+          transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease;
         }
-        
-        @media (hover: hover) {
+
+        @media (min-width: 1025px) {
           .tour-card-mobile:hover {
-            transform: translateY(-4px);
-          }
-        }
-        
-        /* Force no wrapping on mobile */
-        @media (max-width: 1024px) {
-          .tours-scroll-container {
-            flex-wrap: nowrap !important;
-            overflow-x: scroll !important;
+            transform: translateY(-8px) scale(1.069);
+            box-shadow: 0 18px 40px rgba(0,0,0,0.18) !important;
           }
         }
       `}</style>

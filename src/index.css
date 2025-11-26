@@ -2,20 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
-/* THEME COLORS */
+/* ============================================
+   1. GLOBAL VARIABLES & RESET
+   ============================================ */
 :root {
-  --p1: #0891b2;
-  --p2: #0284c7;
-  --dark: #0f172a;
+  --p1: #0891b2; /* Cyan-600 */
+  --p2: #0284c7; /* Sky-600 */
+  --dark: #0f172a; /* Slate-900 */
 }
 
-/* CLEAN BACKGROUND - No blur effects */
-body:not(.home-page) {
-  background-color: #ecfeff;
-  background-image: linear-gradient(to bottom, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.14) 100%), url('/g.jpeg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+html, body, #root {
+  width: 100%;
+  min-height: 100vh;
+  /* Prevents z-index conflicts between sections */
+  isolation: isolate; 
+  scroll-behavior: smooth;
 }
 
 body {
@@ -24,23 +25,53 @@ body {
   font-family: 'Inter', sans-serif;
   color: var(--dark);
   overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
-html, body, #root {
-  width: 100%;
-  min-height: 100vh;
-  isolation: isolate;
+/* Clean Background for Non-Home Pages */
+body:not(.home-page) {
+  background-color: #ecfeff;
+  /* Subtle texture */
+  background-image: radial-gradient(#cfbaf0 2px, transparent 2px); 
+  background-size: 32px 32px;
 }
 
-/* CLEAN BUTTON RIPPLE EFFECTS - No backdrop-filter */
+/* ============================================
+   2. UTILITIES & SCROLLBAR
+   ============================================ */
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px; /* For horizontal scrolling */
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(8, 145, 178, 0.3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(8, 145, 178, 0.6);
+}
+
+/* Utilities */
+.text-shadow {
+  text-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+/* Button Ripple Effect */
 .btn-ripple {
   position: relative;
   overflow: hidden;
   cursor: pointer;
   user-select: none;
-  background: none;
-  border: none;
-  outline: none;
+  transition: transform 0.2s ease;
+}
+
+.btn-ripple:active {
+  transform: scale(0.96);
 }
 
 .btn-ripple::after {
@@ -50,8 +81,8 @@ html, body, #root {
   background: radial-gradient(circle, rgba(255,255,255,0.4) 10%, transparent 70%);
   transform: scale(0);
   opacity: 0;
-  pointer-events: none;
   transition: transform 0.5s ease, opacity 0.5s ease;
+  pointer-events: none;
 }
 
 .btn-ripple:active::after {
@@ -60,426 +91,177 @@ html, body, #root {
   transition: 0s;
 }
 
-/* HEADINGS */
-h1, h2, h3, h4 {
-  color: var(--dark);
-  font-family: inherit;
-}
+/* ============================================
+   3. NAVBAR STYLES (Clean & Frosted)
+   ============================================ */
 
-.text-shadow {
-  text-shadow: 0 2px 10px rgba(0,0,0,0.08);
-}
-
-/* CLEAN SCROLL BAR */
-::-webkit-scrollbar {
-  width: 8px;
-  background: rgba(0, 0, 0, 0.06);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--p1);
-  border-radius: 4px;
-}
-
-/* SVG BLOB OPTIMIZATION */
-@media (max-width: 640px) {
-  .absolute.w-\[520px\], .absolute.w-\[440px\] {
-    display: none;
-  }
-  .absolute.w-36.h-36 {
-    width: 80px !important;
-    height: 80px !important;
-  }
-}
-
-/* CLEAN NAVBAR STYLES - No glass effects */
 .navbar-clean {
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
   transition: all 0.3s ease;
 }
 
-.navbar-clean-dark {
-  background: #1f2937;
-  border-bottom: 1px solid #374151;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.navbar-clean-dark:hover {
-  background: #374151;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-}
-
-.navbar-clean-light {
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-}
-
-.navbar-clean-light:hover {
-  background: #f9fafb;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-}
-
-/* CLEAN MOBILE MENU */
-.mobile-menu-clean {
-  background: #1f2937;
-  border-top: 1px solid #374151;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
-}
-
-/* CLEAN LOGO GLOW - Simple text shadow */
-.logo-clean {
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-  transition: all 0.3s ease;
-}
-
-.logo-clean:hover {
-  text-shadow: 0 3px 6px rgba(0,0,0,0.4);
-  transform: scale(1.02);
-}
-
-/* CLEAN NAV LINKS */
 .nav-link-clean {
-  position: relative;
   padding: 0.5rem 1rem;
   border-radius: 0.75rem;
   transition: all 0.3s ease;
+  font-weight: 500;
+  color: #4b5563;
 }
 
 .nav-link-clean:hover {
-  background: rgba(6, 182, 212, 0.1);
-  transform: translateY(-1px);
+  background: rgba(8, 145, 178, 0.08);
+  color: var(--p1);
 }
 
 .nav-active-clean {
-  background: rgba(6, 182, 212, 0.2);
-  border: 1px solid rgba(6, 182, 212, 0.4);
-  color: #0891b2;
+  background: rgba(8, 145, 178, 0.1);
+  color: var(--p1);
   font-weight: 600;
 }
 
-/* CLEAN WHATSAPP BUTTON */
-.whatsapp-btn-clean {
-  background: linear-gradient(135deg, #25d366, #128c7e);
-  color: white;
-  border: none;
-  box-shadow: 0 2px 8px rgba(37, 211, 102, 0.3);
-  transition: all 0.3s ease;
-}
-
-.whatsapp-btn-clean:hover {
-  background: linear-gradient(135deg, #34d877, #128c7e);
-  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
-  transform: scale(1.05) translateY(-1px);
-}
-
-.whatsapp-btn-clean:active {
-  transform: scale(0.98) translateY(0);
-}
-
-/* CLEAN FLOATING BUTTON */
-.floating-btn-clean {
-  background: linear-gradient(135deg, #0891b2, #0284c7);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 16px rgba(8, 145, 178, 0.3);
-  transition: all 0.3s ease;
-}
-
-.floating-btn-clean:hover {
-  transform: scale(1.1) rotate(90deg);
-  box-shadow: 0 6px 24px rgba(8, 145, 178, 0.4);
-}
-
-.floating-btn-clean:active {
-  transform: scale(1.05) rotate(90deg);
-}
-
-/* CLEAN DROP SHADOW */
-.drop-shadow-clean {
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
-  transition: filter 0.3s ease;
-}
-
-.drop-shadow-clean:hover {
-  filter: drop-shadow(0 3px 8px rgba(0,0,0,0.2));
-}
-
-/* CLEAN GLASS ALTERNATIVES */
-.glass-dark-clean {
-  background: #374151;
-  border-bottom: 1px solid #4b5563;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-}
-
-.glass-light-clean {
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-}
-
-.glass-menu-clean {
-  background: #1f2937;
-  border-top: 1px solid #374151;
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.3);
+/* Mobile Menu */
+.mobile-menu-clean {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(0,0,0,0.05);
 }
 
 /* ============================================
-   MOBILE OPTIMIZATIONS - Clean version
+   4. FEATURES SECTION (Flicker Fixes)
    ============================================ */
 
-/* Mobile-specific spacing and layout */
-@media (max-width: 768px) {
-  .container {
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
+/* Creates a new stacking context to stop layout thrashing */
+.features-isolation {
+  isolation: isolate;
+  position: relative;
+  z-index: 10;
+}
+
+/* The "Feature Card" - Heavily Optimized */
+.glass-card {
+  /* Visuals */
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+  border-radius: 32px;
+
+  /* === HARDWARE ACCELERATION (Stops Flicker) === */
+  /* 1. Force GPU layer */
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
   
-  /* Prevent horizontal scroll on mobile */
-  html, body {
-    max-width: 100%;
-    overflow-x: hidden;
-  }
+  /* 2. Stop painting outside bounds */
+  contain: layout paint;
   
-  /* Better touch targets */
-  button, a {
-    min-height: 44px;
-    min-width: 44px;
-  }
+  /* 3. Fix backface glitches during 3D transforms */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   
-  /* Optimize font sizes for mobile */
-  h1 {
-    font-size: 2.5rem !important;
-    line-height: 1.2;
-  }
+  /* 4. Hint to browser to optimize for changes */
+  will-change: transform, opacity;
   
-  h2 {
-    font-size: 2rem !important;
-  }
+  /* 5. Fix z-space flickering */
+  perspective: 1000px;
+}
+
+/* Icon Container */
+.accent-gradient {
+  background: linear-gradient(135deg, #0ea5e9 0%, #2dd4bf 100%);
+}
+
+.icon-wrapper {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* ============================================
+   5. TOURS PAGE (Mobile 3D Carousel)
+   ============================================ */
+
+/* Hide scrollbar but keep functionality */
+.mobile-3d-scroll::-webkit-scrollbar {
+  display: none;
+}
+.mobile-3d-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.tour-card-mobile {
+  -webkit-tap-highlight-color: transparent;
+  /* Smooth transitions for the scaling effect */
+  transition: transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.2s ease;
   
-  /* Hide large decorative elements on small screens */
-  .absolute.w-\[600px\],
-  .absolute.w-\[520px\],
-  .absolute.w-\[440px\] {
-    display: none;
-  }
-  
-  /* Scale down visible decorative elements */
-  .absolute.w-\[400px\] {
-    width: 200px !important;
-    height: 200px !important;
+  /* Performance */
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* Desktop Hover Effect */
+@media (min-width: 1025px) {
+  .tour-card-mobile:hover {
+    transform: translateY(-8px) scale(1.05) !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
+    z-index: 50 !important;
   }
 }
 
-/* Safe area insets for modern phones (notch support) */
-@supports (padding: max(0px)) {
-  body {
-    padding-left: max(0px, env(safe-area-inset-left));
-    padding-right: max(0px, env(safe-area-inset-right));
-    padding-bottom: max(0px, env(safe-area-inset-bottom));
-  }
-  
-  .fixed.bottom-6 {
-    bottom: max(1.5rem, calc(env(safe-area-inset-bottom) + 1.5rem));
-  }
+/* ============================================
+   6. BOOKING SIDEBAR & MODALS
+   ============================================ */
+
+/* Remove scrollbars inside sidebar lists */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-/* Clean mobile optimizations */
-@media (max-width: 768px) {
-  /* Reduce motion for better performance */
-  * {
-    animation-duration: 0.3s !important;
-    transition-duration: 0.2s !important;
-  }
+/* Strict Centering for Modals */
+.modal-overlay-fixed {
+  position: fixed !important;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 9999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1.5rem !important;
 }
 
-/* Touch-friendly interactive elements */
-@media (hover: none) and (pointer: coarse) {
-  /* Remove hover effects on touch devices */
-  .hover\:scale-110:hover {
-    transform: scale(1);
-  }
-  
-  /* Enhance tap feedback */
-  button:active,
-  a:active {
-    transform: scale(0.95);
-    opacity: 0.8;
-  }
+.modal-content-box {
+  width: 100% !important;
+  max-width: 400px !important;
+  margin: 0 auto !important;
+  max-height: 85vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  position: relative !important;
 }
 
-/* Improved text readability on mobile */
+/* ============================================
+   7. RESPONSIVE TWEAKS
+   ============================================ */
+
 @media (max-width: 640px) {
-  body {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-  }
-  
-  /* Better spacing for mobile content */
-  section {
-    padding-top: 2rem;
-    padding-bottom: 2rem;
-  }
-  
-  /* Stack elements vertically on small screens */
-  .flex {
-    flex-wrap: wrap;
-  }
-}
-
-/* Clean performance optimizations */
-@media (max-width: 768px) {
-  /* Hardware acceleration for smooth scrolling */
-  * {
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-  }
-  
-  /* Optimize images */
-  img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-  }
-}
-
-/* Simple mobile menu button */
-.mobile-menu-btn-simple {
-  position: fixed;
-  bottom: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 50;
-  width: 3.5rem;
-  height: 3.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #0891b2, #0284c7);
-  border-radius: 9999px;
-  box-shadow: 0 4px 16px rgba(8, 145, 178, 0.4);
-  cursor: pointer;
-  border: none;
-  color: white;
-  transition: all 0.3s ease;
-}
-
-.mobile-menu-btn-simple:hover {
-  transform: translateX(-50%) scale(1.1);
-  box-shadow: 0 6px 20px rgba(8, 145, 178, 0.5);
-}
-
-.mobile-menu-btn-simple:active {
-  transform: translateX(-50%) scale(0.95);
-}
-
-@media (min-width: 768px) {
-  .mobile-menu-btn-simple {
+  /* Optimize decorative blobs */
+  .absolute.w-\[520px\], .absolute.w-\[440px\] {
     display: none;
   }
-}
-/* 🔥 SIMPLE GREY GRADIENT NAVBAR STYLES */
-
-/* Desktop Grey Gradient */
-.navbar-grey-gradient {
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-/* Dynamic blur effect */
-.navbar-grey-gradient.dynamic-blur {
-  transition: backdrop-filter 0.3s ease, background 0.3s ease;
-}
-
-/* Mobile Grey Gradient */
-.navbar-grey-mobile {
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-/* Simple hover effects for grey theme */
-.nav-link-grey {
-  transition: all 0.3s ease;
-}
-
-.nav-link-grey:hover {
-  transform: translateY(-1px);
-}
-
-/* Active link style for grey theme */
-.active-link-grey {
-  position: relative;
-}
-
-.active-link-grey::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(14, 165, 233, 0.1));
-  border-radius: inherit;
-}
-
-/* Simple mobile menu button - Grey theme */
-.mobile-btn-grey {
-  transition: all 0.3s ease;
-}
-
-.mobile-btn-grey:hover {
-  transform: translateX(-50%) scale(1.05);
-}
-
-/* Compact mobile menu styles */
-.mobile-menu-compact {
-  position: relative;
-  overflow: hidden;
-}
-
-/* Simple shadow effects */
-.simple-shadow {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-.simple-shadow-hover:hover {
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
-}
-
-/* Grey gradient text shadow */
-.text-shadow-grey {
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.text-shadow-grey-dark {
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-/* Subtle border effects */
-.border-grey-subtle {
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.border-grey-subtle-dark {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Responsive adjustments for compact menu */
-@media (max-width: 390px) {
-  .mobile-menu-compact {
-    margin: 0 0.5rem;
-  }
   
-  .mobile-menu-compact .p-5 {
-    padding: 1rem;
-  }
-}
-
-/* High DPI optimizations */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .navbar-grey-gradient,
-  .navbar-grey-mobile {
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+  /* Reduce motion for low-end devices if needed */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0s !important;
+      transition-duration: 0s !important;
+    }
   }
 }

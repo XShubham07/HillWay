@@ -20,7 +20,7 @@ export default function PackageCard({ pkg, p, onCustomize, onView }) {
           className="w-full h-44 object-cover"
         />
         {data.subtitle && (
-          <div className="absolute top-3 left-3 bg-white/90 px-3 py-1 rounded text-sm font-medium">
+          <div className="absolute top-2 left-3 bg-white/90 px-1 py--3 rounded text-sm font-medium">
             {data.subtitle.split("•")[0]}
           </div>
         )}

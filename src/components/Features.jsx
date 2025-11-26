@@ -1,109 +1,167 @@
-import { motion } from "framer-motion";
+// src/components/Features.jsx
+import { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { 
+  FaWallet, 
+  FaMapMarkedAlt, 
+  FaTicketAlt, 
+  FaHeadset 
+} from "react-icons/fa"; 
 
-// --- INLINE ICONS (No Dependencies) ---
-const IconShield = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-);
-const IconHotel = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18M5 21V7l8-4 8 4v14M8 21V12a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v9M10 9a2 2 0 1 1 4 0v0a2 2 0 1 1-4 0v0"/></svg>
-);
-const IconCar = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>
-);
-const IconHeadset = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
-);
-
+// --- DATA ---
 const features = [
-  { icon: <IconShield />, title: "100% Safe", desc: "Verified drivers & secure stays." },
-  { icon: <IconHotel />, title: "Luxury Stays", desc: "Handpicked premium hotels." },
-  { icon: <IconCar />, title: "Private Cabs", desc: "Clean & sanitized private fleet." },
-  { icon: <IconHeadset />, title: "24/7 Support", desc: "On-ground support team." },
+  {
+    icon: <FaWallet size={26} />,
+    title: "Best Price",
+    desc: "Competitive rates without compromising quality."
+  },
+  {
+    icon: <FaMapMarkedAlt size={26} />,
+    title: "Diverse Locations",
+    desc: "From hidden trails to bustling cities."
+  },
+  {
+    icon: <FaTicketAlt size={26} />,
+    title: "Easy Booking",
+    desc: "Seamless process, confirmed in clicks."
+  },
+  {
+    icon: <FaHeadset size={26} />,
+    title: "24/7 Support",
+    desc: "Round the clock assistance for you."
+  }
 ];
 
-// --- ANIMATION VARIANTS ---
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.2, // Slide one by one with 0.2s delay between each
-      delayChildren: 0.1,
-    }
-  }
-};
+// --- SUB-COMPONENT ---
+const FeatureCard = ({ f, index }) => {
+  const ref = useRef(null);
 
-const cardVariants = {
-  hidden: { y: 40, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 20
+  // Scroll Progress Logic
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"]
+  });
+
+  // Smooth Scale Logic (Center Zoom)
+  // Removed Opacity transform to prevent flicker
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.9, 1.05, 0.9]);
+
+  // Icon Animation Variants (Spin + Scale)
+  const iconVariants = {
+    hidden: { 
+      scale: 0, 
+      rotate: -180, 
+      opacity: 0 
+    },
+    visible: {
+      scale: 1, 
+      rotate: 0,   
+      opacity: 1,
+      transition: { 
+        type: "spring", 
+        stiffness: 200, 
+        damping: 20,
+        delay: 0.2 
+      }
     }
-  }
+  };
+
+  return (
+    // 1. Entrance Wrapper
+    <motion.div
+      ref={ref}
+      variants={{
+        hidden: { opacity: 0, y: 60 },
+        visible: { 
+          opacity: 1, 
+          y: 0,
+          transition: { type: "spring", stiffness: 60, damping: 20 }
+        }
+      }}
+      className="relative z-10"
+      // Force initial state to prevent flash
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: false, margin: "-10%" }}
+    >
+      {/* 2. Scroll Zoom Wrapper (Uses CSS Class .glass-card) */}
+      <motion.div
+        style={{ scale }}
+        className="glass-card p-8 flex flex-col items-center text-center group relative hover:bg-white/50 transition-colors duration-500"
+      >
+        {/* 3. Icon Wrapper */}
+        <motion.div
+          variants={iconVariants}
+          // HOVER: Smooth Re-spin
+          whileHover={{ 
+            rotate: 360, 
+            scale: 1.15,
+            transition: { duration: 0.6, ease: "easeInOut" } 
+          }}
+          className="
+            icon-wrapper
+            w-20 h-20 mb-6 rounded-2xl 
+            accent-gradient
+            flex items-center justify-center text-white
+            shadow-lg shadow-teal-500/20
+            cursor-pointer
+          "
+        >
+          {f.icon}
+        </motion.div>
+
+        <h3 className="font-bold text-xl text-gray-900 mb-3 tracking-wide pointer-events-none">
+          {f.title}
+        </h3>
+        
+        <p className="text-sm text-gray-700 font-medium leading-relaxed transition-colors pointer-events-none">
+          {f.desc}
+        </p>
+        
+        {/* Hover Bottom Bar */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-1 accent-gradient rounded-full transition-all duration-500 group-hover:w-1/3 opacity-0 group-hover:opacity-100" />
+      </motion.div>
+    </motion.div>
+  );
 };
 
 export default function Features() {
   return (
-    <section className="py-20 px-6 relative z-10">
-      <div className="max-w-7xl mx-auto">
-        
+    <section className="py-24 px-6 relative z-10 overflow-hidden">
+      <div className="max-w-7xl mx-auto features-isolation">
+
+        {/* Title Section */}
         <motion.div 
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          viewport={{ once: false, margin: "-100px" }}
+          transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl md:text-4xl font-extrabold text-[var(--dark)] tracking-tight">
+          <h2 className="text-3xl md:text-5xl font-bold text-gray-900 tracking-tight drop-shadow-sm">
             Why Choose HillWay?
           </h2>
-          <p className="text-gray-600 mt-3 font-medium text-lg">Elevating your travel experience</p>
+          <p className="text-gray-600 mt-4 text-lg font-medium">
+            Experience the difference with our premium services
+          </p>
         </motion.div>
 
-        <motion.div 
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-          variants={containerVariants}
+        {/* Grid Container */}
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 sm:gap-8"
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
+          viewport={{ once: false, amount: 0.1 }}
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: { staggerChildren: 0.25 }
+            }
+          }}
         >
           {features.map((f, i) => (
-            <motion.div
-              key={i}
-              variants={cardVariants}
-              whileHover={{ y: -8 }}
-              className="
-                relative overflow-hidden
-                bg-white/30 backdrop-blur-lg border border-white/50
-                p-8 rounded-3xl
-                shadow-[0_8px_30px_rgb(0,0,0,0.04)]
-                hover:shadow-[0_15px_35px_rgb(0,0,0,0.1)]
-                text-center group
-                transition-all duration-300
-              "
-            >
-              {/* Subtle White Gradient Overlay on Hover */}
-              <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              
-              <div className="relative z-10 flex flex-col items-center">
-                <div className="
-                  w-16 h-16 mb-6 rounded-2xl 
-                  bg-gradient-to-br from-[var(--p1)] to-[var(--p2)]
-                  flex items-center justify-center text-white
-                  shadow-lg shadow-cyan-500/20
-                  group-hover:scale-110 group-hover:rotate-3 
-                  transition-transform duration-300 cubic-bezier(0.34, 1.56, 0.64, 1)
-                ">
-                  {f.icon}
-                </div>
-                <h3 className="font-bold text-xl text-gray-900">{f.title}</h3>
-                <p className="text-sm text-gray-700 mt-3 leading-relaxed font-medium">{f.desc}</p>
-              </div>
-            </motion.div>
+            <FeatureCard key={i} f={f} index={i} />
           ))}
         </motion.div>
 

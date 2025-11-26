@@ -14,11 +14,11 @@ export default function PackageGrid({ list, onView }) {
             onMouseLeave={() => setHoverIndex(null)}
             className="transition-all duration-300"
             style={{
-              transform: isHovered ? "scale(1.08)" : "scale(1)",
-              opacity: hoverIndex !== null && !isHovered ? 0.6 : 1,
+              transform: isHovered ? "scale(1.08)" : "scale(.99)",
+              opacity: hoverIndex !== null && !isHovered ? 0.6: 1,
               filter:
                 hoverIndex !== null && !isHovered
-                  ? "blur(1px)"
+                  ? "blur(0.2px)"
                   : "blur(0px)",
             }}
           >
