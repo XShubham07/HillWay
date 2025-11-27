@@ -1,6 +1,6 @@
 // src/pages/TourDetailsPage.jsx
 import { useParams } from "react-router-dom";
-import { motion, useMotionValue, useSpring, AnimatePresence } from "framer-motion"; // Added AnimatePresence
+import { motion, useMotionValue, useSpring, AnimatePresence } from "framer-motion";
 import {
   FaMapMarkerAlt,
   FaCalendarAlt,
@@ -16,7 +16,8 @@ import {
   FaCoffee,
   FaConciergeBell,
   FaQuestionCircle,
-  FaChevronDown
+  FaChevronDown,
+  FaUsers // Added for Group Type
 } from "react-icons/fa";
 import { getTourById } from "../data/mockTours";
 import { useState, useEffect } from "react";
@@ -26,8 +27,6 @@ export default function TourDetailsPage() {
   const { id } = useParams();
   const tour = getTourById(id);
   const [activeTab, setActiveTab] = useState("overview");
-
-  // State for FAQ Accordion
   const [openFaq, setOpenFaq] = useState(null);
 
   /* MOUSE GLOW */
@@ -55,7 +54,6 @@ export default function TourDetailsPage() {
 
   const overviewText = tour.details ?? tour.description ?? "";
 
-  // Mock FAQ Data
   const faqs = [
     { q: "Is this tour suitable for children?", a: "Yes, this is a family-friendly tour. However, please check the itinerary for any strenuous trekking activities." },
     { q: "What is the cancellation policy?", a: "Cancellations made 7 days prior to the trip attract a 20% deduction. No refunds for cancellations within 24 hours." },
@@ -68,11 +66,11 @@ export default function TourDetailsPage() {
   };
 
   return (
-    <div className="relative min-h-screen text-white">
+    // Added 'w-full overflow-x-hidden' to fix mobile bleeding
+    <div className="relative min-h-screen w-full overflow-x-hidden text-white">
       
-      {/* --- CSS OVERRIDE (Tabs & Scrollbar) --- */}
+      {/* --- CSS OVERRIDE --- */}
       <style>{`
-        /* Force horizontal scroll layout */
         .force-horizontal-scroll {
           display: flex !important;
           flex-direction: row !important;
@@ -80,17 +78,13 @@ export default function TourDetailsPage() {
           overflow-x: auto !important;
           width: 100% !important;
           -webkit-overflow-scrolling: touch !important;
-          scrollbar-width: none; /* Firefox */
-          -ms-overflow-style: none; /* IE/Edge */
-          padding-bottom: 8px; /* space for scrollbar hidden */
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+          padding-bottom: 8px;
         }
-        
-        /* Hide scrollbar for Chrome/Safari */
         .force-horizontal-scroll::-webkit-scrollbar {
           display: none !important;
         }
-
-        /* Prevent buttons from squashing */
         .scroll-item {
           flex: 0 0 auto !important;
           white-space: nowrap !important;
@@ -120,7 +114,7 @@ export default function TourDetailsPage() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="max-w-7xl mx-auto px-6 pb-28 lg:pb-12 pt-8 mt-[1.4cm] lg:-mt-[0.5cm]"
+        className="max-w-7xl mx-auto px-4 sm:px-6 pb-28 lg:pb-12 pt-8 mt-[1.4cm] lg:-mt-[0.5cm]"
       >
         <div className="flex flex-col lg:flex-row gap-10">
 
@@ -129,23 +123,36 @@ export default function TourDetailsPage() {
 
             <motion.img
               src={tour.img}
-              className="w-full h-96 object-cover rounded-xl border border-white/10 shadow-xl"
+              className="w-full h-64 sm:h-80 md:h-96 object-cover rounded-xl border border-white/10 shadow-xl"
               whileHover={{ scale: 1.02 }}
             />
 
             {/* Title + Subtitle */}
-            <h1 className="text-4xl lg:text-5xl font-serif font-bold tracking-wide text-white drop-shadow-lg mt-6">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold tracking-wide text-white drop-shadow-lg mt-6 break-words">
               {tour.title}
             </h1>
-            <p className="text-lg text-gray-300 mt-2">{tour.subtitle}</p>
+            <p className="text-base md:text-lg text-gray-300 mt-2">{tour.subtitle}</p>
 
-            {/* Location */}
-            <div className="flex items-center gap-2 mt-4 text-lg">
-              <FaMapMarkerAlt className="text-[#D9A441]" />
-              <span>{tour.location}</span>
+            {/* Location & Rating Row (Updated) */}
+            <div className="flex flex-wrap items-center gap-4 mt-4 text-base md:text-lg">
+              {/* Location */}
+              <div className="flex items-center gap-2">
+                <FaMapMarkerAlt className="text-[#D9A441]" />
+                <span>{tour.location}</span>
+              </div>
+
+              {/* Separator (Hidden on very small screens) */}
+              <div className="hidden sm:block w-1.5 h-1.5 bg-gray-500 rounded-full" />
+
+              {/* Rating Moved Here */}
+              <div className="flex items-center gap-2 text-[#D9A441]">
+                <FaStar />
+                <span className="text-white font-bold">{tour.rating}</span>
+                <span className="text-gray-400 text-sm font-normal">(4.8/5 Reviews)</span>
+              </div>
             </div>
 
-            {/* INFO CARDS */}
+            {/* INFO CARDS - REPLACED RATING WITH GROUP TYPE */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
               <div className="p-4 rounded-xl bg-white/10 border border-white/20 flex items-center gap-3">
                 <div className="p-3 rounded-xl bg-[#D9A441] text-black">
@@ -167,20 +174,21 @@ export default function TourDetailsPage() {
                 </div>
               </div>
 
+              {/* CHANGED: Rating Card -> Group Type Card */}
               <div className="p-4 rounded-xl bg-white/10 border border-white/20 flex items-center gap-3">
                 <div className="p-3 rounded-xl bg-[#1F4F3C]">
-                  <FaStar />
+                  <FaUsers /> {/* User Icon */}
                 </div>
                 <div>
-                  <p className="text-xs text-gray-300">Rating</p>
-                  <p className="text-xl font-bold">{tour.rating}</p>
+                  <p className="text-xs text-gray-300">Group Type</p>
+                  <p className="text-xl font-bold">Mixed</p>
                 </div>
               </div>
             </div>
 
             {/* TABS - FORCED HORIZONTAL SCROLL */}
             <div className="mt-10 w-full overflow-hidden">
-              <div className="force-horizontal-scroll gap-3">
+              <div className="force-horizontal-scroll gap-3 max-w-full">
                 {[
                   { id: "overview", label: "Overview" },
                   { id: "itinerary", label: "Itinerary" },
@@ -204,7 +212,7 @@ export default function TourDetailsPage() {
                 ))}
               </div>
 
-              <div className="mt-6 p-6 bg-white/10 border border-white/20 rounded-xl">
+              <div className="mt-6 p-4 md:p-6 bg-white/10 border border-white/20 rounded-xl">
 
                 {/* OVERVIEW */}
                 {activeTab === "overview" && (
@@ -212,12 +220,12 @@ export default function TourDetailsPage() {
                     <p>{overviewText || "This tour offers a premium travel experience."}</p>
 
                     {/* INCLUSIONS */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 mt-10">
                       <div>
                         <h3 className="text-2xl font-bold text-emerald-300 mb-4">What’s Included?</h3>
                         {tour.inclusions.map((item, i) => (
-                          <div key={i} className="flex items-center gap-3 mb-3">
-                            <FaCheckCircle className="text-emerald-300" />
+                          <div key={i} className="flex items-start gap-3 mb-3">
+                            <FaCheckCircle className="text-emerald-300 mt-1 shrink-0" />
                             <span>{item}</span>
                           </div>
                         ))}
@@ -231,8 +239,8 @@ export default function TourDetailsPage() {
                           "Lunch During Travel",
                           "Extra Activities & Entry Fees"
                         ].map((item, i) => (
-                          <div key={i} className="flex items-center gap-3 mb-3">
-                            <FaTimesCircle className="text-red-400" />
+                          <div key={i} className="flex items-start gap-3 mb-3">
+                            <FaTimesCircle className="text-red-400 mt-1 shrink-0" />
                             <span>{item}</span>
                           </div>
                         ))}
@@ -350,7 +358,7 @@ export default function TourDetailsPage() {
                   </div>
                 )}
 
-                {/* FAQ TAB CONTENT - ACCORDION STYLE */}
+                {/* FAQ TAB CONTENT */}
                 {activeTab === "faq" && (
                   <div>
                     <h3 className="text-2xl font-bold text-[#D9A441] mb-6 flex items-center gap-3">
@@ -363,11 +371,11 @@ export default function TourDetailsPage() {
                             onClick={() => toggleFaq(i)}
                             className="w-full p-4 flex justify-between items-center text-left focus:outline-none"
                           >
-                            <h4 className="font-bold text-lg text-white">
+                            <h4 className="font-bold text-lg text-white pr-4">
                               {faq.q}
                             </h4>
                             <FaChevronDown
-                              className={`text-sm text-[#D9A441] transition-transform duration-300 ${
+                              className={`text-sm text-[#D9A441] shrink-0 transition-transform duration-300 ${
                                 openFaq === i ? "rotate-180" : ""
                               }`}
                             />

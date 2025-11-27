@@ -7,7 +7,8 @@ import {
   FaCheck,
   FaPlus,
   FaMinus,
-  FaBed
+  FaBed,
+  FaChair // Comfort Seat Icon
 } from "react-icons/fa";
 
 export default function BookingSidebar({ tour }) {
@@ -23,21 +24,26 @@ export default function BookingSidebar({ tour }) {
     bonfire: false,
     meal: false,
     tea: false,
+    comfortSeat: false,
+    rooms: 1, 
   });
 
   const handle = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
+  // Auto-calculate rooms
+  useEffect(() => {
+    const totalPersons = (Number(form.adults) || 0) + (Number(form.children) || 0);
+    const calculatedRooms = Math.ceil(totalPersons / 3) || 1;
+    if (totalPersons > form.rooms * 3) {
+       handle("rooms", calculatedRooms);
+    }
+  }, [form.adults, form.children]);
+
   const [finalPrice, setFinalPrice] = useState(0);
 
-  // --- Derived Calculations ---
+  // --- Calculations ---
   const totalPersons = (Number(form.adults) || 0) + (Number(form.children) || 0);
   
-  // Logic: 1-3 pax = 1 room, 4-6 pax = 2 rooms, 7-9 pax = 3 rooms, etc.
-  const numberOfRooms = Math.ceil(totalPersons / 3) || 1; 
-
-  const showPerHead = totalPersons > 2;
-  const perHeadPrice = totalPersons > 0 ? Math.round(finalPrice / totalPersons) : 0;
-
   useEffect(() => {
     const base = Number(tour?.basePrice || 0);
     const adults = Math.max(1, Number(form.adults));
@@ -47,19 +53,30 @@ export default function BookingSidebar({ tour }) {
     const mealPrice = Number(tour?.pricing?.mealPerPerson ?? 450);
     const teaPrice = Number(tour?.pricing?.teaPerPerson ?? 60);
     const cabRate = Number(tour?.pricing?.personalCab?.rate ?? 3200);
+    const comfortSeatPrice = 800; 
 
     let price = base * persons;
 
     if (form.meal) price += persons * mealPrice;
     if (form.tea) price += persons * teaPrice;
-    if (form.bonfire) price += 499;
+    if (form.comfortSeat) price += persons * comfortSeatPrice;
+    if (form.bonfire) price += 499; 
+    
     if (form.transport === "personal") price += cabRate;
-    if (form.transport === "bus") price += 900;
+    if (form.transport === "bus") price += 900 * persons;
+
+    // Extra room cost logic
+    const requiredRooms = Math.ceil(persons / 3);
+    if (form.rooms > requiredRooms) {
+        price += (form.rooms - requiredRooms) * 2000; 
+    }
 
     setFinalPrice(price);
   }, [form, tour]);
 
-  // Lock body scroll when open
+  const perHeadPrice = totalPersons > 0 ? Math.round(finalPrice / totalPersons) : finalPrice;
+
+  // Lock body scroll
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
@@ -74,25 +91,29 @@ export default function BookingSidebar({ tour }) {
     };
   }, [open]);
 
+  // --- STYLES ---
   const selectorBtn = (active) =>
-    `px-4 py-2 rounded-xl font-semibold border whitespace-nowrap flex items-center gap-2 justify-center ${
+    `px-4 py-2 rounded-xl font-semibold border whitespace-nowrap flex items-center gap-2 justify-center transition-all ${
       active
-        ? "bg-gradient-to-r from-[#D9A441] to-[#b58b2d] text-black shadow-xl border-yellow-300"
-        : "bg-white/10 text-white border-white/20"
+        ? "bg-gradient-to-r from-[#D9A441] to-[#b58b2d] text-black shadow-xl border-yellow-300 scale-105"
+        : "bg-white/5 text-white border-white/20 hover:bg-white/10"
     }`;
 
   const toggleClass = (active) =>
-    `min-w-[110px] px-4 py-2 rounded-2xl flex items-center gap-2 justify-center font-semibold border ${
-      active ? "bg-[#D9A441] text-black shadow-lg border-yellow-300" : "bg-white/10 text-white border-white/20"
+    `min-w-[100px] px-3 py-3 rounded-xl flex items-center gap-2 justify-center font-medium text-sm border transition-all ${
+      active 
+        ? "bg-[#D9A441] text-black shadow-lg border-yellow-300 scale-[1.02]" 
+        : "bg-white/5 text-gray-300 border-white/10 hover:bg-white/10"
     }`;
 
-  // Helper component for Quantity Inputs
-  const QuantityControl = ({ label, icon: Icon, value, field, min }) => (
+  // --- COMPONENTS ---
+  const QuantityControl = ({ label, subLabel, icon: Icon, value, field, min }) => (
     <div>
-      <label className="text-sm flex items-center gap-2 text-gray-200 mb-1">
-        {Icon && <Icon />} {label}
+      <label className="text-sm text-gray-200 mb-1 flex justify-between items-center">
+        <span className="flex items-center gap-2">{Icon && <Icon />} {label}</span>
+        <span className="text-xs text-gray-400 font-normal">{subLabel}</span>
       </label>
-      <div className="flex items-center bg-white/10 rounded-xl border border-white/20 overflow-hidden">
+      <div className="flex items-center bg-white/5 rounded-xl border border-white/20 overflow-hidden">
         <button
           onClick={() => handle(field, Math.max(min, value - 1))}
           className="p-3 hover:bg-white/10 text-yellow-400 transition active:scale-90"
@@ -113,27 +134,44 @@ export default function BookingSidebar({ tour }) {
   );
 
   const PriceDisplayBox = () => (
-    <div className="p-4 rounded-2xl bg-gradient-to-br from-[#D9A441]/30 to-[#b58b2d]/10 border border-yellow-300/20 text-center shadow">
-      <div className="text-sm text-gray-200">Total (final)</div>
-      <div className="text-3xl font-extrabold text-[#D9A441]">
-        ₹{finalPrice.toLocaleString("en-IN")}
-      </div>
-      {showPerHead && (
-        <div className="text-xs text-gray-300 mt-1 font-medium border-t border-white/10 pt-1 inline-block px-2">
-          ₹{perHeadPrice.toLocaleString("en-IN")} / person
+    <div className="p-4 rounded-2xl bg-gradient-to-br from-[#D9A441]/20 to-[#b58b2d]/5 border border-yellow-300/20 text-center shadow relative overflow-hidden group backdrop-blur-md">
+      <div className="relative z-10">
+        <div className="text-sm text-yellow-200 mb-1 font-medium uppercase tracking-wider">Per Person</div>
+        <div className="text-4xl font-extrabold text-white drop-shadow-md">
+          ₹{perHeadPrice.toLocaleString("en-IN")}
         </div>
-      )}
+        
+        <div className="mt-2 pt-2 border-t border-white/10 flex justify-between items-center text-xs text-gray-300">
+           <span>Total ({totalPersons} pax)</span>
+           <span className="font-bold text-[#D9A441]">₹{finalPrice.toLocaleString("en-IN")}</span>
+        </div>
+      </div>
     </div>
   );
 
-  // New Component for Room Count Display
-  const RoomCountDisplay = () => (
+  const RoomControl = () => (
     <div className="mt-4">
       <label className="text-sm text-gray-200 mb-2 block flex items-center gap-2">
         <FaBed /> Number of Rooms
       </label>
-      <div className="w-full p-3 rounded-xl bg-white/5 border border-white/20 text-center font-bold text-lg text-white">
-        {numberOfRooms} Room{numberOfRooms > 1 ? "s" : ""}
+      <div className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/20 backdrop-blur-sm">
+         <button 
+            onClick={() => handle("rooms", Math.max(1, form.rooms - 1))}
+            className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-yellow-400 transition"
+         >
+            <FaMinus size={10} />
+         </button>
+         
+         <div className="text-center font-bold text-white">
+            {form.rooms} Room{form.rooms > 1 ? "s" : ""}
+         </div>
+         
+         <button 
+            onClick={() => handle("rooms", form.rooms + 1)}
+            className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-yellow-400 transition"
+         >
+            <FaPlus size={10} />
+         </button>
       </div>
     </div>
   );
@@ -141,14 +179,25 @@ export default function BookingSidebar({ tour }) {
   return (
     <>
       <style>{`
+        /* ULTRA TRANSPARENT GLASS EFFECT */
+        .glass-effect {
+          background: rgba(15, 23, 42, 0.4) !important; /* Lower opacity for transparency */
+          backdrop-filter: blur(24px) !important;
+          -webkit-backdrop-filter: blur(24px) !important;
+          border: 1px solid rgba(255, 255, 255, 0.12) !important;
+          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+        }
+
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
         .modal-overlay-fixed {
           position: fixed !important; top: 0; left: 0; right: 0; bottom: 0;
           z-index: 9999 !important; display: flex !important;
           align-items: center !important; justify-content: center !important;
           padding: 1.5rem !important;
         }
+        
         .modal-content-box {
           width: 100% !important; max-width: 400px !important;
           margin: 0 auto !important; max-height: 85vh !important;
@@ -157,9 +206,9 @@ export default function BookingSidebar({ tour }) {
         }
       `}</style>
 
-      {/* DESKTOP SIDEBAR */}
+      {/* DESKTOP SIDEBAR - Fully Transparent Glass */}
       <div className="hidden lg:block">
-        <div className="w-80 p-6 rounded-2xl sticky top-24 border border-white/20 bg-white/10 backdrop-blur-2xl shadow-2xl text-white space-y-6">
+        <div className="w-80 p-6 rounded-2xl sticky top-24 glass-effect text-white space-y-6 shadow-2xl">
           
           <div>
             <label className="text-sm text-gray-200">Traveller Name</label>
@@ -167,7 +216,7 @@ export default function BookingSidebar({ tour }) {
               type="text"
               value={form.name}
               onChange={(e) => handle("name", e.target.value)}
-              className="mt-1 w-full p-3 rounded-xl bg-white/10 border border-white/20"
+              className="mt-1 w-full p-3 rounded-xl bg-white/5 border border-white/20 focus:border-yellow-400/50 focus:outline-none transition-colors backdrop-blur-sm"
               placeholder="Enter your name"
             />
           </div>
@@ -178,14 +227,14 @@ export default function BookingSidebar({ tour }) {
               type="tel"
               value={form.phone}
               onChange={(e) => handle("phone", e.target.value)}
-              className="mt-1 w-full p-3 rounded-xl bg-white/10 border border-white/20"
+              className="mt-1 w-full p-3 rounded-xl bg-white/5 border border-white/20 focus:border-yellow-400/50 focus:outline-none transition-colors backdrop-blur-sm"
               placeholder="9876543210"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <QuantityControl label="Adults" icon={FaUsers} value={form.adults} field="adults" min={1} />
-            <QuantityControl label="Children" icon={FaChild} value={form.children} field="children" min={0} />
+            <QuantityControl label="Adults" subLabel="13+" icon={FaUsers} value={form.adults} field="adults" min={1} />
+            <QuantityControl label="Children" subLabel="3-13" icon={FaChild} value={form.children} field="children" min={0} />
           </div>
 
           <div>
@@ -194,9 +243,7 @@ export default function BookingSidebar({ tour }) {
               <button className={selectorBtn(form.roomType === "standard")} onClick={() => handle("roomType", "standard")}>Standard</button>
               <button className={selectorBtn(form.roomType === "panoramic")} onClick={() => handle("roomType", "panoramic")}>Panoramic</button>
             </div>
-            
-            {/* Added Room Count Here */}
-            <RoomCountDisplay />
+            <RoomControl />
           </div>
 
           <div>
@@ -210,52 +257,61 @@ export default function BookingSidebar({ tour }) {
 
           <div>
             <div className="text-sm text-gray-200 mb-2">Add-ons</div>
-            <div className="flex flex-col gap-2">
-              <label className="flex items-center gap-3">
-                <input type="checkbox" checked={form.bonfire} onChange={(e) => handle("bonfire", e.target.checked)} className="w-5 h-5 accent-yellow-400" />
-                Bonfire
-              </label>
-              <label className="flex items-center gap-3">
-                <input type="checkbox" checked={form.meal} onChange={(e) => handle("meal", e.target.checked)} className="w-5 h-5 accent-yellow-400" />
-                Meals
-              </label>
-              <label className="flex items-center gap-3">
-                <input type="checkbox" checked={form.tea} onChange={(e) => handle("tea", e.target.checked)} className="w-5 h-5 accent-yellow-400" />
-                Tea
-              </label>
+            <div className="grid grid-cols-2 gap-2">
+               <button className={`${toggleClass(form.bonfire)} w-full`} onClick={() => handle("bonfire", !form.bonfire)}>
+                 {form.bonfire && <FaCheck />} Bonfire
+               </button>
+               <button className={`${toggleClass(form.meal)} w-full`} onClick={() => handle("meal", !form.meal)}>
+                 {form.meal && <FaCheck />} Meals
+               </button>
+               <button className={`${toggleClass(form.tea)} w-full`} onClick={() => handle("tea", !form.tea)}>
+                 {form.tea && <FaCheck />} Tea
+               </button>
+               <button className={`${toggleClass(form.comfortSeat)} w-full`} onClick={() => handle("comfortSeat", !form.comfortSeat)}>
+                 {form.comfortSeat && <FaCheck />} Comfort Seat
+               </button>
             </div>
           </div>
 
+          {/* Price Box Moved to Bottom on Desktop too */}
           <PriceDisplayBox />
 
-          <button className="w-full bg-[#D9A441] text-black py-3 rounded-xl font-bold text-lg">Book Now</button>
+          <button className="w-full bg-[#D9A441] text-black py-3 rounded-xl font-bold text-lg hover:bg-[#eac34d] transition-colors shadow-lg">
+             Book Now
+          </button>
         </div>
       </div>
 
-      {/* MOBILE FLOAT BUTTON */}
-      <div className="lg:hidden fixed bottom-5 left-0 right-0 px-6 z-50">
-        <button
-          onClick={() => setOpen(true)}
-          className="w-full bg-[#D9A441] text-black py-4 rounded-2xl font-bold text-lg shadow-xl"
-        >
-          Book • ₹{finalPrice.toLocaleString("en-IN")}
-        </button>
+      {/* MOBILE FLOATING DOCK - Glassmorphism on Container */}
+      <div className="lg:hidden fixed bottom-6 left-4 right-4 z-50">
+        <div className="glass-effect rounded-2xl p-2 shadow-2xl flex items-center gap-2">
+          <button
+            onClick={() => setOpen(true)}
+            className="flex-1 bg-[#D9A441] text-black py-3 rounded-xl font-bold text-lg shadow-md flex items-center justify-between px-6 active:scale-95 transition-transform"
+          >
+            <span>Book Now</span>
+            <span className="text-sm font-medium bg-black/10 px-2 py-1 rounded-md">
+               ₹{perHeadPrice.toLocaleString("en-IN")}/pax
+            </span>
+          </button>
+        </div>
       </div>
 
-      {/* MOBILE MODAL */}
+      {/* MOBILE MODAL - Glass Effect */}
       {open && (
         <div className="modal-overlay-fixed">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setOpen(false)} aria-hidden />
 
           <div
-            className="modal-content-box rounded-2xl bg-white/10 backdrop-blur-2xl border border-white/20 text-white shadow-2xl"
+            // Applied .glass-effect here
+            className="modal-content-box rounded-2xl glass-effect text-white shadow-2xl"
             role="dialog"
             aria-modal="true"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setOpen(false)}
-              className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition z-10"
+              className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition z-10"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -268,30 +324,33 @@ export default function BookingSidebar({ tour }) {
 
             <div className="p-6 overflow-y-auto w-full" style={{ WebkitOverflowScrolling: "touch" }}>
               
-              <div className="space-y-5 pb-4">
-                <input
-                  placeholder="Traveller Name"
-                  className="w-full p-3 rounded-xl bg-white/10 border border-white/20"
-                  value={form.name}
-                  onChange={(e) => handle("name", e.target.value)}
-                />
-                <input
-                  placeholder="Phone Number"
-                  className="w-full p-3 rounded-xl bg-white/10 border border-white/20"
-                  value={form.phone}
-                  onChange={(e) => handle("phone", e.target.value)}
-                />
+              <div className="space-y-6 pb-4">
+                
+                <div className="space-y-3">
+                    <input
+                      placeholder="Traveller Name"
+                      className="w-full p-3 rounded-xl bg-white/5 border border-white/10 focus:border-[#D9A441] transition-colors outline-none"
+                      value={form.name}
+                      onChange={(e) => handle("name", e.target.value)}
+                    />
+                    <input
+                      placeholder="Phone Number"
+                      className="w-full p-3 rounded-xl bg-white/5 border border-white/10 focus:border-[#D9A441] transition-colors outline-none"
+                      value={form.phone}
+                      onChange={(e) => handle("phone", e.target.value)}
+                    />
+                </div>
 
                 <div>
-                  <div className="text-[#D9A441] font-semibold mb-2">Travellers</div>
+                  <div className="text-[#D9A441] font-semibold mb-2 text-sm uppercase tracking-wide">Travellers</div>
                   <div className="grid grid-cols-2 gap-3">
-                    <QuantityControl label="Adults" value={form.adults} field="adults" min={1} />
-                    <QuantityControl label="Children" value={form.children} field="children" min={0} />
+                    <QuantityControl label="Adults" subLabel="13+" value={form.adults} field="adults" min={1} />
+                    <QuantityControl label="Children" subLabel="3-13" value={form.children} field="children" min={0} />
                   </div>
                 </div>
 
                 <div>
-                  <div className="text-[#D9A441] font-semibold mb-2">Room Type</div>
+                  <div className="text-[#D9A441] font-semibold mb-2 text-sm uppercase tracking-wide">Accommodation</div>
                   <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
                     <button className={toggleClass(form.roomType === "standard")} onClick={() => handle("roomType", "standard")}>
                       <span className="flex items-center gap-2">{form.roomType === "standard" ? <FaCheck /> : null} Standard</span>
@@ -300,13 +359,11 @@ export default function BookingSidebar({ tour }) {
                       <span className="flex items-center gap-2">{form.roomType === "panoramic" ? <FaCheck /> : null} Panoramic</span>
                     </button>
                   </div>
-                  
-                  {/* Added Room Count Here for Mobile */}
-                  <RoomCountDisplay />
+                  <RoomControl />
                 </div>
 
                 <div>
-                  <div className="text-[#D9A441] font-semibold mb-2">Transport</div>
+                  <div className="text-[#D9A441] font-semibold mb-2 text-sm uppercase tracking-wide">Transport</div>
                   <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
                     <button className={toggleClass(form.transport === "sharing")} onClick={() => handle("transport", "sharing")}>
                       {form.transport === "sharing" ? <FaCheck /> : null} Sharing
@@ -321,16 +378,19 @@ export default function BookingSidebar({ tour }) {
                 </div>
 
                 <div>
-                  <div className="text-[#D9A441] font-semibold mb-2">Add-ons</div>
-                  <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+                  <div className="text-[#D9A441] font-semibold mb-2 text-sm uppercase tracking-wide">Extras</div>
+                  <div className="grid grid-cols-2 gap-3">
                     <button className={toggleClass(form.bonfire)} onClick={() => handle("bonfire", !form.bonfire)}>
-                      {form.bonfire ? <FaCheck /> : null} Bonfire
+                      {form.bonfire && <FaCheck />} Bonfire
                     </button>
                     <button className={toggleClass(form.meal)} onClick={() => handle("meal", !form.meal)}>
-                      {form.meal ? <FaCheck /> : null} Meals
+                      {form.meal && <FaCheck />} Meals
                     </button>
                     <button className={toggleClass(form.tea)} onClick={() => handle("tea", !form.tea)}>
-                      {form.tea ? <FaCheck /> : null} Tea
+                      {form.tea && <FaCheck />} Tea
+                    </button>
+                    <button className={toggleClass(form.comfortSeat)} onClick={() => handle("comfortSeat", !form.comfortSeat)}>
+                      {form.comfortSeat && <FaCheck />} Comfort Seat
                     </button>
                   </div>
                 </div>
@@ -338,7 +398,7 @@ export default function BookingSidebar({ tour }) {
                 <PriceDisplayBox />
 
                 <div className="pt-2">
-                  <button className="w-full bg-[#D9A441] text-black py-3 rounded-xl font-bold text-lg">
+                  <button className="w-full bg-[#D9A441] text-black py-4 rounded-xl font-bold text-lg shadow-lg active:scale-95 transition-transform">
                     Continue →
                   </button>
                 </div>
