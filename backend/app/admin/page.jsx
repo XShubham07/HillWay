@@ -1,15 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { FaMapMarkerAlt, FaBed, FaEdit, FaTrash, FaPlus, FaSync } from 'react-icons/fa';
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState('tours'); // tours, bookings, enquiries
+  const [view, setView] = useState('list'); // 'list' or 'editor'
   const [tours, setTours] = useState([]);
-  const [view, setView] = useState('list'); // list, editor
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // --- INITIAL FORM STATE ---
+  // --- INITIAL FORM ---
   const initialForm = {
     title: '', subtitle: '', location: '', basePrice: 0, nights: 3, rating: 4.5,
     img: '', mapEmbedUrl: '', description: '', featured: false,
@@ -24,7 +22,7 @@ export default function AdminDashboard() {
   };
   const [form, setForm] = useState(initialForm);
 
-  // --- FETCH DATA ---
+  // --- FETCH TOURS ---
   const fetchTours = async () => {
     setLoading(true);
     try {
@@ -37,67 +35,20 @@ export default function AdminDashboard() {
 
   useEffect(() => { fetchTours(); }, []);
 
-  // --- SEED DATA (ONE TIME USE) ---
-  // Ye function wahi 9 tours generate karega jo tumhare frontend pe the
-  const seedDatabase = async () => {
-    if(!confirm("Warning: This will DELETE existing tours and replace them with the default 9 tours. Continue?")) return;
+  // --- SEED BUTTON FUNCTION ---
+  const seedData = async () => {
+    if(!confirm("Ye purane tours delete karke default mock tours wapas le aayega. Pakka karein?")) return;
     setLoading(true);
-
-    // 3 Real Tours (Mock Data)
-    const realTours = [
-      {
-        title: "Gangtok Classic", subtitle: "The vibrant capital", basePrice: 12499, img: "/g1.webp", rating: 4.8, nights: 3, location: "Gangtok, Sikkim",
-        pricing: { mealPerPerson: 450, teaPerPerson: 60, room: { standard: 1800, panoramic: 2600 }, personalCab: { rate: 3200, capacity: 4 }, tourManagerFee: 6000 },
-        itinerary: [{ day: 1, title: "Arrival", details: "Check-in and rest." }]
-      },
-      {
-        title: "Lachung & Yumthang", subtitle: "Himalayan wonderland", basePrice: 17000, img: "/g4.webp", rating: 4.9, nights: 4, location: "Lachung",
-        pricing: { mealPerPerson: 450, teaPerPerson: 60, room: { standard: 1600, panoramic: 2400 }, personalCab: { rate: 3500, capacity: 4 }, tourManagerFee: 7000 },
-        itinerary: [{ day: 1, title: "Transfer", details: "Drive to Lachung." }]
-      },
-      {
-        title: "Pelling Scenic Escape", subtitle: "Kanchenjunga views", basePrice: 9999, img: "/g3.webp", rating: 4.7, nights: 2, location: "Pelling",
-        pricing: { mealPerPerson: 400, teaPerPerson: 50, room: { standard: 1500, panoramic: 2200 }, personalCab: { rate: 3000, capacity: 4 }, tourManagerFee: 5000 },
-        itinerary: [{ day: 1, title: "Arrival", details: "Welcome to Pelling." }]
-      }
-    ];
-
-    // 6 Generated Tours (Like your frontend)
-    const genericTours = Array.from({length: 6}).map((_, i) => ({
-      title: `Adventure Trek ${i + 4}`, subtitle: "A thrilling high-altitude trek", 
-      basePrice: 15000 + i * 1500, img: i % 2 === 0 ? '/g3.webp' : '/g69.webp',
-      rating: 4.5, nights: 4 + (i % 3), location: "Himachal Pradesh",
-      pricing: { mealPerPerson: 500, teaPerPerson: 50, room: { standard: 2000, panoramic: 3000 }, personalCab: { rate: 4000, capacity: 4 }, tourManagerFee: 5000 },
-      itinerary: [{ day: 1, title: "Start", details: "Begin the trek." }]
-    }));
-
-    const allTours = [...realTours, ...genericTours];
-
-    await fetch('/api/seed', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(allTours)
-    });
-    
-    alert("Database Seeded!");
-    fetchTours();
+    await fetch('/api/seed', { method: 'POST' });
+    await fetchTours();
+    alert("✅ Tours Restored from Mock Data!");
+    setLoading(false);
   };
 
-  // --- HANDLERS ---
-  const handleEdit = (tour) => {
-    setForm(tour);
-    setEditingId(tour._id);
-    setView('editor');
-  };
-
-  const handleDelete = async (id) => {
-    if(!confirm("Delete this tour?")) return;
-    await fetch(`/api/tours/${id}`, { method: 'DELETE' });
-    fetchTours();
-  };
-
+  // --- FORM HANDLERS ---
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     const url = editingId ? `/api/tours/${editingId}` : '/api/tours';
     const method = editingId ? 'PUT' : 'POST';
     
@@ -111,57 +62,81 @@ export default function AdminDashboard() {
       alert("Saved Successfully!");
       setView('list');
       fetchTours();
+    } else {
+      alert("Error saving tour");
+    }
+    setLoading(false);
+  };
+
+  const handleEdit = (tour) => {
+    setForm(tour);
+    setEditingId(tour._id);
+    setView('editor');
+  };
+
+  const handleDelete = async (id) => {
+    if(confirm("Delete this tour?")) {
+      await fetch(`/api/tours/${id}`, { method: 'DELETE' });
+      fetchTours();
     }
   };
 
-  // --- NESTED FORM HANDLERS ---
-  const updatePricing = (key, val) => setForm(p => ({ ...p, pricing: { ...p.pricing, [key]: val } }));
-  const updatePricingRoom = (key, val) => setForm(p => ({ ...p, pricing: { ...p.pricing, room: { ...p.pricing.room, [key]: val } } }));
+  // --- NESTED UPDATE HELPERS ---
+  const updatePricing = (field, val) => setForm(p => ({ ...p, pricing: { ...p.pricing, [field]: val } }));
+  const updateRoomPrice = (type, val) => setForm(p => ({ ...p, pricing: { ...p.pricing, room: { ...p.pricing.room, [type]: val } } }));
   
+  // Itinerary Helper
+  const addDay = () => setForm(p => ({ ...p, itinerary: [...p.itinerary, { day: p.itinerary.length + 1, title: '', details: '' }] }));
+  const updateDay = (idx, field, val) => {
+    const newItinerary = [...form.itinerary];
+    newItinerary[idx][field] = val;
+    setForm({ ...form, itinerary: newItinerary });
+  };
+
+  // Inclusions Helper
+  const handleInclusions = (val) => setForm({ ...form, inclusions: val.split(',').map(s => s.trim()) });
+
+  // --- UI RENDER ---
   return (
-    <div className="flex h-screen bg-gray-100 font-sans">
+    <div className="min-h-screen bg-gray-100 flex font-sans">
       
-      {/* SIDE NAVIGATION */}
-      <aside className="w-64 bg-gray-900 text-white flex flex-col">
-        <div className="p-6 text-2xl font-bold border-b border-gray-800">HillWay Admin</div>
-        <nav className="flex-1 p-4 space-y-2">
-          <button onClick={() => setActiveTab('tours')} className={`w-full text-left px-4 py-3 rounded-lg transition ${activeTab === 'tours' ? 'bg-blue-600' : 'hover:bg-gray-800'}`}>🌍 Tours</button>
-          <button onClick={() => setActiveTab('bookings')} className={`w-full text-left px-4 py-3 rounded-lg transition ${activeTab === 'bookings' ? 'bg-blue-600' : 'hover:bg-gray-800'}`}>📅 Bookings</button>
-          <button onClick={() => setActiveTab('enquiries')} className={`w-full text-left px-4 py-3 rounded-lg transition ${activeTab === 'enquiries' ? 'bg-blue-600' : 'hover:bg-gray-800'}`}>📩 Enquiries</button>
+      {/* SIDEBAR */}
+      <aside className="w-64 bg-slate-900 text-white flex flex-col fixed h-full">
+        <div className="p-6 text-2xl font-bold text-cyan-400">HillWay Admin</div>
+        <nav className="flex-1 px-4 space-y-2 mt-4">
+          <button onClick={() => setView('list')} className="w-full text-left px-4 py-3 rounded bg-slate-800 hover:bg-slate-700">📦 Manage Tours</button>
+          <button className="w-full text-left px-4 py-3 rounded hover:bg-slate-800 text-gray-400 cursor-not-allowed">📅 Bookings (Coming Soon)</button>
         </nav>
-        <div className="p-4 text-xs text-gray-500 text-center">v1.0.0</div>
       </aside>
 
-      {/* MAIN CONTENT */}
-      <main className="flex-1 overflow-y-auto p-8">
+      {/* MAIN AREA */}
+      <main className="flex-1 ml-64 p-8">
         
-        {activeTab === 'tours' && view === 'list' && (
+        {/* LIST VIEW */}
+        {view === 'list' && (
           <div>
-            <div className="flex justify-between items-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-800">All Tours ({tours.length})</h1>
-              <div className="flex gap-3">
-                <button onClick={seedDatabase} className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 flex items-center gap-2">
-                  <FaSync /> Reset/Seed Data
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-3xl font-bold text-slate-800">All Tours</h1>
+              <div className="space-x-4">
+                <button onClick={seedData} className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 shadow">
+                  ↻ Reset/Load Mock Data
                 </button>
-                <button onClick={() => { setForm(initialForm); setEditingId(null); setView('editor'); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
-                  <FaPlus /> Add New Tour
+                <button onClick={() => { setForm(initialForm); setEditingId(null); setView('editor'); }} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 shadow">
+                  + Add New Tour
                 </button>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {tours.map(tour => (
-                <div key={tour._id} className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition">
-                  <div className="h-40 bg-gray-200 relative">
-                     <img src={tour.img} className="w-full h-full object-cover" />
-                     <div className="absolute top-2 right-2 bg-white px-2 py-1 text-xs font-bold rounded">₹{tour.basePrice}</div>
-                  </div>
+                <div key={tour._id} className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                  <img src={tour.img} className="h-48 w-full object-cover" />
                   <div className="p-4">
-                    <h3 className="font-bold text-lg text-gray-800 truncate">{tour.title}</h3>
-                    <p className="text-sm text-gray-500 flex items-center gap-1 mt-1"><FaMapMarkerAlt /> {tour.location}</p>
-                    <div className="flex justify-between mt-4 pt-4 border-t">
-                      <button onClick={() => handleEdit(tour)} className="text-blue-600 text-sm font-bold flex items-center gap-1"><FaEdit /> Edit</button>
-                      <button onClick={() => handleDelete(tour._id)} className="text-red-500 text-sm font-bold flex items-center gap-1"><FaTrash /> Delete</button>
+                    <h3 className="font-bold text-lg">{tour.title}</h3>
+                    <p className="text-sm text-gray-500 truncate">{tour.subtitle}</p>
+                    <div className="mt-4 flex justify-end gap-2">
+                      <button onClick={() => handleEdit(tour)} className="text-blue-600 text-sm font-bold px-3 py-1 bg-blue-50 rounded">Edit</button>
+                      <button onClick={() => handleDelete(tour._id)} className="text-red-600 text-sm font-bold px-3 py-1 bg-red-50 rounded">Delete</button>
                     </div>
                   </div>
                 </div>
@@ -171,17 +146,16 @@ export default function AdminDashboard() {
         )}
 
         {/* EDITOR VIEW */}
-        {activeTab === 'tours' && view === 'editor' && (
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div className="bg-gray-800 text-white p-6 flex justify-between">
-              <h2 className="text-xl font-bold">{editingId ? 'Edit Tour' : 'Create Tour'}</h2>
-              <button onClick={() => setView('list')} className="text-gray-300 hover:text-white">Cancel</button>
+        {view === 'editor' && (
+          <div className="bg-white rounded-xl shadow-lg p-8 max-w-4xl mx-auto">
+            <div className="flex justify-between mb-6">
+              <h2 className="text-2xl font-bold">{editingId ? 'Edit Tour' : 'New Tour'}</h2>
+              <button onClick={() => setView('list')} className="text-gray-500">Cancel</button>
             </div>
-            
-            <form onSubmit={handleSubmit} className="p-8 space-y-8">
-              
-              {/* Section 1: Basic Info */}
-              <div className="grid grid-cols-2 gap-6">
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Basic Info */}
+              <div className="grid grid-cols-2 gap-4">
                 <input className="border p-3 rounded" placeholder="Title" value={form.title} onChange={e => setForm({...form, title: e.target.value})} required />
                 <input className="border p-3 rounded" placeholder="Subtitle" value={form.subtitle} onChange={e => setForm({...form, subtitle: e.target.value})} />
                 <input className="border p-3 rounded" placeholder="Location" value={form.location} onChange={e => setForm({...form, location: e.target.value})} />
@@ -192,32 +166,44 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Section 2: Detailed Pricing */}
-              <div className="bg-blue-50 p-6 rounded-xl">
-                <h3 className="font-bold text-blue-800 mb-4">Detailed Pricing Logic</h3>
-                <div className="grid grid-cols-3 gap-4">
-                   <input type="number" placeholder="Meal Cost/Person" className="border p-2 rounded" value={form.pricing?.mealPerPerson} onChange={e => updatePricing('mealPerPerson', e.target.value)} />
-                   <input type="number" placeholder="Tea Cost/Person" className="border p-2 rounded" value={form.pricing?.teaPerPerson} onChange={e => updatePricing('teaPerPerson', e.target.value)} />
-                   <input type="number" placeholder="Standard Room" className="border p-2 rounded" value={form.pricing?.room?.standard} onChange={e => updatePricingRoom('standard', e.target.value)} />
-                   <input type="number" placeholder="Panoramic Room" className="border p-2 rounded" value={form.pricing?.room?.panoramic} onChange={e => updatePricingRoom('panoramic', e.target.value)} />
+              {/* Pricing */}
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-bold mb-3 text-blue-800">Pricing Configuration</h3>
+                <div className="grid grid-cols-4 gap-3">
+                  <input type="number" placeholder="Meal" className="border p-2 rounded" value={form.pricing?.mealPerPerson} onChange={e => updatePricing('mealPerPerson', e.target.value)} />
+                  <input type="number" placeholder="Tea" className="border p-2 rounded" value={form.pricing?.teaPerPerson} onChange={e => updatePricing('teaPerPerson', e.target.value)} />
+                  <input type="number" placeholder="Std Room" className="border p-2 rounded" value={form.pricing?.room?.standard} onChange={e => updateRoomPrice('standard', e.target.value)} />
+                  <input type="number" placeholder="Pano Room" className="border p-2 rounded" value={form.pricing?.room?.panoramic} onChange={e => updateRoomPrice('panoramic', e.target.value)} />
                 </div>
               </div>
 
-              {/* Section 3: Itinerary & Save */}
-              <div>
-                <h3 className="font-bold mb-2">Itinerary</h3>
-                <textarea className="w-full border p-3 rounded" rows={4} placeholder="Simple JSON for now..." disabled value="Itinerary editing coming in next update" />
+              {/* Itinerary */}
+              <div className="border-t pt-4">
+                <div className="flex justify-between mb-2">
+                  <h3 className="font-bold">Itinerary</h3>
+                  <button type="button" onClick={addDay} className="text-sm bg-gray-200 px-2 py-1 rounded">+ Add Day</button>
+                </div>
+                {form.itinerary.map((day, i) => (
+                  <div key={i} className="flex gap-2 mb-2">
+                    <span className="w-16 pt-2 font-bold text-gray-400">Day {day.day}</span>
+                    <input className="border p-2 rounded flex-1" placeholder="Title" value={day.title} onChange={e => updateDay(i, 'title', e.target.value)} />
+                    <input className="border p-2 rounded flex-[2]" placeholder="Details" value={day.details} onChange={e => updateDay(i, 'details', e.target.value)} />
+                  </div>
+                ))}
               </div>
 
-              <div className="flex justify-end pt-4">
-                <button type="submit" className="bg-green-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-green-700 shadow-lg">Save Tour</button>
+              {/* Inclusions */}
+              <div>
+                 <label className="block font-bold text-sm mb-1">Inclusions (comma separated)</label>
+                 <textarea className="w-full border p-3 rounded" rows={3} value={form.inclusions.join(', ')} onChange={e => handleInclusions(e.target.value)} />
               </div>
+
+              <button type="submit" disabled={loading} className="w-full py-3 bg-green-600 text-white font-bold rounded hover:bg-green-700">
+                {loading ? 'Saving...' : 'Save Tour'}
+              </button>
             </form>
           </div>
         )}
-
-        {activeTab === 'bookings' && <div className="text-center py-20 text-gray-500">No Bookings Yet</div>}
-        {activeTab === 'enquiries' && <div className="text-center py-20 text-gray-500">No Enquiries Yet</div>}
 
       </main>
     </div>

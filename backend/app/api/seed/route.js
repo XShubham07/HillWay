@@ -6,16 +6,17 @@ export async function POST(request) {
   await dbConnect();
   
   try {
-    // Tumhara Asli Mock Data
+    // Ye raha apka Mock Data (Jo pehle frontend mein tha)
     const mockData = [
       {
-        title: "Gangtok Classic - 3N/4D",
+        title: "Gangtok Classic",
         subtitle: "The vibrant capital and scenic spots of East Sikkim.",
         basePrice: 12499,
         img: "/g1.webp",
         rating: 4.8,
         nights: 3,
         location: "Gangtok, Sikkim",
+        mapEmbedUrl: "https://www.google.com/maps/embed?...",
         pricing: {
           mealPerPerson: 450, teaPerPerson: 60,
           room: { standard: 1800, panoramic: 2600 },
@@ -28,7 +29,7 @@ export async function POST(request) {
           { day: 3, title: "North Sikkim Highlights", details: "Visit Rumtek Monastery, Dro-dul Chorten, and Ganesh Tok." },
           { day: 4, title: "Departure", details: "Transfer back to Bagdogra/NJP." }
         ],
-        inclusions: ["3 Nights Stay", "Breakfast & Dinner", "Private Cab", "Permits"],
+        inclusions: ["3 Nights Stay in Premium Hotel", "Daily Breakfast & Dinner", "All Transfers by Private Cab", "Permit Fees"],
         featured: true
       },
       {
@@ -46,12 +47,13 @@ export async function POST(request) {
           tourManagerFee: 7000,
         },
         itinerary: [
-          { day: 1, title: "Transfer to Lachung", details: "Scenic drive with waterfalls." },
-          { day: 2, title: "Yumthang Valley", details: "Visit the valley of flowers." },
-          { day: 3, title: "Return to Gangtok", details: "Drive back to capital." },
-          { day: 4, title: "Sightseeing", details: "Local sightseeing." }
+          { day: 1, title: "Transfer to Lachung", details: "Travel from Gangtok to Lachung, enjoying waterfalls and scenic viewpoints en route." },
+          { day: 2, title: "Yumthang Valley & Zero Point", details: "Visit the beautiful Yumthang Valley and optionally Zero Point." },
+          { day: 3, title: "Return to Gangtok", details: "Check-out and return to Gangtok." },
+          { day: 4, title: "Local Sightseeing", details: "Visit Tsomgo Lake and Baba Mandir." },
+          { day: 5, title: "Departure", details: "Transfer back to Bagdogra/NJP." }
         ],
-        inclusions: ["All Meals", "Accommodation", "Permits", "Transport"],
+        inclusions: ["All 4 Nights Accommodation", "All Meals in North Sikkim", "Exclusive North Sikkim Permits", "Private Cab"],
         featured: true
       },
       {
@@ -69,20 +71,20 @@ export async function POST(request) {
           tourManagerFee: 5000,
         },
         itinerary: [
-          { day: 1, title: "Arrival in Pelling", details: "Check-in and sunset view." },
-          { day: 2, title: "Sightseeing", details: "Visit Skywalk and Monastery." },
-          { day: 3, title: "Departure", details: "Transfer to station." }
+          { day: 1, title: "Arrival in Pelling", details: "Check-in and enjoy the Kanchenjunga view." },
+          { day: 2, title: "Pelling Sightseeing Tour", details: "Visit waterfalls, lake, monasteries & Skywalk." },
+          { day: 3, title: "Departure", details: "Return to NJP/Bagdogra." },
         ],
-        inclusions: ["Breakfast", "Stay", "Transport"],
+        inclusions: ["2 Nights Stay", "Daily Breakfast", "Sightseeing Tour", "Private Transportation"],
         featured: true
       }
     ];
 
-    // Clear Old Data & Insert New
+    // Purana data clear karo aur naya daalo
     await Tour.deleteMany({}); 
     await Tour.insertMany(mockData);
 
-    return NextResponse.json({ success: true, message: "Database Reset & Seeded!" });
+    return NextResponse.json({ success: true, message: "Database Seeded Successfully with Mock Data!" });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
