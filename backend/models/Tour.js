@@ -12,9 +12,8 @@ const TourSchema = new mongoose.Schema({
   featured: { type: Boolean, default: false },
 
   img: { type: String, required: true },
-  mapEmbedUrl: String, // Google Maps URL
+  mapEmbedUrl: String,
 
-  // Booking Logic ke liye zaroori Pricing fields
   pricing: {
     mealPerPerson: { type: Number, default: 450 },
     teaPerPerson: { type: Number, default: 60 },
@@ -36,6 +35,8 @@ const TourSchema = new mongoose.Schema({
       day: Number,
       title: String,
       details: String,
+      // NEW: List of meals for this day (e.g. "Breakfast", "Dinner")
+      meals: { type: [String], default: [] } 
     }
   ],
 }, { timestamps: true });
