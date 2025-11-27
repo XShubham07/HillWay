@@ -1,74 +1,61 @@
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 export default function PackageCard({ pkg, p, onCustomize, onView }) {
-  // Support both formats (pkg OR p)
   const data = pkg || p;
+  if (!data) return null;
 
-  if (!data) return null; // Safety shield
+  const ref = useRef(null);
+  
+  // --- SCROLL ZOOM LOGIC ---
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"]
+  });
+
+  // 0.9 (Edge) -> 1.2 (Center) -> 0.9 (Edge)
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.9, 1.1, 0.9]);
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.6, 1, 1, 0.6]);
 
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="bg-white rounded-xl shadow-lg overflow-hidden"
+    <motion.div 
+      ref={ref}
+      style={{ scale, opacity }} // Apply Scroll Animation
+      className="bg-white rounded-xl shadow-lg overflow-hidden transform-gpu transition-all duration-300"
     >
-      <div className="relative">
+      <div className="relative overflow-hidden group">
         <img
           src={data.img}
           alt={data.title}
-          className="w-full h-44 object-cover"
+          className="w-full h-52 object-cover transition-transform duration-700 group-hover:scale-110"
         />
-        {data.subtitle && (
-          <div className="absolute top-2 left-3 bg-white/90 px-1 py--3 rounded text-sm font-medium">
-            {data.subtitle.split("•")[0]}
-          </div>
-        )}
+        {/* SUBTITLE REMOVED FROM IMAGE */}
       </div>
 
-      <div className="p-4">
-        <h3 className="text-xl font-semibold text-gray-900">{data.title}</h3>
-
-        {data.subtitle && (
-          <p className="text-sm text-gray-600 mt-2 line-clamp-2">
-            {data.subtitle}
-          </p>
-        )}
+      <div className="p-5">
+        <h3 className="text-xl font-bold text-gray-900 line-clamp-1">{data.title}</h3>
+        <p className="text-sm text-gray-600 mt-1 line-clamp-2">{data.subtitle}</p>
 
         <div className="mt-4 flex items-center justify-between">
           <div>
-            {data.basePrice && (
-              <>
-                <div className="text-lg font-bold text-[var(--p1)]">
-                  ₹{data.basePrice.toLocaleString()}
-                </div>
-                <div className="text-xs text-gray-500">starting price</div>
-              </>
-            )}
-            {data.price && !data.basePrice && (
-              <div className="text-lg font-bold text-[var(--p1)]">{data.price}</div>
-            )}
+            <div className="text-lg font-bold text-[var(--p1)]">
+              ₹{data.basePrice?.toLocaleString()}
+            </div>
+            <div className="text-xs text-gray-400">per person</div>
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
             {onCustomize && (
-              <button
-                onClick={onCustomize}
-                className="px-4 py-2 bg-[var(--p1)] text-white rounded-lg shadow"
-              >
+              <button onClick={onCustomize} className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded hover:bg-gray-200">
                 Customize
               </button>
             )}
-
-            <button
-              onClick={() => onView?.(data)}
-              className="px-4 py-2 border rounded-lg text-sm"
-            >
+            <button onClick={() => onView?.(data)} className="px-4 py-1.5 bg-[var(--p1)] text-white text-sm font-bold rounded hover:bg-cyan-700 shadow-md">
               View
             </button>
           </div>
         </div>
       </div>
-    </motion.article>
+    </motion.div>
   );
 }

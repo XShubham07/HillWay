@@ -17,6 +17,12 @@ const TourSchema = new mongoose.Schema({
   pricing: {
     mealPerPerson: { type: Number, default: 450 },
     teaPerPerson: { type: Number, default: 60 },
+    bonfire: { type: Number, default: 500 },
+    
+    // NEW FIELDS
+    tourGuide: { type: Number, default: 1000 },
+    comfortSeat: { type: Number, default: 800 },
+
     room: {
       standard: { type: Number, default: 1500 },
       panoramic: { type: Number, default: 2500 },
@@ -35,10 +41,13 @@ const TourSchema = new mongoose.Schema({
       day: Number,
       title: String,
       details: String,
-      // NEW: List of meals for this day (e.g. "Breakfast", "Dinner")
-      meals: { type: [String], default: [] } 
+      meals: { type: [String], default: [] }
     }
   ],
+  
+  faqs: [{ q: String, a: String }],
+  reviews: [{ name: String, rating: Number, text: String, date: String }]
+
 }, { timestamps: true });
 
 export default mongoose.models.Tour || mongoose.model('Tour', TourSchema);

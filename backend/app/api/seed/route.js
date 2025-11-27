@@ -15,7 +15,7 @@ export async function POST(request) {
         rating: 4.8,
         nights: 3,
         location: "Gangtok, Sikkim",
-        mapEmbedUrl: "",
+        description: "Experience the charm of Gangtok with premium stays...",
         pricing: {
           mealPerPerson: 450, teaPerPerson: 60,
           room: { standard: 1800, panoramic: 2600 },
@@ -23,15 +23,25 @@ export async function POST(request) {
           tourManagerFee: 6000,
         },
         itinerary: [
-          { day: 1, title: "Arrival in Gangtok", details: "Arrive at Bagdogra/NJP, transfer to Gangtok.", meals: ["Dinner"] },
-          { day: 2, title: "Tsomgo Lake", details: "Full day trip to the sacred Tsomgo Lake.", meals: ["Breakfast", "Dinner"] },
-          { day: 3, title: "Local Sightseeing", details: "Visit Rumtek Monastery and viewpoints.", meals: ["Breakfast", "Dinner"] },
-          { day: 4, title: "Departure", details: "Transfer back to Bagdogra/NJP.", meals: ["Breakfast"] }
+          { day: 1, title: "Arrival in Gangtok", details: "Arrive at Bagdogra...", meals: ["Dinner"] },
+          { day: 2, title: "Tsomgo Lake", details: "Full day trip...", meals: ["Breakfast", "Dinner"] },
+          { day: 3, title: "Local Sightseeing", details: "Visit Rumtek...", meals: ["Breakfast", "Dinner"] },
+          { day: 4, title: "Departure", details: "Transfer back...", meals: ["Breakfast"] }
         ],
         inclusions: ["3 Nights Stay", "Daily Breakfast & Dinner", "Private Cab", "Permits"],
-        featured: true
+        featured: true,
+        
+        // NEW DATA
+        faqs: [
+            { q: "Is this safe for kids?", a: "Yes, absolutely safe and comfortable." },
+            { q: "Can we customize?", a: "Yes, contact us for customization." }
+        ],
+        reviews: [
+            { name: "Rahul S.", rating: 5, text: "Amazing experience!", date: "12 Oct 2024" },
+            { name: "Priya M.", rating: 4, text: "Good hotels, smooth travel.", date: "10 Nov 2024" }
+        ]
       },
-      // Add other tours similarly if needed...
+      // ... (Other tours with similar structure) ...
       {
          title: "Lachung & Yumthang",
          subtitle: "Snow valley adventure",
@@ -45,14 +55,16 @@ export async function POST(request) {
              { day: 1, title: "Transfer", details: "Drive to Lachung.", meals: ["Dinner"] },
              { day: 2, title: "Yumthang Valley", details: "Valley of flowers.", meals: ["Breakfast", "Lunch", "Dinner"] }
          ],
-         featured: true
+         featured: true,
+         faqs: [{ q: "Is heater available?", a: "Yes, in premium rooms." }],
+         reviews: [{ name: "Amit K.", rating: 5, text: "Snow was beautiful!", date: "15 Dec 2024" }]
        }
     ];
 
     await Tour.deleteMany({}); 
     await Tour.insertMany(mockData);
 
-    return NextResponse.json({ success: true, message: "Database Seeded with Daily Meals!" });
+    return NextResponse.json({ success: true, message: "Database Seeded with Full Data!" });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
