@@ -9,11 +9,11 @@ import {
   FaMinus,
   FaBed,
   FaCar,
-  FaUserTie, // Icon for Tour Guide
-  FaChair    // Icon for Comfort Seat
+  FaUserTie,
+  FaChair
 } from "react-icons/fa";
 
-export default function BookingSidebar({ tour }) {
+export default function BookingSidebar({ tour = {} }) {
   const [open, setOpen] = useState(false);
 
   // --- 1. GLOBAL RATES STATE ---
@@ -30,24 +30,28 @@ export default function BookingSidebar({ tour }) {
 
   // --- 2. FETCH GLOBAL PRICING ---
   useEffect(() => {
-    fetch('/api/pricing')
-      .then(res => res.json())
-      .then(data => {
-        if(data.success) {
+    fetch("/api/pricing")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.data) {
           const p = data.data;
           setGlobalRates({
-            meal: p.mealPrice,
-            tea: p.teaPrice,
-            bonfire: p.bonfirePrice,
-            cab: p.personalCabPrice,
-            stdRoom: p.standardRoomPrice,
-            panoRoom: p.panoRoomPrice,
-            tourGuide: p.tourGuidePrice || 1000,
-            comfortSeat: p.comfortSeatPrice || 800
+            meal: p.mealPrice ?? globalRates.meal,
+            tea: p.teaPrice ?? globalRates.tea,
+            bonfire: p.bonfirePrice ?? globalRates.bonfire,
+            cab: p.personalCabPrice ?? globalRates.cab,
+            stdRoom: p.standardRoomPrice ?? globalRates.stdRoom,
+            panoRoom: p.panoRoomPrice ?? globalRates.panoRoom,
+            tourGuide: p.tourGuidePrice ?? globalRates.tourGuide,
+            comfortSeat: p.comfortSeatPrice ?? globalRates.comfortSeat
           });
         }
       })
-      .catch(err => console.error("Failed to load pricing", err));
+      .catch((err) => {
+        // keep defaults on error
+        console.error("Failed to load pricing", err);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // --- FORM STATE ---
@@ -62,77 +66,100 @@ export default function BookingSidebar({ tour }) {
     meal: false,
     tea: false,
     comfortSeat: false,
-    tourGuide: false, // Added Tour Guide
-    rooms: 1, 
+    tourGuide: false,
+    rooms: 1
   });
 
-  const handle = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+  const handle = (k, v) =>
+    setForm((p) => {
+      // ensure numeric fields store numbers
+      if (k === "adults" || k === "children" || k === "rooms") {
+        return { ...p, [k]: Number(v) };
+      }
+      return { ...p, [k]: v };
+    });
 
   // --- SMART ROOM LOGIC (1 Room per 3 Adults) ---
-  const minRoomsRequired = Math.ceil(Math.max(1, form.adults) / 3);
+  // Use Math.max to ensure at least 1 room required
+  const minRoomsRequired = Math.max(1, Math.ceil(Number(form.adults || 0) / 3));
 
   useEffect(() => {
-    if (form.rooms < minRoomsRequired) {
+    // When adults change, adjust rooms to match new minRoomsRequired.
+    // This both increases and decreases rooms automatically.
+    if (form.rooms !== minRoomsRequired) {
       handle("rooms", minRoomsRequired);
     }
-  }, [form.adults, minRoomsRequired, form.rooms]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.adults, minRoomsRequired]);
 
   // --- 3. PRICE CALCULATION LOGIC ---
   const [finalPrice, setFinalPrice] = useState(0);
-  const totalPersons = (Number(form.adults) || 0) + (Number(form.children) || 0);
-  
+
   useEffect(() => {
     // A. DETERMINE EFFECTIVE RATES (Tour Specific > Global)
     const rates = {
-        meal: tour?.pricing?.mealPerPerson || globalRates.meal,
-        tea: tour?.pricing?.teaPerPerson || globalRates.tea,
-        bonfire: tour?.pricing?.bonfire || globalRates.bonfire,
-        cab: tour?.pricing?.personalCab?.rate || globalRates.cab,
-        stdRoom: tour?.pricing?.room?.standard || globalRates.stdRoom,
-        panoRoom: tour?.pricing?.room?.panoramic || globalRates.panoRoom,
-        tourGuide: tour?.pricing?.tourGuide || globalRates.tourGuide,
-        comfortSeat: tour?.pricing?.comfortSeat || globalRates.comfortSeat
+      meal: tour?.pricing?.mealPerPerson ?? globalRates.meal,
+      tea: tour?.pricing?.teaPerPerson ?? globalRates.tea,
+      bonfire: tour?.pricing?.bonfire ?? globalRates.bonfire,
+      cab: tour?.pricing?.personalCab?.rate ?? globalRates.cab,
+      stdRoom: tour?.pricing?.room?.standard ?? globalRates.stdRoom,
+      panoRoom: tour?.pricing?.room?.panoramic ?? globalRates.panoRoom,
+      tourGuide: tour?.pricing?.tourGuide ?? globalRates.tourGuide,
+      comfortSeat: tour?.pricing?.comfortSeat ?? globalRates.comfortSeat
     };
 
-    const base = Number(tour?.basePrice || 0);
-    const nights = Number(tour?.nights || 1); 
+    const base = Number(tour?.basePrice ?? 0); // per adult full base
+    const nights = Math.max(1, Number(tour?.nights ?? 1));
     const days = nights + 1;
 
-    // 1. Base Tour Cost
-    let price = base * totalPersons;
+    const adultCount = Math.max(0, Number(form.adults || 0));
+    const childCount = Math.max(0, Number(form.children || 0));
 
-    // 2. Accommodation Cost
+    // 1. Base Tour Cost
+    // Adults pay full base, children pay half (base/2)
+    const adultBaseTotal = adultCount * base;
+    const childBaseTotal = childCount * (base / 2);
+    let price = adultBaseTotal + childBaseTotal;
+
+    // 2. Accommodation Cost (roomRate * rooms * nights)
     const roomRate = form.roomType === "panoramic" ? rates.panoRoom : rates.stdRoom;
-    price += roomRate * form.rooms * nights;
+    price += roomRate * Number(form.rooms || 0) * nights;
 
     // 3. Transport
     if (form.transport === "personal") {
-         price += rates.cab; 
+      // flat cab charge per tour (not per person)
+      price += rates.cab;
     }
 
-    // 4. Add-ons
-    if (form.meal) price += totalPersons * rates.meal * days; // Per Person * Days
-    if (form.tea) price += totalPersons * rates.tea * days;   // Per Person * Days
-    
+    // 4. Add-ons (per person per day where applicable)
+    const totalPeopleForPerPersonAddons = adultCount + childCount;
+    if (form.meal) price += totalPeopleForPerPersonAddons * rates.meal * days;
+    if (form.tea) price += totalPeopleForPerPersonAddons * rates.tea * days;
+
     // --- FIXED: FLAT RATE LOGIC (PER TOUR) ---
-    if (form.bonfire) price += rates.bonfire;         // Flat Rate
-    if (form.tourGuide) price += rates.tourGuide;     // Flat Rate (Per Tour)
-    if (form.comfortSeat) price += rates.comfortSeat; // Flat Rate (Per Tour)
+    if (form.bonfire) price += rates.bonfire; // Flat Rate per tour
+    if (form.tourGuide) price += rates.tourGuide; // Flat Rate per tour
+    if (form.comfortSeat) price += rates.comfortSeat; // Flat Rate per tour
+
+    // Safety: ensure not negative, round to 2 decimals
+    price = Math.max(0, Math.round(price * 100) / 100);
 
     setFinalPrice(price);
-  }, [form, tour, globalRates, totalPersons]);
+  }, [form, tour, globalRates]);
 
-  const perHeadPrice = totalPersons > 0 ? Math.round(finalPrice / totalPersons) : finalPrice;
+  const totalPersons = Math.max(1, Number(form.adults || 0) + Number(form.children || 0)); // avoid div by zero
+  const perHeadPrice = Math.round(finalPrice / totalPersons);
 
-  // Body Scroll Lock
+  // Body Scroll Lock when bottom sheet open
   useEffect(() => {
     if (open) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [open]);
 
   // --- SUB-COMPONENTS ---
-
   const selectorBtn = (active) =>
     `w-full py-3 rounded-xl font-semibold border flex items-center gap-2 justify-center transition-all duration-200 ${
       active
@@ -141,80 +168,90 @@ export default function BookingSidebar({ tour }) {
     }`;
 
   const TickButton = ({ label, active, onClick }) => (
-    <button 
+    <button
       onClick={onClick}
-      className={`
-        w-full flex items-center justify-between p-3 rounded-xl border transition-all duration-200
-        ${active 
-          ? "bg-[#D9A441]/20 border-[#D9A441]" 
-          : "bg-white/5 border-white/10 hover:bg-white/10"
-        }
-      `}
+      className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all duration-200 ${
+        active ? "bg-[#D9A441]/20 border-[#D9A441]" : "bg-white/5 border-white/10 hover:bg-white/10"
+      }`}
     >
       <span className={`text-sm font-medium ${active ? "text-[#D9A441]" : "text-gray-300"}`}>{label}</span>
-      <div className={`
-        w-5 h-5 rounded-full flex items-center justify-center border transition-all
-        ${active ? "bg-[#D9A441] border-[#D9A441]" : "border-gray-500"}
-      `}>
+      <div
+        className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${
+          active ? "bg-[#D9A441] border-[#D9A441]" : "border-gray-500"
+        }`}
+      >
         {active && <FaCheck className="text-black text-xs" />}
       </div>
     </button>
   );
 
-  const QuantityControl = ({ label, subLabel, icon: Icon, value, field, min }) => (
-    <div>
-      <label className="text-sm text-gray-200 mb-1 flex justify-between items-center">
-        <span className="flex items-center gap-2">{Icon && <Icon />} {label}</span>
-        <span className="text-xs text-gray-400 font-normal">{subLabel}</span>
-      </label>
-      <div className="flex items-center bg-white/5 rounded-xl border border-white/20 overflow-hidden">
-        <button onClick={() => handle(field, Math.max(min, value - 1))} className="p-3 hover:bg-white/10 text-yellow-400 active:scale-90 transition"><FaMinus size={10} /></button>
-        <div className="flex-1 text-center font-bold text-white select-none">{value}</div>
-        <button onClick={() => handle(field, value + 1)} className="p-3 hover:bg-white/10 text-yellow-400 active:scale-90 transition"><FaPlus size={10} /></button>
+  const QuantityControl = ({ label, subLabel, icon: Icon, value, field, min = 0 }) => {
+    const numericValue = Number(value || 0);
+    return (
+      <div>
+        <label className="text-sm text-gray-200 mb-1 flex justify-between items-center">
+          <span className="flex items-center gap-2">{Icon && <Icon />} {label}</span>
+          <span className="text-xs text-gray-400 font-normal">{subLabel}</span>
+        </label>
+        <div className="flex items-center bg-white/5 rounded-xl border border-white/20 overflow-hidden">
+          <button
+            onClick={() => handle(field, Math.max(min, numericValue - 1))}
+            className="p-3 hover:bg-white/10 text-yellow-400 active:scale-90 transition"
+            disabled={numericValue <= min}
+          >
+            <FaMinus size={10} />
+          </button>
+          <div className="flex-1 text-center font-bold text-white select-none">{numericValue}</div>
+          <button onClick={() => handle(field, numericValue + 1)} className="p-3 hover:bg-white/10 text-yellow-400 active:scale-90 transition">
+            <FaPlus size={10} />
+          </button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const TransportSelector = () => (
-      <div className="grid grid-cols-2 gap-3">
-          <button
-            className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-300 ${form.transport === "sharing" ? "bg-[#D9A441]/20 border-[#D9A441] text-white shadow-lg" : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"}`}
-            onClick={() => handle("transport", "sharing")}
-          >
-            <FaUsers className={`text-xl mb-1 ${form.transport === "sharing" ? "text-[#D9A441]" : "text-gray-500"}`} />
-            <span className="text-sm font-medium">Sharing</span>
-          </button>
-          <button
-            className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-300 ${form.transport === "personal" ? "bg-[#D9A441]/20 border-[#D9A441] text-white shadow-lg" : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"}`}
-            onClick={() => handle("transport", "personal")}
-          >
-            <FaCar className={`text-xl mb-1 ${form.transport === "personal" ? "text-[#D9A441]" : "text-gray-500"}`} />
-            <span className="text-sm font-medium">Private Cab</span>
-          </button>
-      </div>
+    <div className="grid grid-cols-2 gap-3">
+      <button
+        className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-300 ${
+          form.transport === "sharing" ? "bg-[#D9A441]/20 border-[#D9A441] text-white shadow-lg" : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
+        }`}
+        onClick={() => handle("transport", "sharing")}
+      >
+        <FaUsers className={`text-xl mb-1 ${form.transport === "sharing" ? "text-[#D9A441]" : "text-gray-500"}`} />
+        <span className="text-sm font-medium">Sharing</span>
+      </button>
+      <button
+        className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-300 ${
+          form.transport === "personal" ? "bg-[#D9A441]/20 border-[#D9A441] text-white shadow-lg" : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
+        }`}
+        onClick={() => handle("transport", "personal")}
+      >
+        <FaCar className={`text-xl mb-1 ${form.transport === "personal" ? "text-[#D9A441]" : "text-gray-500"}`} />
+        <span className="text-sm font-medium">Private Cab</span>
+      </button>
+    </div>
   );
 
   const RoomControl = () => (
     <div className="mt-4">
       <label className="text-sm text-gray-200 mb-2 block flex items-center gap-2"><FaBed /> Number of Rooms</label>
       <div className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/20 backdrop-blur-sm">
-         <button 
-            disabled={form.rooms <= minRoomsRequired}
-            onClick={() => handle("rooms", Math.max(minRoomsRequired, form.rooms - 1))} 
-            className={`w-8 h-8 flex items-center justify-center rounded-lg transition ${form.rooms <= minRoomsRequired ? "text-gray-600 cursor-not-allowed" : "bg-white/10 hover:bg-white/20 text-yellow-400"}`}
-         >
-            <FaMinus size={10} />
-         </button>
-         
-         <div className="text-center font-bold text-white">{form.rooms} Room{form.rooms > 1 ? "s" : ""}</div>
-         
-         <button 
-            onClick={() => handle("rooms", form.rooms + 1)} 
-            className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-yellow-400"
-         >
-            <FaPlus size={10} />
-         </button>
+        <button
+          disabled={form.rooms <= minRoomsRequired}
+          onClick={() => handle("rooms", Math.max(minRoomsRequired, Number(form.rooms) - 1))}
+          className={`w-8 h-8 flex items-center justify-center rounded-lg transition ${form.rooms <= minRoomsRequired ? "text-gray-600 cursor-not-allowed" : "bg-white/10 hover:bg-white/20 text-yellow-400"}`}
+        >
+          <FaMinus size={10} />
+        </button>
+
+        <div className="text-center font-bold text-white">{form.rooms} Room{form.rooms > 1 ? "s" : ""}</div>
+
+        <button onClick={() => handle("rooms", Number(form.rooms) + 1)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-yellow-400">
+          <FaPlus size={10} />
+        </button>
       </div>
+      <div className="mt-2 text-xs text-gray-400">Minimum rooms required: {minRoomsRequired}</div>
     </div>
   );
 
@@ -224,8 +261,8 @@ export default function BookingSidebar({ tour }) {
         <div className="text-sm text-yellow-200 mb-1 font-medium uppercase tracking-wider">Per Person</div>
         <div className="text-4xl font-extrabold text-white drop-shadow-md">₹{perHeadPrice.toLocaleString("en-IN")}</div>
         <div className="mt-2 pt-2 border-t border-white/10 flex justify-between items-center text-xs text-gray-300">
-           <span>Total ({totalPersons} pax)</span>
-           <span className="font-bold text-[#D9A441]">₹{finalPrice.toLocaleString("en-IN")}</span>
+          <span>Total ({totalPersons} pax)</span>
+          <span className="font-bold text-[#D9A441]">₹{finalPrice.toLocaleString("en-IN")}</span>
         </div>
       </div>
     </div>
@@ -261,11 +298,11 @@ export default function BookingSidebar({ tour }) {
           <div>
             <div className="text-sm text-gray-200 mb-2">Add-ons</div>
             <div className="grid grid-cols-2 gap-3">
-               <TickButton label="Bonfire" active={form.bonfire} onClick={() => handle("bonfire", !form.bonfire)} />
-               <TickButton label="Meals" active={form.meal} onClick={() => handle("meal", !form.meal)} />
-               <TickButton label="Tea" active={form.tea} onClick={() => handle("tea", !form.tea)} />
-               <TickButton label="Comfort Seat" active={form.comfortSeat} onClick={() => handle("comfortSeat", !form.comfortSeat)} />
-               <TickButton label="Tour Guide" active={form.tourGuide} onClick={() => handle("tourGuide", !form.tourGuide)} />
+              <TickButton label="Bonfire" active={form.bonfire} onClick={() => handle("bonfire", !form.bonfire)} />
+              <TickButton label="Meals" active={form.meal} onClick={() => handle("meal", !form.meal)} />
+              <TickButton label="Tea" active={form.tea} onClick={() => handle("tea", !form.tea)} />
+              <TickButton label="Comfort Seat" active={form.comfortSeat} onClick={() => handle("comfortSeat", !form.comfortSeat)} />
+              <TickButton label="Tour Guide" active={form.tourGuide} onClick={() => handle("tourGuide", !form.tourGuide)} />
             </div>
           </div>
           <PriceDisplayBox />
@@ -277,11 +314,11 @@ export default function BookingSidebar({ tour }) {
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[999]">
         <div className="glass-effect p-4 rounded-t-3xl flex items-center gap-4 border-t border-white/20">
           <div className="flex-1">
-             <p className="text-xs text-gray-400 uppercase font-bold tracking-wide mb-1">Total Price</p>
-             <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-extrabold text-white">₹{perHeadPrice.toLocaleString("en-IN")}</span>
-                <span className="text-xs text-gray-300 font-medium">/ person</span>
-             </div>
+            <p className="text-xs text-gray-400 uppercase font-bold tracking-wide mb-1">Total Price</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-extrabold text-white">₹{perHeadPrice.toLocaleString("en-IN")}</span>
+              <span className="text-xs text-gray-300 font-medium">/ person</span>
+            </div>
           </div>
           <button onClick={() => setOpen(true)} className="bg-[#D9A441] text-black py-3 px-8 rounded-xl font-bold text-lg shadow-lg active:scale-95 transition-transform">Book Now</button>
         </div>
@@ -291,26 +328,26 @@ export default function BookingSidebar({ tour }) {
       {open && (
         <div className="bottom-sheet-overlay">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity" onClick={() => setOpen(false)} />
-          
+
           <div className="bottom-sheet-content glass-effect text-white shadow-2xl animate-slide-up" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
             <div className="w-full flex justify-center pt-4 pb-2 shrink-0" onClick={() => setOpen(false)}>
-               <div className="w-12 h-1.5 rounded-full bg-white/20" />
+              <div className="w-12 h-1.5 rounded-full bg-white/20" />
             </div>
             <button onClick={() => setOpen(false)} className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition z-10">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
 
             <div className="p-6 overflow-y-auto w-full custom-scroll" style={{ WebkitOverflowScrolling: "touch" }}>
-              <div className="space-y-6 pb-24"> 
+              <div className="space-y-6 pb-24">
                 <div className="space-y-3">
-                    <input placeholder="Traveller Name" className="w-full p-3 rounded-xl bg-white/5 border border-white/10 focus:border-[#D9A441] outline-none" value={form.name} onChange={(e) => handle("name", e.target.value)} />
-                    <input placeholder="Phone Number" className="w-full p-3 rounded-xl bg-white/5 border border-white/10 focus:border-[#D9A441] outline-none" value={form.phone} onChange={(e) => handle("phone", e.target.value)} />
+                  <input placeholder="Traveller Name" className="w-full p-3 rounded-xl bg-white/5 border border-white/10 focus:border-[#D9A441] outline-none" value={form.name} onChange={(e) => handle("name", e.target.value)} />
+                  <input placeholder="Phone Number" className="w-full p-3 rounded-xl bg-white/5 border border-white/10 focus:border-[#D9A441] outline-none" value={form.phone} onChange={(e) => handle("phone", e.target.value)} />
                 </div>
                 <div>
                   <div className="text-[#D9A441] font-semibold mb-2 text-sm uppercase tracking-wide">Travellers</div>
                   <div className="grid grid-cols-2 gap-3">
-                    <QuantityControl label="Adults" subLabel="13+" value={form.adults} field="adults" min={1} />
-                    <QuantityControl label="Children" subLabel="3-13" value={form.children} field="children" min={0} />
+                    <QuantityControl label="Adults" subLabel="13+" value={form.adults} field="adults" min={1} icon={FaUsers} />
+                    <QuantityControl label="Children" subLabel="3-13" value={form.children} field="children" min={0} icon={FaChild} />
                   </div>
                 </div>
                 <div>
@@ -322,7 +359,7 @@ export default function BookingSidebar({ tour }) {
                   <RoomControl />
                 </div>
                 <div><label className="text-sm text-gray-200 mb-2 block">Transport</label><TransportSelector /></div>
-                
+
                 <div>
                   <div className="text-[#D9A441] font-semibold mb-2 text-sm uppercase tracking-wide">Extras</div>
                   <div className="grid grid-cols-2 gap-3">
@@ -354,7 +391,7 @@ export default function BookingSidebar({ tour }) {
           animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         .glass-effect {
-          background: rgba(15, 23, 42, 0.65) !important; 
+          background: rgba(15, 23, 42, 0.65) !important;
           backdrop-filter: blur(24px) !important;
           -webkit-backdrop-filter: blur(24px) !important;
           border: 1px solid rgba(255, 255, 255, 0.12) !important;

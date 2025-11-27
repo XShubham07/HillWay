@@ -1,15 +1,14 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { 
-  FaMapMarkerAlt, FaEdit, FaTrash, FaPlus, FaSync, 
-  FaTag, FaBed, FaCar, FaFire, FaCoffee, FaUtensils, 
-  FaInfoCircle, FaList, FaQuestionCircle, FaStar, FaCheck,
-  FaUserTie, FaChair
+  FaMapMarkerAlt, FaEdit, FaTrash, FaPlus, 
+  FaTag, FaBed, FaUserTie, FaChair, FaInfoCircle, 
+  FaList, FaQuestionCircle, FaCheck
 } from 'react-icons/fa';
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState('tours'); // 'tours' or 'pricing'
-  const [view, setView] = useState('list'); // 'list' or 'editor'
+  const [activeTab, setActiveTab] = useState('tours');
+  const [view, setView] = useState('list');
   
   const [tours, setTours] = useState([]);
   const [globalPrices, setGlobalPrices] = useState(null);
@@ -47,10 +46,10 @@ export default function AdminDashboard() {
     pricing: {
       // Global Fallbacks
       mealPerPerson: globalPrices?.mealPrice || 450,
-      teaPerPerson: globalPrices?.teaPrice || 60,
+      teaPerPerson: globalPrices?.teaPrice || 60, // Still stored for backend, but hidden from UI
       bonfire: globalPrices?.bonfirePrice || 500,
       
-      // Static Defaults (Removed from Global)
+      // Static Defaults
       tourGuide: 1000, 
       comfortSeat: 800,
       
@@ -79,8 +78,21 @@ export default function AdminDashboard() {
     setView('editor');
   };
 
+  // *** FIXED HANDLE EDIT ***
+  // Merges defaults with DB data to ensure new fields (like comfortSeat) exist
   const handleEdit = (tour) => {
-    setForm(tour);
+    const defaults = getInitialForm();
+    
+    const mergedForm = {
+      ...defaults,
+      ...tour,
+      pricing: {
+        ...defaults.pricing, // properties like tourGuide: 1000
+        ...(tour.pricing || {}) // overwrites with DB data if it exists
+      }
+    };
+
+    setForm(mergedForm);
     setEditingId(tour._id);
     setView('editor');
   };
@@ -187,7 +199,7 @@ export default function AdminDashboard() {
             <p className="text-gray-400 mb-8">Update default rates for all tours.</p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Add-ons Card - REMOVED GUIDE & COMFORT SEAT */}
+              {/* Add-ons Card */}
               <div className="bg-[#1e293b] p-6 rounded-2xl border border-gray-700">
                 <h3 className="text-xl font-bold text-cyan-400 mb-6 flex items-center gap-2"><FaTag/> Add-ons</h3>
                 <div className="space-y-4">
@@ -279,23 +291,28 @@ export default function AdminDashboard() {
                 </div>
               </section>
 
-              {/* 3. TOUR SPECIFIC OVERRIDES (INCLUDES TOUR GUIDE & SEAT) */}
+              {/* 3. TOUR SPECIFIC OVERRIDES */}
               <section className="bg-blue-900/20 p-6 rounded-xl border border-blue-500/30">
                 <h3 className="text-xl font-bold text-blue-400 mb-2 flex items-center gap-2"><FaEdit/> Tour Specific Costs</h3>
-                <p className="text-sm text-gray-400 mb-6">Modify these ONLY if this tour has different costs than the Global Rates.</p>
+                <p className="text-sm text-gray-400 mb-6">Modify these ONLY if this tour has different costs than the Global Rates. (Tea is managed Globally).</p>
                 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                   <div><label className="block text-xs text-gray-400 mb-1">Meal Cost</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.mealPerPerson} onChange={e => updatePricing('mealPerPerson', e.target.value)} /></div>
-                   <div><label className="block text-xs text-gray-400 mb-1">Tea Cost</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.teaPerPerson} onChange={e => updatePricing('teaPerPerson', e.target.value)} /></div>
-                   <div><label className="block text-xs text-gray-400 mb-1">Bonfire</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.bonfire} onChange={e => updatePricing('bonfire', e.target.value)} /></div>
+                   {/* MEAL */}
+                   <div><label className="block text-xs text-gray-400 mb-1">Meal Cost</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.mealPerPerson || 0} onChange={e => updatePricing('mealPerPerson', e.target.value)} /></div>
                    
-                   {/* KEPT HERE FOR SPECIFIC OVERRIDES */}
-                   <div><label className="block text-xs text-gray-400 mb-1 flex items-center gap-1"><FaUserTie/> Guide (Flat)</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.tourGuide} onChange={e => updatePricing('tourGuide', e.target.value)} /></div>
-                   <div><label className="block text-xs text-gray-400 mb-1 flex items-center gap-1"><FaChair/> Seat (Flat)</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.comfortSeat} onChange={e => updatePricing('comfortSeat', e.target.value)} /></div>
+                   {/* BONFIRE */}
+                   <div><label className="block text-xs text-gray-400 mb-1">Bonfire</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.bonfire || 0} onChange={e => updatePricing('bonfire', e.target.value)} /></div>
                    
-                   <div><label className="block text-xs text-gray-400 mb-1">Std Room</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.room?.standard} onChange={e => updatePricingNested('room', 'standard', e.target.value)} /></div>
-                   <div><label className="block text-xs text-gray-400 mb-1">Pano Room</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.room?.panoramic} onChange={e => updatePricingNested('room', 'panoramic', e.target.value)} /></div>
-                   <div><label className="block text-xs text-gray-400 mb-1">Cab Rate</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.personalCab?.rate} onChange={e => updatePricingNested('personalCab', 'rate', e.target.value)} /></div>
+                   {/* GUIDE */}
+                   <div><label className="block text-xs text-gray-400 mb-1 flex items-center gap-1"><FaUserTie/> Guide (Flat)</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.tourGuide || 0} onChange={e => updatePricing('tourGuide', e.target.value)} /></div>
+                   
+                   {/* SEAT */}
+                   <div><label className="block text-xs text-gray-400 mb-1 flex items-center gap-1"><FaChair/> Seat (Flat)</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.comfortSeat || 0} onChange={e => updatePricing('comfortSeat', e.target.value)} /></div>
+                   
+                   {/* ROOMS & TRAVEL */}
+                   <div><label className="block text-xs text-gray-400 mb-1">Std Room</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.room?.standard || 0} onChange={e => updatePricingNested('room', 'standard', e.target.value)} /></div>
+                   <div><label className="block text-xs text-gray-400 mb-1">Pano Room</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.room?.panoramic || 0} onChange={e => updatePricingNested('room', 'panoramic', e.target.value)} /></div>
+                   <div><label className="block text-xs text-gray-400 mb-1">Cab Rate</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.personalCab?.rate || 0} onChange={e => updatePricingNested('personalCab', 'rate', e.target.value)} /></div>
                 </div>
               </section>
 
