@@ -17,9 +17,9 @@ const TourSchema = new mongoose.Schema({
   pricing: {
     mealPerPerson: { type: Number, default: 450 },
     teaPerPerson: { type: Number, default: 60 },
-    bonfire: { type: Number, default: 500 },
     
-    // NEW FIELDS
+    // THESE ARE THE FIELDS YOU WERE STRUGGLING WITH
+    bonfire: { type: Number, default: 500 },
     tourGuide: { type: Number, default: 1000 },
     comfortSeat: { type: Number, default: 800 },
 
@@ -35,7 +35,6 @@ const TourSchema = new mongoose.Schema({
   },
 
   inclusions: { type: [String], default: [] },
-  
   itinerary: [
     {
       day: Number,
@@ -44,10 +43,11 @@ const TourSchema = new mongoose.Schema({
       meals: { type: [String], default: [] }
     }
   ],
-  
   faqs: [{ q: String, a: String }],
   reviews: [{ name: String, rating: Number, text: String, date: String }]
 
 }, { timestamps: true });
 
+// Check if model exists, otherwise create it. 
+// This fixes "OverwriteModelError" and ensures schema updates apply.
 export default mongoose.models.Tour || mongoose.model('Tour', TourSchema);

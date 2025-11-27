@@ -9,7 +9,7 @@ export async function GET() {
     // Agar tours mil gaye, toh success
     return NextResponse.json({ success: true, data: tours });
   } catch (error) {
-    // 👇 YE HAI HUMARA JASOOS (ERROR LOG)
+    // 👇 (ERROR LOG)
     console.error("❌ API ERROR:", error.message); 
     console.error(error); // Pura error detail
 

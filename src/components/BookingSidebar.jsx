@@ -369,6 +369,7 @@ export default function BookingSidebar({ tour = {} }) {
                     <TickButton label="Comfort Seat" active={form.comfortSeat} onClick={() => handle("comfortSeat", !form.comfortSeat)} />
                     <TickButton label="Tour Guide" active={form.tourGuide} onClick={() => handle("tourGuide", !form.tourGuide)} />
                   </div>
+                  
                 </div>
 
                 <PriceDisplayBox />

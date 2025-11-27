@@ -17,7 +17,13 @@ export async function POST(request) {
         location: "Gangtok, Sikkim",
         description: "Experience the charm of Gangtok with premium stays...",
         pricing: {
-          mealPerPerson: 450, teaPerPerson: 60,
+          mealPerPerson: 450, 
+          teaPerPerson: 60,
+          // ADDED MISSING FIELDS HERE
+          bonfire: 500,
+          tourGuide: 1000,
+          comfortSeat: 800,
+          
           room: { standard: 1800, panoramic: 2600 },
           personalCab: { rate: 3200, capacity: 4 },
           tourManagerFee: 6000,
@@ -30,8 +36,6 @@ export async function POST(request) {
         ],
         inclusions: ["3 Nights Stay", "Daily Breakfast & Dinner", "Private Cab", "Permits"],
         featured: true,
-        
-        // NEW DATA
         faqs: [
             { q: "Is this safe for kids?", a: "Yes, absolutely safe and comfortable." },
             { q: "Can we customize?", a: "Yes, contact us for customization." }
@@ -41,7 +45,6 @@ export async function POST(request) {
             { name: "Priya M.", rating: 4, text: "Good hotels, smooth travel.", date: "10 Nov 2024" }
         ]
       },
-      // ... (Other tours with similar structure) ...
       {
          title: "Lachung & Yumthang",
          subtitle: "Snow valley adventure",
@@ -50,12 +53,24 @@ export async function POST(request) {
          rating: 4.9,
          nights: 4,
          location: "Lachung",
-         pricing: { mealPerPerson: 500, teaPerPerson: 50, room: { standard: 2000, panoramic: 3000 }, personalCab: { rate: 4000, capacity: 4 }, tourManagerFee: 7000 },
+         pricing: { 
+           mealPerPerson: 500, 
+           teaPerPerson: 50, 
+           // ADDED MISSING FIELDS HERE
+           bonfire: 500,
+           tourGuide: 1200,
+           comfortSeat: 900,
+
+           room: { standard: 2000, panoramic: 3000 }, 
+           personalCab: { rate: 4000, capacity: 4 }, 
+           tourManagerFee: 7000 
+         },
          itinerary: [
              { day: 1, title: "Transfer", details: "Drive to Lachung.", meals: ["Dinner"] },
              { day: 2, title: "Yumthang Valley", details: "Valley of flowers.", meals: ["Breakfast", "Lunch", "Dinner"] }
          ],
          featured: true,
+         inclusions: ["Stay", "Meals", "Transport"],
          faqs: [{ q: "Is heater available?", a: "Yes, in premium rooms." }],
          reviews: [{ name: "Amit K.", rating: 5, text: "Snow was beautiful!", date: "15 Dec 2024" }]
        }
