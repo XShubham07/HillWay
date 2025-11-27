@@ -2,12 +2,15 @@ import dbConnect from '@/lib/db';
 import Tour from '@/models/Tour';
 import { NextResponse } from 'next/server';
 
-export async function POST(request) {
+export async function GET() {
   await dbConnect();
   
   try {
-    // Ye raha apka Mock Data (Jo pehle frontend mein tha)
-    const mockData = [
+    // Clear old data
+    await Tour.deleteMany({});
+
+    // Insert 3 Fresh Tours
+    await Tour.insertMany([
       {
         title: "Gangtok Classic",
         subtitle: "The vibrant capital and scenic spots of East Sikkim.",
@@ -16,44 +19,44 @@ export async function POST(request) {
         rating: 4.8,
         nights: 3,
         location: "Gangtok, Sikkim",
-        mapEmbedUrl: "https://www.google.com/maps/embed?...",
+        description: "Experience the charm of Gangtok with premium stays and exclusive sightseeing.",
         pricing: {
-          mealPerPerson: 450, teaPerPerson: 60,
+          mealPerPerson: 450,
+          teaPerPerson: 60,
           room: { standard: 1800, panoramic: 2600 },
           personalCab: { rate: 3200, capacity: 4 },
-          tourManagerFee: 6000,
+          tourManagerFee: 6000
         },
+        inclusions: ["3 Nights Stay", "Daily Breakfast", "Private Cab", "Permits"],
         itinerary: [
-          { day: 1, title: "Arrival in Gangtok", details: "Arrive at Bagdogra/NJP, transfer to Gangtok. Check-in. Visit M.G. Marg." },
-          { day: 2, title: "Tsomgo Lake & Baba Mandir", details: "Full day trip to the sacred Tsomgo Lake and Baba Harbhajan Singh Mandir." },
-          { day: 3, title: "North Sikkim Highlights", details: "Visit Rumtek Monastery, Dro-dul Chorten, and Ganesh Tok." },
-          { day: 4, title: "Departure", details: "Transfer back to Bagdogra/NJP." }
+          { day: 1, title: "Arrival in Gangtok", details: "Pickup from Bagdogra/NJP. Check-in and rest." },
+          { day: 2, title: "Tsomgo Lake & Baba Mandir", details: "Full day excursion to the high-altitude lake." },
+          { day: 3, title: "Local Sightseeing", details: "Visit Monasteries, Viewpoints and Handicraft center." },
+          { day: 4, title: "Departure", details: "Drop to airport/station." }
         ],
-        inclusions: ["3 Nights Stay in Premium Hotel", "Daily Breakfast & Dinner", "All Transfers by Private Cab", "Permit Fees"],
         featured: true
       },
       {
-        title: "Lachung & Yumthang Valley",
+        title: "Lachung & Yumthang",
         subtitle: "Experience the Himalayan wonderland of North Sikkim.",
         basePrice: 17000,
         img: "/g4.webp",
         rating: 4.9,
         nights: 4,
         location: "Lachung, North Sikkim",
+        description: "A journey to the valley of flowers and snow-capped peaks.",
         pricing: {
-          mealPerPerson: 450, teaPerPerson: 60,
-          room: { standard: 1600, panoramic: 2400 },
-          personalCab: { rate: 3500, capacity: 4 },
-          tourManagerFee: 7000,
+          mealPerPerson: 500,
+          teaPerPerson: 50,
+          room: { standard: 2000, panoramic: 3000 },
+          personalCab: { rate: 4000, capacity: 4 },
+          tourManagerFee: 7000
         },
+        inclusions: ["All Meals", "Transport", "Permits", "Hotel Stay"],
         itinerary: [
-          { day: 1, title: "Transfer to Lachung", details: "Travel from Gangtok to Lachung, enjoying waterfalls and scenic viewpoints en route." },
-          { day: 2, title: "Yumthang Valley & Zero Point", details: "Visit the beautiful Yumthang Valley and optionally Zero Point." },
-          { day: 3, title: "Return to Gangtok", details: "Check-out and return to Gangtok." },
-          { day: 4, title: "Local Sightseeing", details: "Visit Tsomgo Lake and Baba Mandir." },
-          { day: 5, title: "Departure", details: "Transfer back to Bagdogra/NJP." }
+            { day: 1, title: "Transfer to Lachung", details: "Scenic 6-hour drive with waterfalls." },
+            { day: 2, title: "Yumthang Valley", details: "Visit the valley of flowers and hot springs." }
         ],
-        inclusions: ["All 4 Nights Accommodation", "All Meals in North Sikkim", "Exclusive North Sikkim Permits", "Private Cab"],
         featured: true
       },
       {
@@ -64,28 +67,25 @@ export async function POST(request) {
         rating: 4.7,
         nights: 2,
         location: "Pelling, West Sikkim",
+        description: "Relax in the serene hills of West Sikkim.",
         pricing: {
-          mealPerPerson: 400, teaPerPerson: 50,
+          mealPerPerson: 400,
+          teaPerPerson: 40,
           room: { standard: 1500, panoramic: 2200 },
           personalCab: { rate: 3000, capacity: 4 },
-          tourManagerFee: 5000,
+          tourManagerFee: 5000
         },
+        inclusions: ["Breakfast", "Transport", "Sightseeing"],
         itinerary: [
-          { day: 1, title: "Arrival in Pelling", details: "Check-in and enjoy the Kanchenjunga view." },
-          { day: 2, title: "Pelling Sightseeing Tour", details: "Visit waterfalls, lake, monasteries & Skywalk." },
-          { day: 3, title: "Departure", details: "Return to NJP/Bagdogra." },
+            { day: 1, title: "Arrival", details: "Welcome to Pelling." },
+            { day: 2, title: "Skywalk & Monastery", details: "Visit the famous glass skywalk." }
         ],
-        inclusions: ["2 Nights Stay", "Daily Breakfast", "Sightseeing Tour", "Private Transportation"],
         featured: true
       }
-    ];
+    ]);
 
-    // Purana data clear karo aur naya daalo
-    await Tour.deleteMany({}); 
-    await Tour.insertMany(mockData);
-
-    return NextResponse.json({ success: true, message: "Database Seeded Successfully with Mock Data!" });
+    return NextResponse.json({ success: true, message: "✅ Database Seeded with 3 Tours!" });
   } catch (error) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message });
   }
 }

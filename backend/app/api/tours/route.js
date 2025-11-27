@@ -2,45 +2,29 @@ import dbConnect from '@/lib/db';
 import Tour from '@/models/Tour';
 import { NextResponse } from 'next/server';
 
-// GET Single Tour (For loading into Edit Form)
-export async function GET(request, { params }) {
+export async function GET() {
   await dbConnect();
   try {
-    const { id } = await params; // Await params in Next.js 15+
-    const tour = await Tour.findById(id);
-    if (!tour) return NextResponse.json({ success: false }, { status: 404 });
-    return NextResponse.json({ success: true, data: tour });
+    const tours = await Tour.find({});
+    // Agar tours mil gaye, toh success
+    return NextResponse.json({ success: true, data: tours });
   } catch (error) {
+    // 👇 YE HAI HUMARA JASOOS (ERROR LOG)
+    console.error("❌ API ERROR:", error.message); 
+    console.error(error); // Pura error detail
+
     return NextResponse.json({ success: false, error: error.message }, { status: 400 });
   }
 }
 
-// PUT (Update Tour)
-export async function PUT(request, { params }) {
+export async function POST(request) {
   await dbConnect();
   try {
-    const { id } = await params;
     const body = await request.json();
-    const tour = await Tour.findByIdAndUpdate(id, body, {
-      new: true,
-      runValidators: true,
-    });
-    if (!tour) return NextResponse.json({ success: false }, { status: 404 });
-    return NextResponse.json({ success: true, data: tour });
+    const tour = await Tour.create(body);
+    return NextResponse.json({ success: true, data: tour }, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 400 });
-  }
-}
-
-// DELETE (Remove Tour)
-export async function DELETE(request, { params }) {
-  await dbConnect();
-  try {
-    const { id } = await params;
-    const tour = await Tour.findByIdAndDelete(id);
-    if (!tour) return NextResponse.json({ success: false }, { status: 404 });
-    return NextResponse.json({ success: true, data: {} });
-  } catch (error) {
+    console.error("❌ POST ERROR:", error.message);
     return NextResponse.json({ success: false, error: error.message }, { status: 400 });
   }
 }
