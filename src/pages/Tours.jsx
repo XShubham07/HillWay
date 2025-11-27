@@ -1,28 +1,9 @@
 // src/pages/Tours.jsx
 import { useState, useEffect, useRef, memo } from "react";
 import { useNavigate } from "react-router-dom"; 
-import { motion } from "framer-motion"; // Added Animation Library
+import { motion } from "framer-motion"; 
 import SearchBar from "../components/SearchBar";
 import Filters from "../components/Filters";
-import { tourData } from "../data/mockTours";
-
-// --- ANIMATION VARIANTS (Slide Up + Zoom) ---
-const mobileRowVariant = {
-  hidden: { 
-    opacity: 0, 
-    y: 80,         // Starts 80px down
-    scale: 0.9     // Starts slightly zoomed out (90%)
-  },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    scale: 1,      // Zooms to 100%
-    transition: { 
-      duration: 0.7, 
-      ease: "easeOut" 
-    }
-  }
-};
 
 // --- MEMOIZED CARD COMPONENT ---
 const TourCard = memo(({ tour, onView, style = {} }) => {
@@ -208,28 +189,32 @@ export default function Tours(){
   const navigate = useNavigate();
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [showFilters, setShowFilters] = useState(false);
-  
-  // Data Generation
-  const realTours = tourData.slice(0, 3).map(tour => ({
-    id: tour.id, 
-    title: tour.title.split(' - ')[0], 
-    days: tour.title.match(/(\d+)\s*N\s*\/\s*(\d+)\s*D/)?.[0] || '7Days',
-    price: '₹'+ tour.basePrice.toLocaleString('en-IN'),
-    img: tour.img,
-    summary: tour.subtitle,
-  }));
-  
-  const genericTours = Array.from({length: 6}).map((_, i) => ({
-    id: `generic-${i + 4}`, 
-    title: `Adventure Trek ${i + 4}`,
-    days: (4 + (i % 3)) + 'N/' + (5 + (i % 3)) + 'D',
-    img: i % 2 === 0 ? '/g3.webp' : '/g69.webp', 
-    price: '₹' + (15000 + i * 1500).toLocaleString('en-IN'),
-    summary: 'A thrilling high-altitude trek for seasoned adventurers.',
-  }));
-  
-  const allTours = [...realTours, ...genericTours];
-  const [list] = useState(allTours);
+  const [list, setList] = useState([]); 
+  const [loading, setLoading] = useState(true);
+
+  // --- FETCH REAL DATA ---
+  useEffect(() => {
+    fetch('/api/tours') // This proxies to localhost:3000
+      .then(res => res.json())
+      .then(data => {
+        if(data.success) {
+          const formatted = data.data.map(t => ({
+            id: t._id, // Use MongoDB _id
+            title: t.title,
+            days: t.nights ? `${t.nights}N / ${t.nights + 1}D` : 'Custom',
+            price: `₹${t.basePrice.toLocaleString('en-IN')}`,
+            img: t.img,
+            summary: t.subtitle
+          }));
+          setList(formatted);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
   
   useEffect(() => {
     let timeoutId;
@@ -313,17 +298,15 @@ export default function Tours(){
           )}
           
           <div style={{ marginTop: '24px' }}>
-            {isMobile ? (
-              /* MOBILE: STACKED CAROUSELS WITH SCROLL ANIMATION */
+            
+            {loading ? (
+               <div className="text-center py-20 text-gray-500">Loading Tours...</div>
+            ) : list.length === 0 ? (
+               <div className="text-center py-20 text-gray-500">No Tours Found</div>
+            ) : isMobile ? (
+              /* MOBILE: STACKED CAROUSELS */
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                
-                {/* ROW 1 - Animated */}
-                <motion.div
-                  variants={mobileRowVariant}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, margin: "-10%" }} // Triggers when row is 10% inside screen
-                >
+                <div>
                   <h3 style={{ 
                       fontSize: '20px', 
                       fontWeight: 800, 
@@ -331,58 +314,15 @@ export default function Tours(){
                       paddingLeft: '16px', 
                       marginBottom: '0px'
                   }}>
-                    Popular Treks
+                    All Tours
                   </h3>
                   <div style={{ margin: '0 -16px' }}> 
-                     <Mobile3DCarousel items={list.slice(0, 3)} onView={onView} />
+                     <Mobile3DCarousel items={list} onView={onView} />
                   </div>
-                </motion.div>
-
-                {/* ROW 2 - Animated */}
-                <motion.div
-                  variants={mobileRowVariant}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, margin: "-10%" }}
-                >
-                  <h3 style={{ 
-                      fontSize: '20px', 
-                      fontWeight: 800, 
-                      color: '#1f2937', 
-                      paddingLeft: '16px', 
-                      marginBottom: '0px' 
-                  }}>
-                      Best Sellers
-                  </h3>
-                  <div style={{ margin: '0 -16px' }}>
-                     <Mobile3DCarousel items={list.slice(3, 6)} onView={onView} />
-                  </div>
-                </motion.div>
-
-                {/* ROW 3 - Animated */}
-                <motion.div
-                  variants={mobileRowVariant}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, margin: "-10%" }}
-                >
-                  <h3 style={{ 
-                      fontSize: '20px', 
-                      fontWeight: 800, 
-                      color: '#1f2937', 
-                      paddingLeft: '16px', 
-                      marginBottom: '0px' 
-                  }}>
-                      Weekend Trips
-                  </h3>
-                  <div style={{ margin: '0 -16px' }}>
-                     <Mobile3DCarousel items={list.slice(6, 9)} onView={onView} />
-                  </div>
-                </motion.div>
-
+                </div>
               </div>
             ) : (
-              /* Desktop Grid - No Scroll Animation Needed Here (or optional) */
+              /* Desktop */
               <div style={{ 
                 display: 'grid', 
                 gridTemplateColumns: 'repeat(3, 1fr)', 
