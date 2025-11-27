@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { 
   FaMapMarkerAlt, FaEdit, FaTrash, FaPlus, 
   FaTag, FaBed, FaUserTie, FaChair, FaInfoCircle, 
-  FaList, FaQuestionCircle, FaCheck
+  FaList, FaQuestionCircle, FaCheck, FaCamera, FaSpinner
 } from 'react-icons/fa';
 
 export default function AdminDashboard() {
@@ -15,6 +15,7 @@ export default function AdminDashboard() {
   
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [uploadingImg, setUploadingImg] = useState(false); // New State for Image Upload
 
   // --- FETCH DATA ---
   const fetchData = async () => {
@@ -36,6 +37,35 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  // --- IMAGE UPLOAD HANDLER ---
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImg(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setForm(prev => ({ ...prev, img: data.url }));
+        alert("Image Uploaded Successfully!");
+      } else {
+        alert("Upload failed");
+      }
+    } catch (err) {
+      console.error("Error uploading image:", err);
+      alert("Error uploading image");
+    }
+    setUploadingImg(false);
+  };
 
   // --- FORM INITIALIZATION ---
   const getInitialForm = () => ({
@@ -68,6 +98,7 @@ export default function AdminDashboard() {
 
   const [form, setForm] = useState(getInitialForm());
 
+  // --- ACTIONS ---
   const handleCreateNew = () => {
     setForm(getInitialForm()); 
     setEditingId(null);
@@ -135,10 +166,9 @@ export default function AdminDashboard() {
     } 
   };
 
-  // --- FIXED HELPERS ---
+  // --- HELPERS ---
   const updateField = (field, val) => setForm(p => ({ ...p, [field]: val }));
   
-  // FIXED: Allow empty string for typing
   const updatePricing = (field, val) => {
     setForm(p => ({ 
       ...p, 
@@ -149,7 +179,6 @@ export default function AdminDashboard() {
     }));
   };
   
-  // FIXED: Allow empty string for typing
   const updatePricingNested = (parent, field, val) => {
     setForm(p => ({ 
       ...p, 
@@ -181,6 +210,7 @@ export default function AdminDashboard() {
     setForm({ ...form, faqs: newFaqs });
   };
 
+  // --- RENDER ---
   return (
     <div className="flex h-screen bg-[#0f172a] text-gray-100 font-sans overflow-hidden">
       
@@ -197,10 +227,10 @@ export default function AdminDashboard() {
         </nav>
       </aside>
 
-      {/* MAIN CONTENT AREA */}
+      {/* MAIN CONTENT */}
       <main className="flex-1 p-8 overflow-y-auto">
         
-        {/* ==================== GLOBAL PRICING TAB ==================== */}
+        {/* GLOBAL PRICING */}
         {activeTab === 'pricing' && globalPrices && (
           <div className="max-w-4xl mx-auto">
             <h1 className="text-3xl font-bold text-white mb-2">Universal Price List</h1>
@@ -229,8 +259,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* ==================== TOURS TAB ==================== */}
-        
+        {/* TOURS LIST VIEW */}
         {activeTab === 'tours' && view === 'list' && (
           <div>
             <div className="flex justify-between items-center mb-8">
@@ -273,17 +302,46 @@ export default function AdminDashboard() {
             
             <form onSubmit={handleSaveTour} className="p-8 space-y-8">
               
+              {/* BASIC INFO */}
               <section>
                 <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2"><FaInfoCircle/> Basic Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div><label className="block text-sm font-medium text-gray-300 mb-1">Tour Title</label><input className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.title} onChange={e => updateField('title', e.target.value)} required /></div>
-                  <div><label className="block text-sm font-medium text-gray-300 mb-1">Subtitle</label><input className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.subtitle} onChange={e => updateField('subtitle', e.target.value)} /></div>
-                  <div><label className="block text-sm font-medium text-gray-300 mb-1">Location</label><input className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.location} onChange={e => updateField('location', e.target.value)} required /></div>
-                  <div><label className="block text-sm font-medium text-gray-300 mb-1">Image URL</label><input className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.img} onChange={e => updateField('img', e.target.value)} required /></div>
-                  <div className="col-span-2"><label className="block text-sm font-medium text-gray-300 mb-1">Description</label><textarea rows={3} className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.description} onChange={e => updateField('description', e.target.value)} /></div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Tour Title</label>
+                    <input className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.title} onChange={e => updateField('title', e.target.value)} required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Subtitle</label>
+                    <input className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.subtitle} onChange={e => updateField('subtitle', e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Location</label>
+                    <input className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.location} onChange={e => updateField('location', e.target.value)} required />
+                  </div>
+                  
+                  {/* IMAGE UPLOAD SECTION */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Cover Image</label>
+                    <div className="flex gap-3">
+                      <div className="flex-1">
+                        <input className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.img} onChange={e => updateField('img', e.target.value)} required placeholder="Image URL" />
+                      </div>
+                      <label className="flex items-center justify-center p-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg cursor-pointer transition w-14">
+                        {uploadingImg ? <FaSpinner className="animate-spin" /> : <FaCamera />}
+                        <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploadingImg} />
+                      </label>
+                    </div>
+                    {form.img && <img src={form.img} alt="Preview" className="mt-2 h-32 w-full object-cover rounded-lg border border-gray-600" />}
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
+                    <textarea rows={3} className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.description} onChange={e => updateField('description', e.target.value)} />
+                  </div>
                 </div>
               </section>
 
+              {/* STATS */}
               <section className="bg-black/20 p-6 rounded-xl border border-gray-700">
                 <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2"><FaTag/> Stats & Base Price</h3>
                 <div className="grid grid-cols-4 gap-4">
@@ -294,54 +352,25 @@ export default function AdminDashboard() {
                 </div>
               </section>
 
-              {/* FIXED PRICING SECTION - Tea Removed, Safe Inputs */}
+              {/* PRICING OVERRIDES */}
               <section className="bg-blue-900/20 p-6 rounded-xl border border-blue-500/30">
                 <h3 className="text-xl font-bold text-blue-400 mb-2 flex items-center gap-2"><FaEdit/> Tour Specific Costs</h3>
                 <p className="text-sm text-gray-400 mb-6">Modify these ONLY if different from Global Rates.</p>
-                
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                   {/* Meal */}
-                   <div>
-                     <label className="block text-xs text-gray-400 mb-1">Meal Cost</label>
-                     <input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" 
-                        value={form.pricing?.mealPerPerson ?? ''} 
-                        onChange={e => updatePricing('mealPerPerson', e.target.value)} />
-                   </div>
-                   
-                   {/* Bonfire - FIXED */}
-                   <div>
-                     <label className="block text-xs text-gray-400 mb-1">Bonfire</label>
-                     <input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" 
-                        value={form.pricing?.bonfire ?? ''} 
-                        onChange={e => updatePricing('bonfire', e.target.value)} />
-                   </div>
-                   
-                   {/* Guide - FIXED */}
-                   <div>
-                     <label className="block text-xs text-gray-400 mb-1 flex items-center gap-1"><FaUserTie/> Guide (Flat)</label>
-                     <input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" 
-                        value={form.pricing?.tourGuide ?? ''} 
-                        onChange={e => updatePricing('tourGuide', e.target.value)} />
-                   </div>
-                   
-                   {/* Seat - FIXED */}
-                   <div>
-                     <label className="block text-xs text-gray-400 mb-1 flex items-center gap-1"><FaChair/> Seat (Flat)</label>
-                     <input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" 
-                        value={form.pricing?.comfortSeat ?? ''} 
-                        onChange={e => updatePricing('comfortSeat', e.target.value)} />
-                   </div>
-                   
-                   {/* Nested Fields */}
+                   <div><label className="block text-xs text-gray-400 mb-1">Meal Cost</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.mealPerPerson ?? ''} onChange={e => updatePricing('mealPerPerson', e.target.value)} /></div>
+                   <div><label className="block text-xs text-gray-400 mb-1">Bonfire</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.bonfire ?? ''} onChange={e => updatePricing('bonfire', e.target.value)} /></div>
+                   <div><label className="block text-xs text-gray-400 mb-1 flex items-center gap-1"><FaUserTie/> Guide</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.tourGuide ?? ''} onChange={e => updatePricing('tourGuide', e.target.value)} /></div>
+                   <div><label className="block text-xs text-gray-400 mb-1 flex items-center gap-1"><FaChair/> Seat</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.comfortSeat ?? ''} onChange={e => updatePricing('comfortSeat', e.target.value)} /></div>
                    <div><label className="block text-xs text-gray-400 mb-1">Std Room</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.room?.standard ?? ''} onChange={e => updatePricingNested('room', 'standard', e.target.value)} /></div>
                    <div><label className="block text-xs text-gray-400 mb-1">Pano Room</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.room?.panoramic ?? ''} onChange={e => updatePricingNested('room', 'panoramic', e.target.value)} /></div>
                    <div><label className="block text-xs text-gray-400 mb-1">Cab Rate</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.personalCab?.rate ?? ''} onChange={e => updatePricingNested('personalCab', 'rate', e.target.value)} /></div>
                 </div>
               </section>
 
+              {/* ITINERARY */}
               <section>
                 <div className="flex justify-between items-center mb-4">
-                   <h3 className="text-xl font-bold text-cyan-400 flex items-center gap-2"><FaList/> Itinerary & Meals</h3>
+                   <h3 className="text-xl font-bold text-cyan-400 flex items-center gap-2"><FaList/> Itinerary</h3>
                    <button type="button" onClick={addItineraryDay} className="text-sm bg-cyan-600 text-white px-3 py-1.5 rounded hover:bg-cyan-700">+ Add Day</button>
                 </div>
                 <div className="space-y-4">
@@ -362,6 +391,7 @@ export default function AdminDashboard() {
                 </div>
               </section>
 
+              {/* INCLUSIONS & FAQ */}
               <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
                  <div>
                     <h3 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2"><FaCheck/> Inclusions</h3>

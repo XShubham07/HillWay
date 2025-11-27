@@ -19,7 +19,7 @@ export async function POST(request) {
         pricing: {
           mealPerPerson: 450, 
           teaPerPerson: 60,
-          // ADDED MISSING FIELDS HERE
+          // ADDED MISSING FIELDS
           bonfire: 500,
           tourGuide: 1000,
           comfortSeat: 800,
@@ -56,7 +56,7 @@ export async function POST(request) {
          pricing: { 
            mealPerPerson: 500, 
            teaPerPerson: 50, 
-           // ADDED MISSING FIELDS HERE
+           // ADDED MISSING FIELDS
            bonfire: 500,
            tourGuide: 1200,
            comfortSeat: 900,
