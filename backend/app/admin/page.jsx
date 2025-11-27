@@ -1,15 +1,17 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { FaMapMarkerAlt, FaBed, FaEdit, FaTrash, FaPlus, FaSync } from 'react-icons/fa';
 
 export default function AdminDashboard() {
-  const [view, setView] = useState('list'); // 'list' or 'editor'
+  const [activeTab, setActiveTab] = useState('tours'); // tours, bookings, enquiries
   const [tours, setTours] = useState([]);
+  const [view, setView] = useState('list'); // list, editor
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // --- Initial Form State ---
+  // --- INITIAL FORM STATE ---
   const initialForm = {
-    title: '', subtitle: '', location: '', basePrice: 0, nights: 1, rating: 4.5,
+    title: '', subtitle: '', location: '', basePrice: 0, nights: 3, rating: 4.5,
     img: '', mapEmbedUrl: '', description: '', featured: false,
     pricing: {
       mealPerPerson: 450, teaPerPerson: 60,
@@ -17,26 +19,71 @@ export default function AdminDashboard() {
       personalCab: { rate: 3200, capacity: 4 },
       tourManagerFee: 5000
     },
-    inclusions: [], // Will handle as comma separated string in UI
+    inclusions: [],
     itinerary: []
   };
-
   const [form, setForm] = useState(initialForm);
 
-  // --- Fetch Tours ---
+  // --- FETCH DATA ---
   const fetchTours = async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/tours');
       const data = await res.json();
       if (data.success) setTours(data.data);
-    } catch (error) { console.error(error); }
+    } catch (err) { console.error(err); }
     setLoading(false);
   };
 
   useEffect(() => { fetchTours(); }, []);
 
-  // --- Actions ---
+  // --- SEED DATA (ONE TIME USE) ---
+  // Ye function wahi 9 tours generate karega jo tumhare frontend pe the
+  const seedDatabase = async () => {
+    if(!confirm("Warning: This will DELETE existing tours and replace them with the default 9 tours. Continue?")) return;
+    setLoading(true);
+
+    // 3 Real Tours (Mock Data)
+    const realTours = [
+      {
+        title: "Gangtok Classic", subtitle: "The vibrant capital", basePrice: 12499, img: "/g1.webp", rating: 4.8, nights: 3, location: "Gangtok, Sikkim",
+        pricing: { mealPerPerson: 450, teaPerPerson: 60, room: { standard: 1800, panoramic: 2600 }, personalCab: { rate: 3200, capacity: 4 }, tourManagerFee: 6000 },
+        itinerary: [{ day: 1, title: "Arrival", details: "Check-in and rest." }]
+      },
+      {
+        title: "Lachung & Yumthang", subtitle: "Himalayan wonderland", basePrice: 17000, img: "/g4.webp", rating: 4.9, nights: 4, location: "Lachung",
+        pricing: { mealPerPerson: 450, teaPerPerson: 60, room: { standard: 1600, panoramic: 2400 }, personalCab: { rate: 3500, capacity: 4 }, tourManagerFee: 7000 },
+        itinerary: [{ day: 1, title: "Transfer", details: "Drive to Lachung." }]
+      },
+      {
+        title: "Pelling Scenic Escape", subtitle: "Kanchenjunga views", basePrice: 9999, img: "/g3.webp", rating: 4.7, nights: 2, location: "Pelling",
+        pricing: { mealPerPerson: 400, teaPerPerson: 50, room: { standard: 1500, panoramic: 2200 }, personalCab: { rate: 3000, capacity: 4 }, tourManagerFee: 5000 },
+        itinerary: [{ day: 1, title: "Arrival", details: "Welcome to Pelling." }]
+      }
+    ];
+
+    // 6 Generated Tours (Like your frontend)
+    const genericTours = Array.from({length: 6}).map((_, i) => ({
+      title: `Adventure Trek ${i + 4}`, subtitle: "A thrilling high-altitude trek", 
+      basePrice: 15000 + i * 1500, img: i % 2 === 0 ? '/g3.webp' : '/g69.webp',
+      rating: 4.5, nights: 4 + (i % 3), location: "Himachal Pradesh",
+      pricing: { mealPerPerson: 500, teaPerPerson: 50, room: { standard: 2000, panoramic: 3000 }, personalCab: { rate: 4000, capacity: 4 }, tourManagerFee: 5000 },
+      itinerary: [{ day: 1, title: "Start", details: "Begin the trek." }]
+    }));
+
+    const allTours = [...realTours, ...genericTours];
+
+    await fetch('/api/seed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(allTours)
+    });
+    
+    alert("Database Seeded!");
+    fetchTours();
+  };
+
+  // --- HANDLERS ---
   const handleEdit = (tour) => {
     setForm(tour);
     setEditingId(tour._id);
@@ -44,233 +91,135 @@ export default function AdminDashboard() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this tour?")) return;
+    if(!confirm("Delete this tour?")) return;
     await fetch(`/api/tours/${id}`, { method: 'DELETE' });
     fetchTours();
   };
 
-  const handleCreateNew = () => {
-    setForm(initialForm);
-    setEditingId(null);
-    setView('editor');
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    
-    const method = editingId ? 'PUT' : 'POST';
     const url = editingId ? `/api/tours/${editingId}` : '/api/tours';
+    const method = editingId ? 'PUT' : 'POST';
+    
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    });
 
-    try {
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      if (res.ok) {
-        alert(editingId ? 'Tour Updated!' : 'Tour Created!');
-        setView('list');
-        fetchTours();
-      }
-    } catch (err) { alert('Error saving tour'); }
-    setLoading(false);
+    if(res.ok) {
+      alert("Saved Successfully!");
+      setView('list');
+      fetchTours();
+    }
   };
 
-  // --- Helper for Nested Updates ---
-  const updateForm = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
-  const updatePricing = (key, value) => setForm(prev => ({ 
-    ...prev, pricing: { ...prev.pricing, [key]: value } 
-  }));
-  const updatePricingNested = (parent, key, value) => setForm(prev => ({ 
-    ...prev, pricing: { ...prev.pricing, [parent]: { ...prev.pricing[parent], [key]: value } } 
-  }));
-
-  // --- ITINERARY HELPERS ---
-  const addItineraryItem = () => {
-    setForm(prev => ({
-      ...prev,
-      itinerary: [...prev.itinerary, { day: prev.itinerary.length + 1, title: '', details: '' }]
-    }));
-  };
-
-  const updateItinerary = (index, field, value) => {
-    const newItinerary = [...form.itinerary];
-    newItinerary[index][field] = value;
-    setForm(prev => ({ ...prev, itinerary: newItinerary }));
-  };
-
-  const removeItineraryItem = (index) => {
-    const newItinerary = form.itinerary.filter((_, i) => i !== index);
-    // Re-index days
-    const reIndexed = newItinerary.map((item, i) => ({ ...item, day: i + 1 }));
-    setForm(prev => ({ ...prev, itinerary: reIndexed }));
-  };
-
-  // --- RENDER: LIST VIEW ---
-  if (view === 'list') {
-    return (
-      <div className="min-h-screen bg-gray-50 p-8 font-sans">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800">Tour Manager</h1>
-            <button 
-              onClick={handleCreateNew}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 shadow-md transition"
-            >
-              + Create New Tour
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tours.map(tour => (
-              <div key={tour._id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
-                <img src={tour.img} className="h-48 w-full object-cover" alt={tour.title} />
-                <div className="p-5 flex-1">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-bold text-lg text-gray-900 line-clamp-1">{tour.title}</h3>
-                    <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">₹{tour.basePrice}</span>
-                  </div>
-                  <p className="text-sm text-gray-500 line-clamp-2">{tour.subtitle}</p>
-                </div>
-                <div className="p-4 border-t bg-gray-50 flex justify-between">
-                   <button 
-                     onClick={() => handleEdit(tour)}
-                     className="text-blue-600 font-medium text-sm hover:underline"
-                   >
-                     Edit Details
-                   </button>
-                   <button 
-                     onClick={() => handleDelete(tour._id)}
-                     className="text-red-600 font-medium text-sm hover:underline"
-                   >
-                     Delete
-                   </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // --- RENDER: EDITOR VIEW ---
+  // --- NESTED FORM HANDLERS ---
+  const updatePricing = (key, val) => setForm(p => ({ ...p, pricing: { ...p.pricing, [key]: val } }));
+  const updatePricingRoom = (key, val) => setForm(p => ({ ...p, pricing: { ...p.pricing, room: { ...p.pricing.room, [key]: val } } }));
+  
   return (
-    <div className="min-h-screen bg-gray-100 py-10">
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
+    <div className="flex h-screen bg-gray-100 font-sans">
+      
+      {/* SIDE NAVIGATION */}
+      <aside className="w-64 bg-gray-900 text-white flex flex-col">
+        <div className="p-6 text-2xl font-bold border-b border-gray-800">HillWay Admin</div>
+        <nav className="flex-1 p-4 space-y-2">
+          <button onClick={() => setActiveTab('tours')} className={`w-full text-left px-4 py-3 rounded-lg transition ${activeTab === 'tours' ? 'bg-blue-600' : 'hover:bg-gray-800'}`}>🌍 Tours</button>
+          <button onClick={() => setActiveTab('bookings')} className={`w-full text-left px-4 py-3 rounded-lg transition ${activeTab === 'bookings' ? 'bg-blue-600' : 'hover:bg-gray-800'}`}>📅 Bookings</button>
+          <button onClick={() => setActiveTab('enquiries')} className={`w-full text-left px-4 py-3 rounded-lg transition ${activeTab === 'enquiries' ? 'bg-blue-600' : 'hover:bg-gray-800'}`}>📩 Enquiries</button>
+        </nav>
+        <div className="p-4 text-xs text-gray-500 text-center">v1.0.0</div>
+      </aside>
+
+      {/* MAIN CONTENT */}
+      <main className="flex-1 overflow-y-auto p-8">
         
-        {/* Header */}
-        <div className="bg-gray-900 text-white p-6 flex justify-between items-center">
-           <h2 className="text-2xl font-bold">{editingId ? 'Edit Tour' : 'New Tour'}</h2>
-           <button onClick={() => setView('list')} className="text-gray-300 hover:text-white">Cancel</button>
-        </div>
+        {activeTab === 'tours' && view === 'list' && (
+          <div>
+            <div className="flex justify-between items-center mb-8">
+              <h1 className="text-3xl font-bold text-gray-800">All Tours ({tours.length})</h1>
+              <div className="flex gap-3">
+                <button onClick={seedDatabase} className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 flex items-center gap-2">
+                  <FaSync /> Reset/Seed Data
+                </button>
+                <button onClick={() => { setForm(initialForm); setEditingId(null); setView('editor'); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                  <FaPlus /> Add New Tour
+                </button>
+              </div>
+            </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-8">
-          
-          {/* SECTION 1: BASIC INFO */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Title</label>
-              <input className="w-full border p-3 rounded-lg" value={form.title} onChange={e => updateForm('title', e.target.value)} required />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Subtitle</label>
-              <input className="w-full border p-3 rounded-lg" value={form.subtitle} onChange={e => updateForm('subtitle', e.target.value)} required />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Location</label>
-              <input className="w-full border p-3 rounded-lg" value={form.location} onChange={e => updateForm('location', e.target.value)} required />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Image URL</label>
-              <input className="w-full border p-3 rounded-lg" value={form.img} onChange={e => updateForm('img', e.target.value)} required />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {tours.map(tour => (
+                <div key={tour._id} className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition">
+                  <div className="h-40 bg-gray-200 relative">
+                     <img src={tour.img} className="w-full h-full object-cover" />
+                     <div className="absolute top-2 right-2 bg-white px-2 py-1 text-xs font-bold rounded">₹{tour.basePrice}</div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg text-gray-800 truncate">{tour.title}</h3>
+                    <p className="text-sm text-gray-500 flex items-center gap-1 mt-1"><FaMapMarkerAlt /> {tour.location}</p>
+                    <div className="flex justify-between mt-4 pt-4 border-t">
+                      <button onClick={() => handleEdit(tour)} className="text-blue-600 text-sm font-bold flex items-center gap-1"><FaEdit /> Edit</button>
+                      <button onClick={() => handleDelete(tour._id)} className="text-red-500 text-sm font-bold flex items-center gap-1"><FaTrash /> Delete</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
+        )}
 
-          {/* SECTION 2: NUMBERS */}
-          <div className="grid grid-cols-3 gap-6 bg-blue-50 p-6 rounded-xl border border-blue-100">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Base Price (₹)</label>
-              <input type="number" className="w-full border p-3 rounded-lg" value={form.basePrice} onChange={e => updateForm('basePrice', e.target.value)} required />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Nights</label>
-              <input type="number" className="w-full border p-3 rounded-lg" value={form.nights} onChange={e => updateForm('nights', e.target.value)} />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Rating</label>
-              <input type="number" step="0.1" className="w-full border p-3 rounded-lg" value={form.rating} onChange={e => updateForm('rating', e.target.value)} />
-            </div>
-            <div className="flex items-center gap-3">
-               <input type="checkbox" id="feat" className="w-5 h-5" checked={form.featured} onChange={e => updateForm('featured', e.target.checked)} />
-               <label htmlFor="feat" className="font-bold text-gray-700">Mark as Featured?</label>
-            </div>
-          </div>
-
-          {/* SECTION 3: DETAILED PRICING (For Booking Calculator) */}
-          <div className="space-y-4 border-t pt-6">
-            <h3 className="text-xl font-bold text-gray-800">Pricing Logic</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <input type="number" placeholder="Meal Cost/Pax" className="border p-3 rounded" value={form.pricing?.mealPerPerson} onChange={e => updatePricing('mealPerPerson', e.target.value)} />
-              <input type="number" placeholder="Tea Cost/Pax" className="border p-3 rounded" value={form.pricing?.teaPerPerson} onChange={e => updatePricing('teaPerPerson', e.target.value)} />
-              <input type="number" placeholder="Std Room Cost" className="border p-3 rounded" value={form.pricing?.room?.standard} onChange={e => updatePricingNested('room', 'standard', e.target.value)} />
-              <input type="number" placeholder="Pano Room Cost" className="border p-3 rounded" value={form.pricing?.room?.panoramic} onChange={e => updatePricingNested('room', 'panoramic', e.target.value)} />
-            </div>
-          </div>
-
-          {/* SECTION 4: ITINERARY BUILDER */}
-          <div className="space-y-4 border-t pt-6">
-            <div className="flex justify-between items-center">
-              <h3 className="text-xl font-bold text-gray-800">Itinerary</h3>
-              <button type="button" onClick={addItineraryItem} className="text-sm bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">+ Add Day</button>
+        {/* EDITOR VIEW */}
+        {activeTab === 'tours' && view === 'editor' && (
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="bg-gray-800 text-white p-6 flex justify-between">
+              <h2 className="text-xl font-bold">{editingId ? 'Edit Tour' : 'Create Tour'}</h2>
+              <button onClick={() => setView('list')} className="text-gray-300 hover:text-white">Cancel</button>
             </div>
             
-            {form.itinerary.map((day, index) => (
-              <div key={index} className="flex gap-4 items-start bg-gray-50 p-4 rounded-lg border">
-                <span className="font-bold text-gray-500 mt-3">Day {day.day}</span>
-                <div className="flex-1 space-y-2">
-                  <input 
-                    placeholder="Day Title (e.g. Arrival)" 
-                    className="w-full border p-2 rounded"
-                    value={day.title}
-                    onChange={e => updateItinerary(index, 'title', e.target.value)}
-                  />
-                  <textarea 
-                    placeholder="Details..." 
-                    className="w-full border p-2 rounded"
-                    rows={2}
-                    value={day.details}
-                    onChange={e => updateItinerary(index, 'details', e.target.value)}
-                  />
+            <form onSubmit={handleSubmit} className="p-8 space-y-8">
+              
+              {/* Section 1: Basic Info */}
+              <div className="grid grid-cols-2 gap-6">
+                <input className="border p-3 rounded" placeholder="Title" value={form.title} onChange={e => setForm({...form, title: e.target.value})} required />
+                <input className="border p-3 rounded" placeholder="Subtitle" value={form.subtitle} onChange={e => setForm({...form, subtitle: e.target.value})} />
+                <input className="border p-3 rounded" placeholder="Location" value={form.location} onChange={e => setForm({...form, location: e.target.value})} />
+                <input className="border p-3 rounded" placeholder="Image URL" value={form.img} onChange={e => setForm({...form, img: e.target.value})} />
+                <div className="flex gap-4">
+                  <input type="number" className="border p-3 rounded w-1/2" placeholder="Price" value={form.basePrice} onChange={e => setForm({...form, basePrice: e.target.value})} />
+                  <input type="number" className="border p-3 rounded w-1/2" placeholder="Nights" value={form.nights} onChange={e => setForm({...form, nights: e.target.value})} />
                 </div>
-                <button type="button" onClick={() => removeItineraryItem(index)} className="text-red-500 hover:bg-red-50 p-2 rounded">✕</button>
               </div>
-            ))}
-          </div>
 
-          {/* SECTION 5: INCLUSIONS */}
-          <div className="space-y-2 border-t pt-6">
-            <label className="block text-sm font-bold text-gray-700">Inclusions (Comma separated)</label>
-            <textarea 
-              className="w-full border p-3 rounded-lg" 
-              rows={3}
-              placeholder="Hotel Stay, Breakfast, Dinner, Cab Transfer..."
-              value={form.inclusions.join(', ')}
-              onChange={e => updateForm('inclusions', e.target.value.split(',').map(s => s.trim()))}
-            />
-          </div>
+              {/* Section 2: Detailed Pricing */}
+              <div className="bg-blue-50 p-6 rounded-xl">
+                <h3 className="font-bold text-blue-800 mb-4">Detailed Pricing Logic</h3>
+                <div className="grid grid-cols-3 gap-4">
+                   <input type="number" placeholder="Meal Cost/Person" className="border p-2 rounded" value={form.pricing?.mealPerPerson} onChange={e => updatePricing('mealPerPerson', e.target.value)} />
+                   <input type="number" placeholder="Tea Cost/Person" className="border p-2 rounded" value={form.pricing?.teaPerPerson} onChange={e => updatePricing('teaPerPerson', e.target.value)} />
+                   <input type="number" placeholder="Standard Room" className="border p-2 rounded" value={form.pricing?.room?.standard} onChange={e => updatePricingRoom('standard', e.target.value)} />
+                   <input type="number" placeholder="Panoramic Room" className="border p-2 rounded" value={form.pricing?.room?.panoramic} onChange={e => updatePricingRoom('panoramic', e.target.value)} />
+                </div>
+              </div>
 
-          {/* SAVE BUTTON */}
-          <div className="sticky bottom-0 bg-white pt-4 border-t mt-8 flex justify-end gap-4 pb-4">
-            <button type="button" onClick={() => setView('list')} className="px-6 py-3 rounded-lg border hover:bg-gray-50">Cancel</button>
-            <button type="submit" disabled={loading} className="px-8 py-3 rounded-lg bg-green-600 text-white font-bold hover:bg-green-700 shadow-lg">
-              {loading ? 'Saving...' : 'Save Tour'}
-            </button>
-          </div>
+              {/* Section 3: Itinerary & Save */}
+              <div>
+                <h3 className="font-bold mb-2">Itinerary</h3>
+                <textarea className="w-full border p-3 rounded" rows={4} placeholder="Simple JSON for now..." disabled value="Itinerary editing coming in next update" />
+              </div>
 
-        </form>
-      </div>
+              <div className="flex justify-end pt-4">
+                <button type="submit" className="bg-green-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-green-700 shadow-lg">Save Tour</button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {activeTab === 'bookings' && <div className="text-center py-20 text-gray-500">No Bookings Yet</div>}
+        {activeTab === 'enquiries' && <div className="text-center py-20 text-gray-500">No Enquiries Yet</div>}
+
+      </main>
     </div>
   );
 }
