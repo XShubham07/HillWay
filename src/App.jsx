@@ -1,8 +1,5 @@
-// src/App.jsx
-
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-// REMOVE THIS LINE: import TopBar from "./components/TopBar";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
@@ -12,11 +9,12 @@ import TourDetailsPage from "./pages/TourDetailsPage";
 import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
 import Packages from "./pages/Packages";
+import Login from "./pages/Login"; // Add Login Page
+import AgentDashboard from "./pages/AgentDashboard"; // Add Agent Dashboard
 
 export default function App() {
   return (
     <BrowserRouter>
-      {/* REMOVED: <TopBar /> */}
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
@@ -25,6 +23,10 @@ export default function App() {
         <Route path="/packages" element={<Packages />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/contact" element={<Contact />} />
+        
+        {/* Auth Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/agent-dashboard" element={<AgentDashboard />} />
       </Routes>
       <Footer />
     </BrowserRouter>

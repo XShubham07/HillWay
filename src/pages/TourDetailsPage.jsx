@@ -13,11 +13,13 @@ import {
   FaShower,
   FaMountain,
   FaUtensils,
-  FaCoffee,
   FaConciergeBell,
   FaQuestionCircle,
   FaChevronDown,
-  FaUsers
+  FaUsers,
+  FaPhone,
+  FaUser,
+  FaCalendarDay
 } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import BookingSidebar from "../components/BookingSidebar";
@@ -140,12 +142,12 @@ export default function TourDetailsPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="max-w-7xl mx-auto px-4 sm:px-6 pb-32 lg:pb-12 pt-24"
+        className="max-w-[1400px] mx-auto px-4 sm:px-6 pb-32 lg:pb-12 pt-24"
       >
-        <div className="flex flex-col lg:flex-row gap-10">
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
 
-          {/* LEFT COLUMN */}
-          <div className="w-full lg:w-2/3">
+          {/* LEFT COLUMN - Content */}
+          <div className="flex-1 min-w-0">
 
             {/* HERO IMAGE */}
             <div className="relative group rounded-xl overflow-hidden shadow-2xl border border-white/10">
@@ -244,7 +246,7 @@ export default function TourDetailsPage() {
                   </motion.div>
                 )}
 
-                {/* 2. ITINERARY (Optimized for Mobile & Bullets) */}
+                {/* 2. ITINERARY */}
                 {activeTab === "itinerary" && (
                   <div className="space-y-8 pl-1 md:pl-2">
                     {tour.itinerary?.map((item, i) => (
@@ -255,11 +257,8 @@ export default function TourDetailsPage() {
                         transition={{ delay: i * 0.1 }}
                         className="flex gap-4 md:gap-6 relative group"
                       >
-                        {/* Mobile Optimized Timeline */}
                         <div className="flex flex-col items-center">
-                          {/* Pill Shape Day Badge */}
                           <div className="w-12 md:w-16 h-12 md:h-8 rounded-full md:rounded-full bg-[#1F4F3C] flex items-center justify-center font-bold text-white text-[10px] md:text-xs shadow-[0_0_15px_rgba(31,79,60,0.6)] z-10 border-2 border-[#D9A441] p-1 text-center leading-tight">
-                             {/* Mobile text wrapping hack */}
                              <span className="md:hidden">Day<br/>{item.day}</span>
                              <span className="hidden md:inline">Day {item.day}</span>
                           </div>
@@ -268,11 +267,8 @@ export default function TourDetailsPage() {
                           )}
                         </div>
 
-                        {/* Content Box */}
                         <div className="bg-white/5 p-4 md:p-6 rounded-2xl border border-white/10 flex-1 mb-2 hover:bg-white/10 transition duration-300 shadow-lg">
                           <h3 className="text-lg md:text-xl font-bold text-white mb-3">{item.title}</h3>
-                          
-                          {/* AUTO-BULLET LOGIC: Splits text by new lines */}
                           <ul className="list-disc pl-4 space-y-2 marker:text-[#D9A441]">
                             {item.details?.split('\n').filter(line => line.trim() !== "").map((sentence, idx) => (
                                <li key={idx} className="text-gray-300 text-sm leading-relaxed">
@@ -286,7 +282,7 @@ export default function TourDetailsPage() {
                   </div>
                 )}
 
-                {/* 3. FOOD & STAY (Cleaned up Day Titles) */}
+                {/* 3. FOOD & STAY */}
                 {activeTab === "food" && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-gradient-to-br from-white/10 to-white/5 p-6 rounded-2xl border border-white/10 shadow-lg h-full">
@@ -316,7 +312,6 @@ export default function TourDetailsPage() {
                                       D{day.day}
                                    </div>
                                    <div className="flex-1">
-                                       {/* Removed "Day X" prefix - Only Title */}
                                        <p className="font-semibold text-white text-sm mb-2">{day.title}</p>
                                        <div className="flex flex-wrap gap-2">
                                            {day.meals && day.meals.length > 0 ? (
@@ -390,8 +385,8 @@ export default function TourDetailsPage() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN */}
-          <div className="hidden lg:block w-80 shrink-0">
+          {/* RIGHT COLUMN - WIDER SIDEBAR CONTAINER */}
+          <div className="hidden lg:block w-[420px] shrink-0">
             <BookingSidebar tour={tour} />
           </div>
 
