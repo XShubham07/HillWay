@@ -18,7 +18,7 @@ export async function POST(request) {
         description: "Experience the charm of Gangtok with premium stays...",
         pricing: {
           mealPerPerson: 450, 
-          teaPerPerson: 60,
+          teaPerPerson: 0,
           // ADDED MISSING FIELDS
           bonfire: 500,
           tourGuide: 1000,
