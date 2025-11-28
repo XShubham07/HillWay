@@ -6,7 +6,7 @@ import {
   FaList, FaCheck, FaCamera, FaSpinner,
   FaBook, FaEye, FaTimes, FaPhone, FaUser, FaCalendarDay,
   FaUtensils, FaTicketAlt, FaClock, FaChartPie, FaCheckCircle, FaSearch, FaQuestionCircle,
-  FaUserSecret, FaSignOutAlt, FaMoneyBillWave
+  FaUserSecret, FaSignOutAlt, FaMoneyBillWave, FaPaperPlane, FaLink, FaImages
 } from 'react-icons/fa';
 
 export default function AdminDashboard({ onLogout }) {
@@ -27,15 +27,18 @@ export default function AdminDashboard({ onLogout }) {
   const [loading, setLoading] = useState(false);
   const [uploadingImg, setUploadingImg] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [showImagePreview, setShowImagePreview] = useState(false);
 
   // Forms
   const [agentForm, setAgentForm] = useState({ name: '', email: '', password: '', phone: '' });
-  const [couponForm, setCouponForm] = useState({ code: '', discountType: 'PERCENTAGE', discountValue: 0, expiryDate: '', usageLimit: 100 });
+  const [couponForm, setCouponForm] = useState({ code: '', discountType: 'PERCENTAGE', discountValue: 0, expiryDate: '', usageLimit: 100, agentId: '' });
   
   const getInitialForm = () => ({ 
     title: '', subtitle: '', location: '', description: '', 
     basePrice: 0, nights: 3, rating: 4.5, featured: false, 
-    img: '', mapEmbedUrl: '', 
+    images: [], 
+    img: '', // fallback cover
+    mapEmbedUrl: '', 
     pricing: { mealPerPerson: 450, teaPerPerson: 60, bonfire: 500, tourGuide: 1000, comfortSeat: 800, room: { standard: 1500, panoramic: 2500 }, personalCab: { rate: 3200, capacity: 4 }, tourManagerFee: 5000 }, 
     inclusions: [], itinerary: [], faqs: [], reviews: [] 
   });
@@ -46,7 +49,7 @@ export default function AdminDashboard({ onLogout }) {
     setLoading(true);
     try {
       const [resTours, resPrices, resBookings, resCoupons, resAgents] = await Promise.all([
-        fetch('/api/tours'), fetch('/api/pricing'), fetch('/api/bookings'), fetch('/api/coupons'), fetch('/api/agents')
+        fetch('/api/tours'), fetch('/api/pricing'), fetch('/api/bookings'), fetch('/api/coupons'), fetch('/api/agent')
       ]);
       const d1 = await resTours.json(); if(d1.success) setTours(d1.data);
       const d2 = await resPrices.json(); if(d2.success) setGlobalPrices(d2.data);
@@ -85,11 +88,7 @@ export default function AdminDashboard({ onLogout }) {
   const handleUpdateStatus = async (id, status) => {
     setUpdatingStatus(true);
     try {
-      const res = await fetch('/api/bookings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, status })
-      });
+      const res = await fetch('/api/bookings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status }) });
       const data = await res.json();
       if(data.success) {
         setBookings(prev => prev.map(b => b._id === id ? { ...b, status } : b));
@@ -103,62 +102,142 @@ export default function AdminDashboard({ onLogout }) {
   const handleCreateCoupon = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/coupons', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(couponForm) });
+      const payload = { ...couponForm };
+      if (!payload.agentId) delete payload.agentId;
+      const res = await fetch('/api/coupons', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const data = await res.json();
-      if(data.success) { alert("Created!"); setCouponForm({ code: '', discountType: 'PERCENTAGE', discountValue: 0, expiryDate: '', usageLimit: 100 }); fetchData(); }
+      if(data.success) { alert("Created!"); setCouponForm({ code: '', discountType: 'PERCENTAGE', discountValue: 0, expiryDate: '', usageLimit: 100, agentId: '' }); fetchData(); }
       else alert(data.error);
     } catch (err) { alert("Failed"); }
   };
+
+  const handleUpdateCouponAgent = async (couponId, agentId) => {
+    try {
+      const res = await fetch('/api/coupons', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: couponId, agentId }) });
+      const data = await res.json();
+      if(data.success) { alert("Agent Assigned!"); fetchData(); }
+    } catch (err) { alert("Failed to assign agent"); }
+  }
+
   const handleDeleteCoupon = async (id) => { if(confirm("Delete?")) { await fetch(`/api/coupons?id=${id}`, { method: 'DELETE' }); fetchData(); }};
 
   const handleCreateAgent = async (e) => {
     e.preventDefault();
     try {
-        const res = await fetch('/api/agents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(agentForm) });
+        const res = await fetch('/api/agent', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(agentForm) });
         const data = await res.json();
         if(data.success) { alert("Agent Created!"); setAgentForm({ name: '', email: '', password: '', phone: '' }); fetchData(); }
         else alert(data.error);
     } catch (e) { alert("Failed"); }
   };
-  const handleDeleteAgent = async (id) => { if(confirm("Delete Agent?")) { await fetch(`/api/agents?id=${id}`, { method: 'DELETE' }); fetchData(); }};
   
-  const handleAssignCoupon = async (agentId, code) => {
-    if(!code) return;
-    const newCoup = { code: code.toUpperCase(), discountType: 'PERCENTAGE', discountValue: 5, expiryDate: new Date(Date.now()+31536000000), usageLimit: 100, agentId };
-    await fetch('/api/coupons', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(newCoup) });
-    alert("Assigned!"); fetchData();
-  };
+  const handleDeleteAgent = async (id) => { if(confirm("Delete Agent?")) { await fetch(`/api/agent?id=${id}`, { method: 'DELETE' }); fetchData(); }};
+  const handleResendCreds = (email) => { alert(`Credentials resent to ${email} (Simulation)`); };
 
   // Tour Handlers
   const handleImageUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    
     setUploadingImg(true);
-    const formData = new FormData();
-    formData.append('file', file);
+    
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
-      const data = await res.json();
-      if (data.success) { setForm(prev => ({ ...prev, img: data.url })); alert("Uploaded!"); }
-    } catch (err) { console.error(err); }
+      // Upload all files
+      const uploadPromises = files.map(file => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return fetch('/api/upload', { method: 'POST', body: formData }).then(res => res.json());
+      });
+
+      const results = await Promise.all(uploadPromises);
+      const newUrls = results.filter(r => r.success).map(r => r.url);
+      
+      setForm(prev => ({ 
+        ...prev, 
+        // Concatenate new images to existing images array
+        images: [...(prev.images || []), ...newUrls],
+        // If there was no cover image before, use the first of the new batch
+        img: prev.img || newUrls[0]
+      }));
+      
+      alert(`${newUrls.length} Images Uploaded Successfully!`);
+    } catch (err) { 
+      console.error(err); 
+      alert("Upload Failed");
+    }
     setUploadingImg(false);
   };
-  const handleCreateNew = () => { setForm(getInitialForm()); setEditingId(null); setView('editor'); };
+
+  const removeImage = (index) => {
+    setForm(prev => {
+        const newImages = prev.images.filter((_, i) => i !== index);
+        return {
+            ...prev,
+            images: newImages,
+            // Update cover image if the deleted one was the cover
+            img: (newImages.length > 0) ? newImages[0] : ''
+        };
+    });
+  };
+
+  const handleCreateNew = () => { setForm(getInitialForm()); setEditingId(null); setView('editor'); setShowImagePreview(false); };
+  
   const handleEdit = (tour) => {
     const defaults = getInitialForm();
-    setForm({ ...defaults, ...tour, pricing: { ...defaults.pricing, ...(tour.pricing || {}) } });
+    // Critical Logic: Use tour.images if valid, otherwise fallback to wrapping single img
+    const images = (tour.images && tour.images.length > 0) ? tour.images : (tour.img ? [tour.img] : []);
+    
+    setForm({ 
+        ...defaults, 
+        ...tour, 
+        images, // Set the array
+        img: tour.img || (images.length > 0 ? images[0] : ''), // Ensure cover img is set
+        pricing: { ...defaults.pricing, ...(tour.pricing || {}) } 
+    });
     setEditingId(tour._id);
     setView('editor');
+    // Auto-show preview if there are images so user knows they exist
+    setShowImagePreview(images.length > 0); 
   };
+  
   const handleDeleteTour = async (id) => { if(confirm("Delete?")) { await fetch(`/api/tours/${id}`, { method: 'DELETE' }); fetchData(); }};
+  
   const handleSaveTour = async (e) => {
-    e.preventDefault(); setLoading(true);
+    e.preventDefault(); 
+    setLoading(true);
+    
+    // Prepare payload
+    const payload = {
+        ...form,
+        // Explicitly set img to the first image in the array if array exists
+        // This ensures sync between 'img' and 'images[0]'
+        img: form.images.length > 0 ? form.images[0] : form.img
+    };
+
     const url = editingId ? `/api/tours/${editingId}` : '/api/tours';
     const method = editingId ? 'PUT' : 'POST';
-    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form)});
-    if(res.ok) { alert("Saved!"); setView('list'); fetchData(); }
+    
+    try {
+      const res = await fetch(url, { 
+        method, 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify(payload)
+      });
+      
+      if(res.ok) { 
+        alert("Tour Saved Successfully!"); 
+        setView('list'); 
+        fetchData(); 
+      } else {
+        const err = await res.json();
+        alert(`Save failed: ${err.error}`);
+      }
+    } catch(err) {
+      alert("Network error while saving");
+    }
     setLoading(false);
   };
+
   const handleSaveGlobalPricing = async () => {
     setLoading(true);
     await fetch('/api/pricing', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(globalPrices)});
@@ -189,7 +268,6 @@ export default function AdminDashboard({ onLogout }) {
         comfortSeatPrice: tour?.pricing?.comfortSeat ?? globalPrices?.comfortSeatPrice,
         personalCabPrice: tour?.pricing?.personalCab?.rate ?? globalPrices?.personalCabPrice
     };
-
     const items = [];
     if(b.addons?.meal) items.push({ name: "Meal Plan", cost: `₹${p.mealPrice}/pax` });
     if(b.addons?.bonfire) items.push({ name: "Bonfire", cost: `₹${p.bonfirePrice}` });
@@ -198,11 +276,7 @@ export default function AdminDashboard({ onLogout }) {
     if(b.addons?.tea) items.push({ name: "Tea/Snacks", cost: `₹${p.teaPrice}/pax` });
     items.push({ name: "Transport", cost: b.transport === 'personal' ? `₹${p.personalCabPrice}` : 'Shared' });
     items.push({ name: "Room", cost: `${b.roomType} (x${b.rooms})` });
-    
-    if (b.couponCode && b.originalPrice > b.totalPrice) {
-      items.push({ name: `Coupon (${b.couponCode})`, cost: `- ₹${(b.originalPrice - b.totalPrice).toLocaleString()}` });
-    }
-    
+    if (b.couponCode && b.originalPrice > b.totalPrice) items.push({ name: `Coupon (${b.couponCode})`, cost: `- ₹${(b.originalPrice - b.totalPrice).toLocaleString()}` });
     return items;
   };
 
@@ -213,7 +287,6 @@ export default function AdminDashboard({ onLogout }) {
       {selectedBooking && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
           <div className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] w-full max-w-5xl h-[90vh] rounded-3xl border border-white/10 shadow-2xl overflow-hidden flex flex-col relative animate-fade-in">
-            
             <div className="p-8 pb-6 border-b border-white/5 flex justify-between items-start bg-black/20">
               <div>
                 <div className="flex items-center gap-4 mb-2">
@@ -341,7 +414,7 @@ export default function AdminDashboard({ onLogout }) {
 
       <main className="flex-1 p-8 overflow-y-auto">
         
-        {/* === BOOKINGS TAB === */}
+        {/* ... (BOOKINGS TAB CONTENT) ... */}
         {activeTab === 'bookings' && (
           <div>
             <div className="flex justify-between items-center mb-6">
@@ -386,9 +459,9 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         )}
 
-        {/* === AGENTS TAB === */}
+        {/* ... (AGENTS TAB) ... */}
         {activeTab === 'agents' && (
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <h1 className="text-3xl font-bold text-white mb-6">Manage Agents</h1>
             <form onSubmit={handleCreateAgent} className="bg-[#1e293b] p-6 rounded-2xl border border-gray-700 mb-8 grid grid-cols-2 md:grid-cols-5 gap-4 items-end">
                <div className="col-span-2"><label className="block text-xs text-gray-400 mb-1 uppercase font-bold">Name</label><input required className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={agentForm.name} onChange={e=>setAgentForm({...agentForm, name: e.target.value})} /></div>
@@ -404,49 +477,68 @@ export default function AdminDashboard({ onLogout }) {
                      <div><h3 className="text-xl font-bold text-white">{agent.name}</h3><p className="text-sm text-gray-400">{agent.email}</p></div>
                      <div className="bg-green-500/10 text-green-400 px-3 py-1 rounded-lg text-xs font-bold border border-green-500/20">Earned: ₹{agent.totalCommission}</div>
                   </div>
-                  <div className="bg-black/20 p-3 rounded-lg border border-white/5 flex gap-2">
-                     <input id={`coup-${agent._id}`} className="flex-1 bg-transparent border-b border-gray-600 text-sm text-white outline-none" placeholder="NEWCODE20" />
-                     <button onClick={() => handleAssignCoupon(agent._id, document.getElementById(`coup-${agent._id}`).value)} className="text-xs bg-cyan-600 px-3 py-1 rounded text-white">Assign</button>
+                  <div className="flex gap-2 mb-4">
+                    <button onClick={() => handleResendCreds(agent.email)} className="flex-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2">
+                      <FaPaperPlane /> Resend Credentials
+                    </button>
                   </div>
-                  <button onClick={() => handleDeleteAgent(agent._id)} className="mt-4 text-xs text-red-400 hover:text-red-300 flex items-center gap-1"><FaTrash/> Delete Agent</button>
+                  <button onClick={() => handleDeleteAgent(agent._id)} className="w-full mt-2 text-xs text-red-400 hover:text-red-300 flex items-center justify-center gap-1 border border-red-500/20 py-2 rounded-lg"><FaTrash/> Delete Agent</button>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* === COUPONS TAB === */}
+        {/* ... (COUPONS TAB) ... */}
         {activeTab === 'coupons' && (
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-6xl mx-auto">
              <h1 className="text-3xl font-bold text-white mb-6">Manage Coupons</h1>
-             <form onSubmit={handleCreateCoupon} className="bg-[#1e293b] p-6 rounded-2xl border border-gray-700 mb-8 grid grid-cols-1 md:grid-cols-5 gap-4 items-end shadow-lg">
-                <div className="col-span-2"><label className="block text-xs text-gray-400 mb-1 uppercase font-bold">Coupon Code</label><input required className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white uppercase font-bold tracking-widest" placeholder="SUMMER25" value={couponForm.code} onChange={e=>setCouponForm({...couponForm, code: e.target.value})} /></div>
-                <div>
+             <form onSubmit={handleCreateCoupon} className="bg-[#1e293b] p-6 rounded-2xl border border-gray-700 mb-8 grid grid-cols-1 md:grid-cols-6 gap-4 items-end shadow-lg">
+                <div className="col-span-1 md:col-span-1"><label className="block text-xs text-gray-400 mb-1 uppercase font-bold">Code</label><input required className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white uppercase font-bold tracking-widest" placeholder="SUMMER25" value={couponForm.code} onChange={e=>setCouponForm({...couponForm, code: e.target.value})} /></div>
+                <div className="col-span-1">
                    <label className="block text-xs text-gray-400 mb-1 uppercase font-bold">Discount</label>
                    <div className="flex gap-2">
                      <input required type="number" className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" placeholder="10" value={couponForm.discountValue} onChange={e=>setCouponForm({...couponForm, discountValue: e.target.value})} />
                      <select className="bg-black/30 border border-gray-600 rounded-lg px-2 text-white text-xs" value={couponForm.discountType} onChange={e=>setCouponForm({...couponForm, discountType: e.target.value})}><option value="PERCENTAGE">%</option><option value="FLAT">₹</option></select>
                    </div>
                 </div>
-                <div><label className="block text-xs text-gray-400 mb-1 uppercase font-bold">Expiry</label><input required type="date" className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white text-sm" value={couponForm.expiryDate} onChange={e=>setCouponForm({...couponForm, expiryDate: e.target.value})} /></div>
-                <div><label className="block text-xs text-gray-400 mb-1 uppercase font-bold">Limit</label><input required type="number" className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" placeholder="100" value={couponForm.usageLimit} onChange={e=>setCouponForm({...couponForm, usageLimit: e.target.value})} /></div>
+                <div className="col-span-1"><label className="block text-xs text-gray-400 mb-1 uppercase font-bold">Expiry</label><input required type="date" className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white text-sm" value={couponForm.expiryDate} onChange={e=>setCouponForm({...couponForm, expiryDate: e.target.value})} /></div>
+                <div className="col-span-1"><label className="block text-xs text-gray-400 mb-1 uppercase font-bold">Limit</label><input required type="number" className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" placeholder="100" value={couponForm.usageLimit} onChange={e=>setCouponForm({...couponForm, usageLimit: e.target.value})} /></div>
+                <div className="col-span-1">
+                  <label className="block text-xs text-gray-400 mb-1 uppercase font-bold">Assign Agent</label>
+                  <select className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white text-sm" value={couponForm.agentId} onChange={e=>setCouponForm({...couponForm, agentId: e.target.value})}>
+                    <option value="">-- No Agent --</option>
+                    {agents.map(ag => <option key={ag._id} value={ag._id}>{ag.name}</option>)}
+                  </select>
+                </div>
                 <button type="submit" className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-bold h-[48px] flex items-center justify-center gap-2"><FaPlus size={12}/> Create</button>
              </form>
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {coupons.map(coupon => (
-                   <div key={coupon._id} className="bg-[#1e293b] p-5 rounded-2xl border border-gray-700 relative group hover:border-cyan-500/50 transition shadow-lg">
-                      <div className="flex justify-between items-start mb-4">
-                         <div className="bg-cyan-900/30 border border-cyan-500/30 rounded-lg px-3 py-1.5"><h3 className="text-lg font-black text-cyan-400 tracking-widest">{coupon.code}</h3></div>
-                         <div className="text-right"><p className="text-2xl font-bold text-white leading-none">{coupon.discountType === 'PERCENTAGE' ? `${coupon.discountValue}%` : `₹${coupon.discountValue}`}</p><p className="text-[10px] text-gray-400 uppercase font-bold">OFF</p></div>
-                      </div>
-                      <div className="space-y-2 mb-4">
-                         <div className="flex items-center justify-between text-sm"><span className="text-gray-400 flex items-center gap-2"><FaChartPie size={12}/> Used</span><span className={`font-mono font-bold ${coupon.usedCount >= coupon.usageLimit ? 'text-red-400' : 'text-white'}`}>{coupon.usedCount} / {coupon.usageLimit}</span></div>
-                         <div className="w-full h-1.5 bg-black/50 rounded-full overflow-hidden"><div className={`h-full rounded-full ${coupon.usedCount >= coupon.usageLimit ? 'bg-red-500' : 'bg-cyan-500'}`} style={{ width: `${Math.min((coupon.usedCount / coupon.usageLimit) * 100, 100)}%` }}/></div>
-                         <div className="flex items-center justify-between text-sm pt-1"><span className="text-gray-400 flex items-center gap-2"><FaClock size={12}/> Expires</span><span className="text-white font-medium">{new Date(coupon.expiryDate).toLocaleDateString()}</span></div>
-                      </div>
-                      <button onClick={() => handleDeleteCoupon(coupon._id)} className="w-full py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-bold uppercase tracking-wide transition flex items-center justify-center gap-2"><FaTrash size={12}/> Delete Coupon</button>
-                   </div>
-                ))}
+                {coupons.map(coupon => {
+                   const assignedAgent = agents.find(a => a._id === coupon.agentId);
+                   return (
+                     <div key={coupon._id} className="bg-[#1e293b] p-5 rounded-2xl border border-gray-700 relative group hover:border-cyan-500/50 transition shadow-lg">
+                        <div className="flex justify-between items-start mb-4">
+                           <div className="bg-cyan-900/30 border border-cyan-500/30 rounded-lg px-3 py-1.5"><h3 className="text-lg font-black text-cyan-400 tracking-widest">{coupon.code}</h3></div>
+                           <div className="text-right"><p className="text-2xl font-bold text-white leading-none">{coupon.discountType === 'PERCENTAGE' ? `${coupon.discountValue}%` : `₹${coupon.discountValue}`}</p><p className="text-[10px] text-gray-400 uppercase font-bold">OFF</p></div>
+                        </div>
+                        <div className="space-y-2 mb-4">
+                           <div className="flex items-center justify-between text-sm"><span className="text-gray-400 flex items-center gap-2"><FaChartPie size={12}/> Used</span><span className={`font-mono font-bold ${coupon.usedCount >= coupon.usageLimit ? 'text-red-400' : 'text-white'}`}>{coupon.usedCount} / {coupon.usageLimit}</span></div>
+                           <div className="w-full h-1.5 bg-black/50 rounded-full overflow-hidden"><div className={`h-full rounded-full ${coupon.usedCount >= coupon.usageLimit ? 'bg-red-500' : 'bg-cyan-500'}`} style={{ width: `${Math.min((coupon.usedCount / coupon.usageLimit) * 100, 100)}%` }}/></div>
+                           <div className="flex items-center justify-between text-sm pt-1"><span className="text-gray-400 flex items-center gap-2"><FaClock size={12}/> Expires</span><span className="text-white font-medium">{new Date(coupon.expiryDate).toLocaleDateString()}</span></div>
+                        </div>
+                        <div className="mb-4 bg-black/20 p-2 rounded-lg flex items-center justify-between">
+                           <div className="flex items-center gap-2 text-xs text-gray-400"><FaUserTie/> {assignedAgent ? <span className="text-purple-300 font-bold">{assignedAgent.name}</span> : "Unassigned"}</div>
+                           <select className="bg-transparent text-xs text-cyan-400 border-none outline-none text-right cursor-pointer" value={coupon.agentId || ""} onChange={(e) => handleUpdateCouponAgent(coupon._id, e.target.value)}>
+                              <option value="">Re-assign</option>
+                              <option value="">None</option>
+                              {agents.map(ag => <option key={ag._id} value={ag._id}>{ag.name}</option>)}
+                           </select>
+                        </div>
+                        <button onClick={() => handleDeleteCoupon(coupon._id)} className="w-full py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-xs font-bold uppercase tracking-wide transition flex items-center justify-center gap-2"><FaTrash size={12}/> Delete Coupon</button>
+                     </div>
+                   );
+                })}
              </div>
           </div>
         )}
@@ -455,6 +547,7 @@ export default function AdminDashboard({ onLogout }) {
         {activeTab === 'pricing' && globalPrices && (
           <div className="max-w-4xl mx-auto">
             <h1 className="text-3xl font-bold text-white mb-2">Universal Price List</h1>
+            {/* ... pricing inputs (same as before) ... */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
               <div className="bg-[#1e293b] p-6 rounded-2xl border border-gray-700">
                 <h3 className="text-xl font-bold text-cyan-400 mb-6 flex items-center gap-2"><FaTag/> Add-ons</h3>
@@ -488,8 +581,15 @@ export default function AdminDashboard({ onLogout }) {
               {tours.map(tour => (
                 <div key={tour._id} className="bg-[#1e293b] border border-gray-700 rounded-xl overflow-hidden hover:border-cyan-500 transition group">
                   <div className="h-48 relative">
-                    <img src={tour.img} className="w-full h-full object-cover" alt={tour.title} />
+                    {/* Display first image as cover */}
+                    <img src={(tour.images && tour.images.length > 0) ? tour.images[0] : (tour.img || '/placeholder.jpg')} className="w-full h-full object-cover" alt={tour.title} />
                     <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs font-bold">₹{tour.basePrice}</div>
+                    {/* Badge for multiple images */}
+                    {tour.images && tour.images.length > 1 && (
+                      <div className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
+                        <FaImages /> {tour.images.length}
+                      </div>
+                    )}
                   </div>
                   <div className="p-5">
                     <h3 className="font-bold text-lg text-white group-hover:text-cyan-400 transition">{tour.title}</h3>
@@ -518,22 +618,38 @@ export default function AdminDashboard({ onLogout }) {
                   <div><label className="block text-sm font-medium text-gray-300 mb-1">Subtitle</label><input className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.subtitle} onChange={e => updateField('subtitle', e.target.value)} /></div>
                   <div><label className="block text-sm font-medium text-gray-300 mb-1">Location</label><input className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.location} onChange={e => updateField('location', e.target.value)} required /></div>
                   
-                  {/* Image Upload */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">Cover Image</label>
+                  {/* MULTIPLE IMAGE UPLOAD */}
+                  <div className="col-span-2 md:col-span-1">
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Gallery Images ({form.images?.length || 0})</label>
                     <div className="flex gap-3">
-                      <div className="flex-1"><input className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.img} onChange={e => updateField('img', e.target.value)} placeholder="Image URL" /></div>
-                      <label className="flex items-center justify-center p-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg cursor-pointer w-14">
-                        {uploadingImg ? <FaSpinner className="animate-spin" /> : <FaCamera />}
-                        <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploadingImg} />
-                      </label>
+                        <label className="flex-1 flex items-center justify-center p-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg cursor-pointer transition">
+                            {uploadingImg ? <FaSpinner className="animate-spin" /> : <><FaCamera className="mr-2"/> Upload Images</>}
+                            <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploadingImg} />
+                        </label>
+                        {form.images?.length > 0 && (
+                            <button type="button" onClick={() => setShowImagePreview(!showImagePreview)} className="px-4 bg-gray-700 hover:bg-gray-600 rounded-lg text-white font-bold">
+                                {showImagePreview ? "Hide" : "View"}
+                            </button>
+                        )}
                     </div>
-                    {form.img && <img src={form.img} alt="Preview" className="mt-2 h-32 w-full object-cover rounded-lg border border-gray-600" />}
+                    {/* IMAGE PREVIEW TOGGLE */}
+                    {showImagePreview && form.images?.length > 0 && (
+                        <div className="mt-4 grid grid-cols-4 gap-2 bg-black/20 p-2 rounded-lg border border-gray-700">
+                            {form.images.map((img, i) => (
+                                <div key={i} className="relative group aspect-square">
+                                    <img src={img} className="w-full h-full object-cover rounded border border-gray-600" />
+                                    <button type="button" onClick={() => removeImage(i)} className="absolute top-1 right-1 bg-red-600 text-white w-5 h-5 rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition">✕</button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                   </div>
+
                   <div className="col-span-2"><label className="block text-sm font-medium text-gray-300 mb-1">Description</label><textarea rows={3} className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.description} onChange={e => updateField('description', e.target.value)} /></div>
                 </div>
               </section>
 
+              {/* ... (Other sections like Pricing, Itinerary etc) ... */}
               <section className="bg-black/20 p-6 rounded-xl border border-gray-700">
                 <div className="grid grid-cols-4 gap-4">
                   <div><label className="block text-sm font-medium text-gray-300">Price</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.basePrice} onChange={e => updateField('basePrice', e.target.value)} /></div>

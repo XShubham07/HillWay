@@ -11,14 +11,17 @@ const TourSchema = new mongoose.Schema({
   nights: { type: Number, default: 3 },
   featured: { type: Boolean, default: false },
 
-  img: { type: String, required: true },
+  // REQUIRED for multiple images
+  images: { type: [String], default: [] },
+  
+  // Backward compatibility
+  img: { type: String }, 
+
   mapEmbedUrl: String,
 
   pricing: {
     mealPerPerson: { type: Number, default: 450 },
     teaPerPerson: { type: Number, default: 60 },
-    
-    // THESE ARE THE FIELDS YOU WERE STRUGGLING WITH
     bonfire: { type: Number, default: 500 },
     tourGuide: { type: Number, default: 1000 },
     comfortSeat: { type: Number, default: 800 },
@@ -48,6 +51,5 @@ const TourSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-// Check if model exists, otherwise create it. 
-// This fixes "OverwriteModelError" and ensures schema updates apply.
+// Fix for Next.js model recompilation error
 export default mongoose.models.Tour || mongoose.model('Tour', TourSchema);

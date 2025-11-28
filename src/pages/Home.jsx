@@ -16,23 +16,22 @@ const fadeInUp = {
 export default function Home() {
   const navigate = useNavigate();
   const containerRef = useRef(null);
-  
-  // STATE FOR REAL DATA
   const [featuredTours, setFeaturedTours] = useState([]);
 
-  // FETCH DATA FROM API
   useEffect(() => {
-    fetch('/api/tours') // Proxy ke through jayega
+    fetch('/api/tours') 
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          // Sirf featured tours lo, ya top 3
           const featured = data.data.filter(t => t.featured).slice(0, 3).map(tour => ({
-            id: tour._id, // MongoDB ID use karo
+            id: tour._id,
             title: tour.title,
             subtitle: tour.subtitle,
             basePrice: tour.basePrice,
             img: tour.img,
+            images: tour.images || [], // Include images array
+            rating: tour.rating,
+            nights: tour.nights
           }));
           setFeaturedTours(featured);
         }
@@ -61,7 +60,6 @@ export default function Home() {
           <Features />
         </motion.div>
 
-        {/* TRENDING SECTION - NOW USING DB DATA */}
         <motion.section variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="max-w-7xl mx-auto px-6 mt-12">
           <div className="flex justify-between items-end mb-8">
             <div>
@@ -71,7 +69,6 @@ export default function Home() {
             <button onClick={() => navigate('/tours')} className="hidden md:block font-semibold btn-ripple" style={{ color: "var(--p1)" }}>View All Tours →</button>
           </div>
           
-          {/* Loading State */}
           {featuredTours.length === 0 ? (
             <div className="text-center py-10">Loading amazing tours...</div>
           ) : (
@@ -79,7 +76,6 @@ export default function Home() {
           )}
         </motion.section>
 
-        {/* ... (Reviews and FAQ remain same) ... */}
         <motion.section variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="max-w-7xl mx-auto px-6 mt-20">
           <h2 className="text-3xl font-bold mb-6 text-center" style={{ color: "var(--dark)" }}>Traveler Stories</h2>
           <ReviewsCarousel />

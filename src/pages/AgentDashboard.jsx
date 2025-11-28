@@ -26,8 +26,8 @@ export default function AgentDashboard() {
     setAgent(user);
 
     // 2. Fetch Dashboard Data from Backend
-    // Note: Ensure your Vite proxy is set up correctly in vite.config.js to forward /api requests to localhost:3000
-    fetch(`/api/agent/dashboard?agentId=${user._id}`)
+    // Using the 'Dashboard' (capital D) path as per your file structure, but ideally should be lowercase.
+    fetch(`/api/agent/Dashboard?agentId=${user._id}`)
       .then(res => res.json())
       .then(res => {
         if (res.success) setData(res.data);
@@ -51,7 +51,7 @@ export default function AgentDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-gray-100 font-sans p-6 pt-24"> {/* Added pt-24 for navbar spacing */}
+    <div className="min-h-screen bg-[#0f172a] text-gray-100 font-sans p-6 pt-24">
       <div className="max-w-6xl mx-auto">
         
         {/* Header */}

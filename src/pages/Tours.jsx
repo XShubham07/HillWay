@@ -3,7 +3,6 @@ import { useState, useEffect, useRef, memo } from "react";
 import { useNavigate } from "react-router-dom"; 
 import { motion } from "framer-motion"; 
 import SearchBar from "../components/SearchBar";
-import Filters from "../components/Filters";
 
 // --- MEMOIZED CARD COMPONENT ---
 const TourCard = memo(({ tour, onView, style = {} }) => {
@@ -12,6 +11,7 @@ const TourCard = memo(({ tour, onView, style = {} }) => {
       className="tour-card-mobile"
       onClick={() => onView(tour)}
       style={{ 
+        // Default mobile/carousel styles (Fixed Width)
         minWidth: '260px', 
         width: '260px',
         backgroundColor: 'white',
@@ -20,6 +20,7 @@ const TourCard = memo(({ tour, onView, style = {} }) => {
         overflow: 'hidden',
         cursor: 'pointer',
         flexShrink: 0,
+        // Allow overriding styles (Essential for Desktop Grid)
         ...style 
       }}
     >
@@ -153,7 +154,7 @@ const Mobile3DCarousel = ({ items, onView }) => {
                 overflowX: 'auto',
                 scrollSnapType: 'x mandatory',
                 alignItems: 'center',
-                padding: '30px 16px', 
+                padding: '30px 0px', // Removed horizontal padding
                 position: 'relative',
                 zIndex: 0,
                 width: '100%',
@@ -161,7 +162,15 @@ const Mobile3DCarousel = ({ items, onView }) => {
                 WebkitOverflowScrolling: 'touch',
             }}
         >
-            <div style={{ minWidth: '18px', flexShrink: 0 }} />
+            {/* SPACER LOGIC:
+               Card Width = 260px
+               Margin = -36px * 2 = -72px
+               Effective Layout Width = 188px
+               Half Width = 94px
+               
+               To center: Spacer = 50% screen - 94px
+            */}
+            <div style={{ minWidth: 'calc(50% - 94px)', flexShrink: 0 }} />
 
             {items.map((tour) => (
                 <div 
@@ -179,7 +188,7 @@ const Mobile3DCarousel = ({ items, onView }) => {
                 </div>
             ))}
 
-            <div style={{ minWidth: '18px', flexShrink: 0 }} />
+            <div style={{ minWidth: 'calc(50% - 94px)', flexShrink: 0 }} />
         </div>
     );
 };
@@ -188,7 +197,6 @@ const Mobile3DCarousel = ({ items, onView }) => {
 export default function Tours(){
   const navigate = useNavigate();
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  const [showFilters, setShowFilters] = useState(false);
   const [list, setList] = useState([]); 
   const [loading, setLoading] = useState(true);
 
@@ -237,12 +245,11 @@ export default function Tours(){
     navigate(`/tours/${p.id}`);
   };
   
-  const applyFilters = (f) => { };
-  
   return (
     <div style={{ 
       maxWidth: '1280px', 
       margin: '0 auto', 
+      marginTop: '0.5cm', // Content moved down
       padding: isMobile ? '16px 0' : '24px 16px', 
       marginBottom: '96px',
       overflowX: 'hidden',
@@ -251,51 +258,13 @@ export default function Tours(){
       zIndex: 0
     }}>
       <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: isMobile ? '1fr' : '1fr 3fr', 
-        gap: '32px',
         padding: isMobile ? '0 16px' : '0' 
       }}>
-        {!isMobile && (
-          <aside>
-            <Filters onChange={applyFilters} />
-          </aside>
-        )}
         
         <div style={{ minWidth: 0 }}>
           <div style={{ padding: isMobile ? '0' : '0' }}>
              <SearchBar onSearch={(q) => console.log('search', q)} />
           </div>
-          
-          {isMobile && (
-            <button 
-              onClick={() => setShowFilters(!showFilters)}
-              style={{
-                width: '100%',
-                marginTop: '16px',
-                backgroundColor: 'white',
-                color: '#374151',
-                padding: '12px',
-                borderRadius: '8px',
-                fontWeight: 600,
-                boxShadow: '0 2px 4px rgba(0,0,0,0.06)',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px'
-              }}
-            >
-              Filters (Icon)
-            </button>
-          )}
-          
-          {isMobile && showFilters && (
-            <div style={{ marginTop: '16px' }}>
-              <Filters onChange={applyFilters} />
-            </div>
-          )}
           
           <div style={{ marginTop: '24px' }}>
             
@@ -329,7 +298,12 @@ export default function Tours(){
                 gap: '24px' 
               }}>
                 {list.map(tour => (
-                  <TourCard key={tour.id} tour={tour} onView={onView} />
+                  <TourCard 
+                    key={tour.id} 
+                    tour={tour} 
+                    onView={onView} 
+                    style={{ width: '100%', minWidth: '0' }} 
+                  />
                 ))}
               </div>
             )}
@@ -364,8 +338,9 @@ export default function Tours(){
 
         @media (min-width: 1025px) {
           .tour-card-mobile:hover {
-            transform: translateY(-8px) scale(1.069);
+            transform: translateY(-8px) scale(1.03);
             box-shadow: 0 18px 40px rgba(0,0,0,0.18) !important;
+            z-index: 10;
           }
         }
       `}</style>
