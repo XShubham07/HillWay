@@ -1,3 +1,5 @@
+import { IoLogoInstagram } from "react-icons/io5";
+
 export default function Footer() {
   return (
     <footer className="
@@ -34,10 +36,9 @@ export default function Footer() {
 
         {/* Social Icons */}
         <div className="flex justify-center gap-6 mb-10">
+          {/* Changed Facebook Icon to Instagram (React Icon) */}
           <a href="#" className="hover:scale-110 transition">
-            <svg width="26" height="26" fill="currentColor" className="text-gray-300 hover:text-white">
-              <path d="M22.46 6c-.77.35-1.6.58-2.46.69a4.26 4.26 0 0 0 1.88-2.35 8.46 8.46 0 0 1-2.7 1.03 4.22 4.22 0 0 0-7.3 3.85A12 12 0 0 1 3.15 4.6a4.2 4.2 0 0 0 1.3 5.63A4.18 4.18 0 0 1 2.8 9.6v.05a4.23 4.23 0 0 0 3.38 4.13 4.27 4.27 0 0 1-1.9.07 4.24 4.24 0 0 0 3.95 2.94A8.5 8.5 0 0 1 2 19.54 12 12 0 0 0 8.29 21c7.55 0 11.68-6.26 11.68-11.68v-.54A8.35 8.35 0 0 0 22.46 6z"/>
-            </svg>
+            <IoLogoInstagram size={26} className="text-gray-300 hover:text-white" />
           </a>
 
           <a href="#" className="hover:scale-110 transition">
@@ -59,7 +60,9 @@ export default function Footer() {
         </p>
         <p className="text-center text-gray-500 text-xs mt-2">
           Crafted by XShubham 🗿✨
-          and credit goes to Xanand🫠💀
+        </p>
+        <p>
+           Credit goes to Xanand🫠💀
         </p>
 
       </div>
