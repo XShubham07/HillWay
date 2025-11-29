@@ -328,225 +328,184 @@ export default function BookingSidebar({ tour = {} }) {
 
   const contentJsx = (
     <div className="space-y-6">
-      {/* Inputs */}
-      <div className="space-y-4">
-        <input
-          type="text"
-          value={form.name}
-          onChange={(e) => handle("name", e.target.value)}
-          className="w-full px-4 py-3.5 rounded-xl bg-white/5 border border-white/10 focus:border-[#D9A441] text-white placeholder-gray-500"
-          placeholder="Full Name"
-        />
+      {/* Header for Desktop (Optional Visual Aid) */}
+      <div className="hidden lg:block pb-4 border-b border-white/10">
+         <h3 className="text-2xl font-bold text-white">
+            Book This Tour
+          </h3>
+          <p className="text-gray-400 text-sm mt-1">Customize your perfect trip</p>
+      </div>
 
-        <div className="relative">
-          <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
-          <input
-            type="email"
-            value={form.email}
-            onChange={(e) => handle("email", e.target.value)}
-            className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-white/5 border border-white/10 focus:border-[#D9A441] text-white placeholder-gray-500"
-            placeholder="Email Address (Optional)"
-          />
+      {/* Inputs - Wider Layout */}
+      <div className="space-y-4">
+        <div>
+            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1 mb-1 block">Traveler Name</label>
+            <input
+            type="text"
+            value={form.name}
+            onChange={(e) => handle("name", e.target.value)}
+            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-[#D9A441] text-white placeholder-gray-500 outline-none transition-all focus:bg-white/10"
+            placeholder="Full Name"
+            />
         </div>
 
-        <div className="relative flex items-center">
-          <div className="absolute left-0 flex items-center pl-4 pr-3 border-r border-white/20">
-            <span className="text-[#D9A441] font-bold">🇮🇳 +91</span>
-          </div>
-          <input
-            type="tel"
-            value={form.phone}
-            onChange={handlePhoneChange}
-            maxLength={10}
-            className="w-full pl-24 pr-4 py-3.5 rounded-xl bg-white/5 border border-white/10 focus:border-[#D9A441] text-white placeholder-gray-500 tracking-wide font-medium"
-            placeholder="98765 43210"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1 mb-1 block">Phone Number</label>
+                <div className="relative flex items-center">
+                    <span className="absolute left-3 text-[#D9A441] font-bold text-sm">🇮🇳 +91</span>
+                    <input
+                        type="tel"
+                        value={form.phone}
+                        onChange={handlePhoneChange}
+                        maxLength={10}
+                        className="w-full pl-16 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-[#D9A441] text-white placeholder-gray-500 font-medium outline-none transition-all focus:bg-white/10"
+                        placeholder="98765 43210"
+                    />
+                </div>
+            </div>
+            <div>
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1 mb-1 block">Email (Optional)</label>
+                <input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => handle("email", e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-[#D9A441] text-white placeholder-gray-500 outline-none transition-all focus:bg-white/10"
+                    placeholder="mail@example.com"
+                />
+            </div>
         </div>
       </div>
 
-      {/* Pax */}
+      {/* Pax Row */}
       <div className="grid grid-cols-2 gap-4">
         <QuantityControl label="Adults" subLabel="13+" icon={FaUsers} value={form.adults} onChange={(v) => handle('adults', v)} min={1} />
         <QuantityControl label="Children" subLabel="3-13" icon={FaChild} value={form.children} onChange={(v) => handle('children', v)} min={0} />
       </div>
 
-      {/* Rooms */}
-      <div className="space-y-3">
-        <label className="text-sm text-gray-200 flex items-center gap-2"><FaHotel className="text-[#D9A441]" /> Room Preference</label>
+      {/* Rooms & Transport Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+          {/* Rooms */}
+          <div className="space-y-3">
+            <label className="text-sm text-gray-200 flex items-center gap-2 font-semibold"><FaHotel className="text-[#D9A441]" /> Room Preference</label>
+            <div className="flex gap-2">
+                <button
+                    className={`flex-1 py-2 rounded-lg border text-sm transition-all ${
+                    form.roomType === "standard"
+                        ? "bg-[#D9A441]/20 border-[#D9A441] text-white"
+                        : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
+                    }`}
+                    onClick={() => handle("roomType", "standard")}
+                >
+                    Standard
+                </button>
+                <button
+                    className={`flex-1 py-2 rounded-lg border text-sm transition-all ${
+                    form.roomType === "panoramic"
+                        ? "bg-[#D9A441]/20 border-[#D9A441] text-white"
+                        : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
+                    }`}
+                    onClick={() => handle("roomType", "panoramic")}
+                >
+                    Panoramic
+                </button>
+            </div>
+            
+            <div className="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/10">
+                <button disabled={form.rooms <= minRoomsRequired} onClick={() => handle("rooms", Math.max(minRoomsRequired, Number(form.rooms) - 1))} className="w-8 h-8 flex items-center justify-center rounded hover:bg-white/10 text-yellow-400 disabled:opacity-30"><FaMinus size={10} /></button>
+                <div className="text-sm font-bold text-white">{form.rooms} Room{form.rooms > 1 ? "s" : ""}</div>
+                <button onClick={() => handle("rooms", Number(form.rooms) + 1)} className="w-8 h-8 flex items-center justify-center rounded hover:bg-white/10 text-yellow-400"><FaPlus size={10} /></button>
+            </div>
+          </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            className={`py-3 rounded-xl border ${
-              form.roomType === "standard"
-                ? "bg-[#D9A441]/20 border-[#D9A441] text-white shadow"
-                : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
-            }`}
-            onClick={() => handle("roomType", "standard")}
-          >
-            Standard
-          </button>
-          <button
-            className={`py-3 rounded-xl border ${
-              form.roomType === "panoramic"
-                ? "bg-[#D9A441]/20 border-[#D9A441] text-white shadow"
-                : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
-            }`}
-            onClick={() => handle("roomType", "panoramic")}
-          >
-            Panoramic
-          </button>
-        </div>
-
-        <div className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/10">
-          <button
-            disabled={form.rooms <= minRoomsRequired}
-            onClick={() => handle("rooms", Math.max(minRoomsRequired, Number(form.rooms) - 1))}
-            className={`w-8 h-8 flex items-center justify-center rounded-lg ${
-              form.rooms <= minRoomsRequired ? "text-gray-600 cursor-not-allowed" : "bg-white/10 hover:bg-white/20 text-yellow-400"
-            }`}
-          >
-            <FaMinus size={10} />
-          </button>
-
-          <div className="text-center font-bold text-white">{form.rooms} Room{form.rooms > 1 ? "s" : ""}</div>
-
-          <button
-            onClick={() => handle("rooms", Number(form.rooms) + 1)}
-            className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-yellow-400"
-          >
-            <FaPlus size={10} />
-          </button>
-        </div>
-
-        <p className="text-[11px] text-gray-400 text-right">Minimum rooms required: {minRoomsRequired}</p>
-      </div>
-
-      {/* Transport */}
-      <div className="space-y-2">
-        <label className="text-sm text-gray-200">Transport Mode</label>
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            className={`flex flex-col items-center p-3 rounded-xl border transition ${
-              form.transport === "sharing"
-                ? "bg-[#D9A441]/15 border-[#D9A441] text-white shadow"
-                : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
-            }`}
-            onClick={() => handle("transport", "sharing")}
-          >
-            <FaUsers className="text-xl mb-1" />
-            <span className="text-sm font-medium">Sharing</span>
-          </button>
-
-          <button
-            className={`flex flex-col items-center p-3 rounded-xl border transition ${
-              form.transport === "personal"
-                ? "bg-[#D9A441]/15 border-[#D9A441] text-white shadow"
-                : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
-            }`}
-            onClick={() => handle("transport", "personal")}
-          >
-            <FaCar className="text-xl mb-1" />
-            <span className="text-sm font-medium">Private Cab</span>
-          </button>
-        </div>
+          {/* Transport */}
+          <div className="space-y-3">
+            <label className="text-sm text-gray-200 font-semibold flex items-center gap-2"><FaCar className="text-[#D9A441]" /> Transport</label>
+            <div className="flex gap-2 h-[84px]">
+                <button
+                    className={`flex-1 flex flex-col items-center justify-center rounded-lg border text-sm transition-all ${
+                    form.transport === "sharing"
+                        ? "bg-[#D9A441]/15 border-[#D9A441] text-white"
+                        : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
+                    }`}
+                    onClick={() => handle("transport", "sharing")}
+                >
+                    <FaUsers className="mb-1" /> Sharing
+                </button>
+                <button
+                    className={`flex-1 flex flex-col items-center justify-center rounded-lg border text-sm transition-all ${
+                    form.transport === "personal"
+                        ? "bg-[#D9A441]/15 border-[#D9A441] text-white"
+                        : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
+                    }`}
+                    onClick={() => handle("transport", "personal")}
+                >
+                    <FaCar className="mb-1" /> Private
+                </button>
+            </div>
+          </div>
       </div>
 
       {/* Add-ons */}
-      <div className="space-y-2">
-        <p className="text-sm text-gray-200">Recommended Add-ons</p>
+      <div className="space-y-3 pt-2">
+        <p className="text-sm text-gray-200 font-semibold">Enhance Your Trip</p>
         <div className="grid grid-cols-2 gap-3">
           <TickButton label="Bonfire" active={form.bonfire} onClick={() => handle("bonfire", !form.bonfire)} />
-          <TickButton
-            label="Meals"
-            active={form.meal}
-            onClick={() => {
-              handle("meal", !form.meal);
-              if (!form.meal) handle("tea", true);
-            }}
-          />
-          <TickButton
-            label="Tea/Snacks"
-            active={form.tea}
-            complimentary={form.meal}
-            onClick={() => !form.meal && handle("tea", !form.tea)}
-          />
           <TickButton label="Comfort Seat" active={form.comfortSeat} onClick={() => handle("comfortSeat", !form.comfortSeat)} />
-          <TickButton label="Tour Guide" active={form.tourGuide} onClick={() => handle("tourGuide", !form.tourGuide)} />
-        </div>
-      </div>
-
-      {/* Coupon */}
-      <div className="bg-white/5 border border-white/10 rounded-xl p-3">
-        <div className="text-sm text-gray-200 mb-2 flex items-center gap-2"><FaTicketAlt className="text-[#D9A441]" /> Have a Coupon?</div>
-        <div className="flex gap-2 items-center">
-          <input
-            className="flex-1 bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm text-white uppercase placeholder-gray-500 focus:outline-none focus:border-[#D9A441]"
-            placeholder="ENTER CODE"
-            value={couponCode}
-            onChange={e => setCouponCode(e.target.value)}
-            disabled={appliedCoupon}
-          />
-
-          {appliedCoupon ? (
-            <button
-              onClick={removeCoupon}
-              className="bg-red-500/20 text-red-400 px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-500/30"
-            >
-              Remove
-            </button>
-          ) : (
-            <button
-              onClick={handleApplyCoupon}
-              disabled={!couponCode || isApplyingCoupon}
-              className="bg-[#D9A441] text-black px-4 py-2 rounded-lg text-xs font-bold hover:bg-[#eac34d] disabled:opacity-50"
-            >
-              {isApplyingCoupon ? "..." : "Apply"}
-            </button>
-          )}
-        </div>
-
-        {couponMessage && (
-          <p className={`text-xs mt-2 ${appliedCoupon ? "text-green-400" : "text-red-400"}`}>
-            {couponMessage}
-          </p>
-        )}
-      </div>
-
-      {/* Price Section */}
-      <div className="p-4 rounded-2xl bg-gradient-to-br from-[#D9A441]/20 to-[#b58b2d]/5 border border-yellow-300/20 text-center shadow backdrop-blur-md">
-        <div className="relative z-10">
-          <div className="text-xs text-yellow-200 mb-1 font-medium uppercase tracking-wider opacity-80">Per Person Price</div>
-          <div className="text-4xl font-extrabold text-white drop-shadow-md">₹{perHeadPrice.toLocaleString("en-IN")}</div>
-
-          <div className="mt-3 pt-3 border-t border-white/10 flex flex-col gap-1">
-            {appliedCoupon && (
-              <div className="flex justify-between items-center text-xs text-green-400">
-                <span>Coupon Discount</span>
-                <span>- ₹{(finalPrice - discountedPrice).toLocaleString()}</span>
-              </div>
-            )}
-
-            <div className="flex justify-between items-center text-xs text-gray-300">
-              <span>Total ({totalPersons} pax)</span>
-              <div className="text-right">
-                {appliedCoupon && (
-                  <span className="line-through text-gray-500 mr-2">₹{finalPrice.toLocaleString()}</span>
-                )}
-                <span className="font-bold text-[#D9A441] text-base">₹{discountedPrice.toLocaleString("en-IN")}</span>
-              </div>
-            </div>
+          <TickButton label="Meals" active={form.meal} onClick={() => { handle("meal", !form.meal); if (!form.meal) handle("tea", true); }} />
+          <TickButton label="Tea/Snacks" active={form.tea} complimentary={form.meal} onClick={() => !form.meal && handle("tea", !form.tea)} />
+          <div className="col-span-2">
+             <TickButton label="Tour Guide" active={form.tourGuide} onClick={() => handle("tourGuide", !form.tourGuide)} />
           </div>
         </div>
       </div>
 
-      {/* Submit */}
-      <button
-        onClick={handleBook}
-        disabled={submitting}
-        className="w-full bg-gradient-to-r from-[#D9A441] to-[#F59E0B] text-black py-4 rounded-xl font-extrabold text-lg hover:shadow-[0_0_20px_rgba(217,164,65,0.4)] transition active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2"
-      >
-        {submitting ? <><FaSpinner className="animate-spin" /> Sending...</> : "Confirm Booking Request"}
-      </button>
+      {/* Coupon */}
+      <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-center gap-3">
+        <div className="p-2 bg-black/20 rounded-lg text-[#D9A441]"><FaTicketAlt /></div>
+        <div className="flex-1">
+            <div className="flex gap-2">
+                <input
+                    className="flex-1 bg-transparent text-sm text-white uppercase placeholder-gray-500 focus:outline-none font-bold tracking-wide"
+                    placeholder="PROMO CODE"
+                    value={couponCode}
+                    onChange={e => setCouponCode(e.target.value)}
+                    disabled={appliedCoupon}
+                />
+                {appliedCoupon ? (
+                    <button onClick={removeCoupon} className="text-red-400 text-xs font-bold hover:text-red-300">REMOVE</button>
+                ) : (
+                    <button onClick={handleApplyCoupon} disabled={!couponCode || isApplyingCoupon} className="text-[#D9A441] text-xs font-bold hover:text-yellow-300 disabled:opacity-50">APPLY</button>
+                )}
+            </div>
+            {couponMessage && <p className={`text-[10px] mt-1 ${appliedCoupon ? "text-green-400" : "text-red-400"}`}>{couponMessage}</p>}
+        </div>
+      </div>
+
+      {/* Price Section */}
+      <div className="p-5 rounded-2xl bg-gradient-to-br from-[#D9A441]/20 to-[#b58b2d]/5 border border-yellow-300/20 shadow-lg backdrop-blur-md">
+        <div className="flex justify-between items-end mb-3">
+            <div>
+                <p className="text-xs text-yellow-200 uppercase tracking-wider opacity-80 mb-1">Total Estimate</p>
+                <div className="flex items-baseline gap-2">
+                    {appliedCoupon && <span className="line-through text-gray-400 text-lg">₹{finalPrice.toLocaleString()}</span>}
+                    <span className="text-3xl font-black text-white">₹{discountedPrice.toLocaleString("en-IN")}</span>
+                </div>
+            </div>
+            <div className="text-right">
+                <p className="text-xl font-bold text-[#D9A441]">₹{perHeadPrice.toLocaleString("en-IN")}</p>
+                <p className="text-[10px] text-gray-400">per person</p>
+            </div>
+        </div>
+
+        <button
+            onClick={handleBook}
+            disabled={submitting}
+            className="w-full bg-gradient-to-r from-[#D9A441] to-[#F59E0B] text-black py-4 rounded-xl font-extrabold text-lg hover:shadow-[0_0_20px_rgba(217,164,65,0.4)] transition active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2"
+        >
+            {submitting ? <><FaSpinner className="animate-spin" /> Processing...</> : "Confirm Booking"}
+        </button>
+      </div>
     </div>
   );
 
@@ -558,20 +517,13 @@ export default function BookingSidebar({ tour = {} }) {
     <>
       <SuccessPopup isOpen={showSuccess} onClose={() => setShowSuccess(false)} />
 
-      {/* 🔥 PC SIDEBAR REVAMPED */}
+      {/* 🔥 PC SIDEBAR REVAMPED - WIDER & RESPONSIVE */}
       <div className="hidden lg:block">
         <div className="
-          w-[330px] p-6 rounded-3xl sticky top-24 
-          bg-[#0f172a]/70 backdrop-blur-2xl 
-          border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.4)]
-          space-y-6
+          w-full p-6 rounded-3xl sticky top-24 
+          bg-[#0f172a]/80 backdrop-blur-2xl 
+          border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]
         ">
-          <h3 className="text-xl font-bold text-white mb-2">
-            Customize Your Trip
-          </h3>
-
-          <div className="h-px bg-white/10 mb-4"></div>
-
           {contentJsx}
         </div>
       </div>

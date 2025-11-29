@@ -14,7 +14,7 @@ export default function PackageCard({ pkg, p, onCustomize, onView }) {
   });
 
   // 0.9 (Edge) -> 1.2 (Center) -> 0.9 (Edge)
-  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.9, 1.1, 0.9]);
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1.4], [0.9, 0.99, 0.9]);
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.6, 1, 1, 0.6]);
 
   return (

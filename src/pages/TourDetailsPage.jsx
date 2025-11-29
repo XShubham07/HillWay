@@ -333,8 +333,8 @@ export default function TourDetailsPage() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN - SIDEBAR */}
-          <div className="hidden lg:block w-[420px] shrink-0">
+          {/* RIGHT COLUMN - SIDEBAR (WIDENED TO 480px) */}
+          <div className="hidden lg:block w-[480px] shrink-0">
             <BookingSidebar tour={tour} />
           </div>
 

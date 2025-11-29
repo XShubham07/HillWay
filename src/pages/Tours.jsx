@@ -65,29 +65,38 @@ const TourCard = memo(({ tour, onView, style = {} }) => {
                 fontWeight: 900,
                 fontSize: '24px',
                 color: 'white',
-                marginBottom: '8px',
+                marginBottom: '4px',
                 lineHeight: '1.1',
                 textShadow: '0 4px 12px rgba(0,0,0,0.5)'
             }}>{tour.title}</h3>
             
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
-                 <span style={{ fontSize: '20px', fontWeight: 800, color: '#fbbf24', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                    {tour.price}
-                 </span>
-                 <button 
-                    style={{
-                        backgroundColor: 'white',
-                        color: 'black',
-                        padding: '10px 24px',
-                        borderRadius: '30px',
-                        fontSize: '13px',
-                        fontWeight: 800,
-                        border: 'none',
-                        boxShadow: '0 4px 15px rgba(0,0,0,0.3)'
-                    }}
-                 >
-                    View
-                 </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '8px' }}>
+                 {/* Subtitle in place of Price */}
+                 <p style={{ 
+                    fontSize: '13px', 
+                    color: '#e5e7eb', 
+                    fontWeight: 500, 
+                    margin: 0, 
+                    maxWidth: '60%', 
+                    lineHeight: '1.4', 
+                    textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden'
+                 }}>
+                    {tour.summary}
+                 </p>
+
+                 {/* Price in place of View Button */}
+                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <span style={{ display: 'block', fontSize: '10px', color: '#d1d5db', textTransform: 'uppercase', fontWeight: 700, textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                        Starting From
+                    </span>
+                    <span style={{ fontSize: '18px', fontWeight: 800, color: '#fbbf24', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                        {tour.price}
+                    </span>
+                 </div>
             </div>
         </div>
       </div>
