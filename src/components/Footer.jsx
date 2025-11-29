@@ -37,7 +37,7 @@ export default function Footer() {
         {/* Social Icons */}
         <div className="flex justify-center gap-6 mb-10">
           {/* Changed Facebook Icon to Instagram (React Icon) */}
-          <a href="#" className="hover:scale-110 transition">
+          <a href="https://www.instagram.com/fuckuoff.69?igsh=YmExN2puN2dmeGti" className="hover:scale-110 transition">
             <IoLogoInstagram size={26} className="text-gray-300 hover:text-white" />
           </a>
 
@@ -47,11 +47,8 @@ export default function Footer() {
             </svg>
           </a>
 
-          <a href="https://www.instagram.com/fuckuoff.69?igsh=YmExN2puN2dmeGti" className="hover:scale-110 transition">
-            <svg width="26" height="26" fill="currentColor" className="text-gray-300 hover:text-white">
-              <path d="M12 2.2C6.5 2.2 2 6.7 2 12.1c0 4.4 3.1 8.1 7.3 9v-6.3H7.4v-2.7h1.9v-2c0-1.9 1.1-3 2.9-3 .8 0 1.6.1 1.9.1v2.1h-1.1c-1 0-1.3.6-1.3 1.2v1.6h2.5l-.4 2.7h-2.1V21A10 10 0 0 0 22 12c0-5.4-4.5-9.8-10-9.8z"/>
-            </svg>
-          </a>
+      
+        
         </div>
 
         {/* Copyright */}
@@ -61,7 +58,7 @@ export default function Footer() {
         <p className="text-center text-gray-500 text-xs mt-2">
           Crafted by XShubham 🗿✨
         </p>
-        <p>
+        <p className="text-center text-gray-500 text-xs mt-2">
            Credit goes to Xanand🫠💀
         </p>
 
