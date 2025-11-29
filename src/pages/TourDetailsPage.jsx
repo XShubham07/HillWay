@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { motion, useMotionValue, useSpring, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FaMapMarkerAlt, FaCalendarAlt, FaStar, FaRupeeSign,
   FaCheckCircle, FaTimesCircle, FaBed, FaWifi, FaShower,
@@ -53,21 +53,6 @@ export default function TourDetailsPage() {
     return () => clearInterval(interval);
   }, [tour]); 
 
-  // --- MOUSE GLOW EFFECT ---
-  const cursorX = useMotionValue(0);
-  const cursorY = useMotionValue(0);
-  const cursorXSpring = useSpring(cursorX, { damping: 25, stiffness: 150 });
-  const cursorYSpring = useSpring(cursorY, { damping: 25, stiffness: 150 });
-
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      cursorX.set(e.clientX);
-      cursorY.set(e.clientY);
-    };
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
-
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-[#102A43] text-white text-xl font-medium tracking-wide animate-pulse">
       Loading Tour Details...
@@ -90,24 +75,6 @@ export default function TourDetailsPage() {
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden text-white bg-[#102A43]">
       
-      {/* BACKGROUND ANIMATION */}
-      <div className="fixed inset-0 -z-20 bg-gradient-to-br from-[#102A43] via-[#1F4F3C] to-[#2E6F95]">
-        <motion.div
-          className="absolute inset-0 opacity-20"
-          animate={{ x: [-120, 120] }}
-          transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
-          style={{ backgroundImage: "url('/clouds.webp')", backgroundSize: "cover" }}
-        />
-        <motion.div
-          className="fixed inset-0 -z-10 opacity-40"
-          style={{
-            x: cursorXSpring,
-            y: cursorYSpring,
-            background: "radial-gradient(circle, rgba(255,255,255,0.09), transparent 70%)"
-          }}
-        />
-      </div>
-
       {/* MAIN CONTENT */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -198,7 +165,7 @@ export default function TourDetailsPage() {
 
             {/* TABS */}
             <div className="mt-12 w-full relative z-20">
-              <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide snap-x w-full">
+              <div className="flex gap-3 overflow-x-auto pt-2 pb-4 scrollbar-hide snap-x w-full">
                 {[{ id: "overview", label: "Overview" }, { id: "itinerary", label: "Itinerary" }, { id: "food", label: "Food & Stay" }, { id: "reviews", label: "Reviews" }, { id: "faq", label: "FAQ" }].map((t) => (
                   <button
                     key={t.id}

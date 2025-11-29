@@ -9,54 +9,49 @@ import {
   FaCar,
   FaTicketAlt,
   FaSpinner,
-  FaTimes
+  FaTimes,
+  FaExclamationTriangle,
+  FaFire,       // Bonfire
+  FaCouch,      // Comfort Seat
+  FaUtensils,   // Meals
+  FaCoffee,     // Tea
+  FaHiking      // Guide
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
+import confetti from "canvas-confetti";
 
 /* -------------------------------------------
-   🎉 CELEBRATION CONFETTI COMPONENT
+   🎉 SUCCESS / DUPLICATE POPUP
 ------------------------------------------- */
-const Confetti = () => {
-  const colors = ["#fbbf24", "#34d399", "#60a5fa", "#f472b6"];
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {[...Array(20)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-2 h-2 rounded-full"
-          initial={{ 
-            x: "50%", 
-            y: "50%", 
-            opacity: 1, 
-            scale: 0 
-          }}
-          animate={{ 
-            x: `${Math.random() * 100}%`, 
-            y: `${Math.random() * 100}%`, 
-            opacity: 0,
-            scale: [0, 1.5, 0]
-          }}
-          transition={{ 
-            duration: 1.5 + Math.random(), 
-            repeat: Infinity, 
-            delay: Math.random() * 0.5,
-            ease: "easeOut" 
-          }}
-          style={{ 
-            backgroundColor: colors[Math.floor(Math.random() * colors.length)],
-            left: "0%",
-            top: "0%"
-          }}
-        />
-      ))}
-    </div>
-  );
-};
+const StatusPopup = ({ isOpen, onClose, data, type }) => {
+  useEffect(() => {
+    if (isOpen && type === 'success') {
+      // BLAST ANIMATION ONLY (Single Burst)
+      const count = 200;
+      const defaults = {
+        origin: { y: 0.7 },
+        colors: ['#D9A441', '#ffffff', '#0891b2', '#F59E0B']
+      };
 
-/* -------------------------------------------
-   ✨ REDESIGNED SUCCESS POPUP
-------------------------------------------- */
-const SuccessPopup = ({ isOpen, onClose }) => {
+      function fire(particleRatio, opts) {
+        confetti({
+          ...defaults,
+          ...opts,
+          particleCount: Math.floor(count * particleRatio)
+        });
+      }
+
+      fire(0.25, { spread: 26, startVelocity: 55 });
+      fire(0.2, { spread: 60 });
+      fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+      fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+      fire(0.1, { spread: 120, startVelocity: 45 });
+    }
+  }, [isOpen, type]);
+
+  const isSuccess = type === 'success';
+  const refId = data?._id ? `#HW-${data._id.slice(-6).toUpperCase()}` : 'N/A';
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -65,53 +60,76 @@ const SuccessPopup = ({ isOpen, onClose }) => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-[2000] flex items-center justify-center px-4"
-          style={{ background: "rgba(0, 0, 0, 0.7)", backdropFilter: "blur(10px)" }}
+          style={{ background: "rgba(0, 0, 0, 0.6)", backdropFilter: "blur(8px)" }}
         >
           <motion.div
-            initial={{ scale: 0.5, opacity: 0, y: 50 }}
+            initial={{ scale: 0.8, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.8, opacity: 0, y: 50 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            className="
-              relative w-full max-w-sm overflow-hidden rounded-[2rem]
-              bg-white/10 border border-white/20 shadow-[0_0_50px_rgba(217,164,65,0.2)]
-              backdrop-blur-2xl text-center p-0
-            "
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className={`
+              relative w-full max-w-sm overflow-hidden rounded-[2.5rem]
+              border shadow-2xl backdrop-blur-3xl text-center p-0
+              ${isSuccess 
+                ? "bg-gradient-to-b from-[#D9A441]/20 to-[#0f172a]/90 border-[#D9A441]/30" 
+                : "bg-gradient-to-b from-red-500/20 to-[#0f172a]/90 border-red-500/30"}
+            `}
           >
-            {/* Background Glows */}
-            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#D9A441]/10 to-transparent pointer-events-none" />
-            <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#D9A441]/20 blur-[80px] rounded-full pointer-events-none" />
-            
-            <Confetti />
+            {/* Glossy Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
 
-            <div className="relative p-8 z-10">
-              <div className="flex justify-end">
-                <button onClick={onClose} className="text-white/50 hover:text-white transition">
-                  <FaTimes />
-                </button>
-              </div>
+            <div className="relative p-8 z-10 flex flex-col items-center">
+              <button 
+                onClick={onClose} 
+                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition text-white/70"
+              >
+                <FaTimes size={14} />
+              </button>
 
               <motion.div
                 initial={{ scale: 0, rotate: -45 }} 
                 animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-                className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-tr from-[#D9A441] to-[#F59E0B] flex items-center justify-center shadow-[0_0_30px_rgba(217,164,65,0.4)]"
+                transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
+                className={`
+                  w-20 h-20 mb-6 rounded-full flex items-center justify-center shadow-lg
+                  ${isSuccess 
+                    ? "bg-gradient-to-tr from-[#D9A441] to-[#fbbf24] text-black" 
+                    : "bg-gradient-to-tr from-red-500 to-red-400 text-white"}
+                `}
               >
-                <FaCheck className="text-black text-4xl drop-shadow-md" />
+                {isSuccess ? <FaCheck className="text-3xl" /> : <FaExclamationTriangle className="text-3xl" />}
               </motion.div>
 
-              <h3 className="text-3xl font-black text-white mb-2 tracking-tight">Booking Confirmed!</h3>
-              <p className="text-gray-300 text-sm leading-relaxed mb-8 font-medium">
-                Pack your bags! Your Himalayan adventure awaits. Our team will contact you shortly.
+              <h3 className="text-2xl font-black text-white mb-2 tracking-tight">
+                {isSuccess ? "Booking Confirmed!" : "Booking Found"}
+              </h3>
+              
+              <div className="bg-black/30 rounded-xl px-4 py-2 mb-4 border border-white/5">
+                <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-0.5">Reference ID</p>
+                <p className={`font-mono text-xl font-bold tracking-wider ${isSuccess ? "text-[#D9A441]" : "text-red-400"}`}>
+                  {refId}
+                </p>
+              </div>
+
+              <p className="text-gray-300 text-sm leading-relaxed mb-8 font-medium px-2">
+                {isSuccess 
+                  ? "Get ready for the mountains! We have received your request and will contact you shortly."
+                  : `We found an existing booking for this tour with your number. Current Status: ${data?.status || 'Pending'}.`
+                }
               </p>
 
               <motion.button
-                whileHover={{ scale: 1.02, boxShadow: "0 0 20px rgba(217,164,65,0.3)" }}
+                whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={onClose}
-                className="w-full py-4 rounded-xl font-bold text-black bg-gradient-to-r from-[#D9A441] to-[#F59E0B] shadow-lg transition-all"
+                className={`
+                  w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-all
+                  ${isSuccess 
+                    ? "bg-gradient-to-r from-[#D9A441] to-[#fbbf24] text-black shadow-[#D9A441]/20" 
+                    : "bg-white/10 text-white hover:bg-white/20 border border-white/10"}
+                `}
               >
-                Start Packing
+                {isSuccess ? "Awesome!" : "Okay, thanks"}
               </motion.button>
             </div>
           </motion.div>
@@ -122,67 +140,72 @@ const SuccessPopup = ({ isOpen, onClose }) => {
 };
 
 /* -------------------------------------------
-   ➕ QUANTITY CONTROL (Updated Buttons)
+   ➕ QUANTITY CONTROL
 ------------------------------------------- */
 const QuantityControl = ({ label, subLabel, icon: Icon, value, onChange, min = 0 }) => (
-  <div className="space-y-1">
-    <label className="text-sm text-gray-200 flex justify-between items-center">
-      <span className="flex items-center gap-2">{Icon && <Icon className="text-[#D9A441]" />} {label}</span>
-      <span className="text-xs text-gray-400 font-normal">{subLabel}</span>
+  <div className="space-y-1.5">
+    <label className="text-xs text-gray-300 flex justify-between items-center font-medium px-1">
+      <span className="flex items-center gap-1.5">{Icon && <Icon className="text-[#D9A441]" />} {label}</span>
+      <span className="text-[10px] text-gray-500 font-bold bg-black/20 px-1.5 py-0.5 rounded">{subLabel}</span>
     </label>
 
-    <div className="flex items-center bg-white/5 rounded-xl border border-white/10 overflow-hidden backdrop-blur-sm h-11 p-1 gap-1">
+    <div className="flex items-center bg-black/20 rounded-xl border border-white/5 overflow-hidden backdrop-blur-sm h-10 p-1 gap-1">
       <button
         onClick={() => onChange(Math.max(min, Number(value) - 1))}
-        className="h-full w-10 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/20 text-yellow-400 disabled:opacity-30 disabled:hover:bg-white/5 transition-all"
+        className="h-full w-8 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-yellow-400 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
         disabled={Number(value) <= min}
       >
-        <FaMinus size={10} />
+        <FaMinus size={8} />
       </button>
       
-      <div className="flex-1 text-center font-bold text-white text-lg">{value}</div>
+      <div className="flex-1 text-center font-bold text-white text-base">{value}</div>
       
       <button
         onClick={() => onChange(Number(value) + 1)}
-        className="h-full w-10 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/20 text-yellow-400 transition-all"
+        className="h-full w-8 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-yellow-400 transition-all"
       >
-        <FaPlus size={10} />
+        <FaPlus size={8} />
       </button>
     </div>
   </div>
 );
 
 /* -------------------------------------------
-   ✅ TICK BUTTON (Unchanged)
+   ✅ TICK BUTTON (Updated with Icon)
 ------------------------------------------- */
-const TickButton = ({ label, active, onClick, complimentary = false }) => (
+const TickButton = ({ label, icon: Icon, active, onClick, complimentary = false }) => (
   <button
     onClick={onClick}
-    className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all duration-200 
+    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all duration-200 group
       ${active 
         ? complimentary 
-          ? "bg-emerald-500/20 border-emerald-400 shadow-[0_0_15px_rgba(34,197,94,0.2)]" 
-          : "bg-[#D9A441]/20 border-[#D9A441] shadow-[0_0_10px_rgba(217,164,65,0.1)]"
-        : "bg-white/5 border-white/10 hover:bg-white/10"}
+          ? "bg-emerald-500/10 border-emerald-500/50" 
+          : "bg-[#D9A441]/10 border-[#D9A441]/50"
+        : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10"}
     `}
   >
-    <div className="flex items-center gap-2">
-      <span className={`text-sm font-medium ${active ? (complimentary ? "text-emerald-400" : "text-[#D9A441]") : "text-gray-300"}`}>
-        {label}
-      </span>
-
-      {complimentary && active && (
-        <span className="text-[10px] font-bold bg-emerald-500 text-black px-2 py-0.5 rounded-full animate-pulse">
-          FREE
+    <div className="flex items-center gap-3">
+      <div className={`w-4 h-4 rounded-full flex items-center justify-center border transition-colors
+        ${active 
+          ? (complimentary ? "bg-emerald-500 border-emerald-500" : "bg-[#D9A441] border-[#D9A441]") 
+          : "border-gray-600 group-hover:border-gray-500"}
+      `}>
+        {active && <FaCheck className="text-[8px] text-black" />}
+      </div>
+      
+      <div className="flex items-center gap-2">
+        {Icon && <Icon className={`text-sm ${active ? (complimentary ? "text-emerald-400" : "text-[#D9A441]") : "text-gray-500"}`} />}
+        <span className={`text-xs font-medium ${active ? "text-white" : "text-gray-400"}`}>
+          {label}
         </span>
-      )}
+      </div>
     </div>
 
-    <div className={`w-5 h-5 rounded-full flex items-center justify-center border
-      ${active ? (complimentary ? "bg-emerald-400 border-emerald-400" : "bg-[#D9A441] border-[#D9A441]") : "border-gray-500"}
-    `}>
-      {active && <FaCheck className="text-xs text-black" />}
-    </div>
+    {complimentary && active && (
+      <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+        FREE
+      </span>
+    )}
   </button>
 );
 
@@ -190,10 +213,22 @@ const TickButton = ({ label, active, onClick, complimentary = false }) => (
    🔥🔥 MAIN COMPONENT 🔥🔥
 ------------------------------------------------------------------- */
 export default function BookingSidebar({ tour = {} }) {
-  /* ---- Original State Logic (No Logic Changes) ---- */
   const [open, setOpen] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [popupData, setPopupData] = useState(null); 
   const [submitting, setSubmitting] = useState(false);
+
+  // --- 🔒 LOCK BACKGROUND SCROLL ON MOBILE OPEN ---
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [open]);
 
   const [globalRates, setGlobalRates] = useState({
     meal: 500, tea: 60, bonfire: 500, cab: 3200,
@@ -223,7 +258,7 @@ export default function BookingSidebar({ tour = {} }) {
 
   const [form, setForm] = useState({
     name: "", phone: "", email: "",
-    adults: 1, children: 0,
+    adults: 2, children: 0,
     roomType: "standard", transport: "sharing",
     bonfire: false, meal: false, tea: false, comfortSeat: false, tourGuide: false,
     rooms: 1
@@ -231,6 +266,24 @@ export default function BookingSidebar({ tour = {} }) {
 
   const handle = (k, v) =>
     setForm((p) => ({ ...p, [k]: (k === "adults" || k === "children" || k === "rooms") ? Number(v) : v }));
+
+  // --- LOGIC: MEAL & TEA SYNC ---
+  const toggleMeal = () => {
+    setForm(prev => {
+      const newState = !prev.meal;
+      return { 
+        ...prev, 
+        meal: newState, 
+        tea: newState // Tea mimics meal state (On -> On, Off -> Off)
+      };
+    });
+  };
+
+  const toggleTea = () => {
+    // If meal is selected, tea is forced complimentary (cannot unselect directly unless meal is unselected)
+    if (form.meal) return; 
+    handle("tea", !form.tea);
+  };
 
   const handlePhoneChange = (e) => {
     const value = e.target.value.replace(/\D/g, "");
@@ -251,13 +304,13 @@ export default function BookingSidebar({ tour = {} }) {
       const data = await res.json();
       if (data.success) {
         setAppliedCoupon(data.data);
-        setCouponMessage("Coupon Applied! 🎉");
+        setCouponMessage("Code Applied!");
       } else {
         setAppliedCoupon(null);
-        setCouponMessage(data.error || "Invalid Coupon");
+        setCouponMessage(data.error || "Invalid Code");
       }
     } catch (e) {
-      setCouponMessage("Error applying coupon");
+      setCouponMessage("Error");
     }
     setIsApplyingCoupon(false);
   };
@@ -355,8 +408,12 @@ export default function BookingSidebar({ tour = {} }) {
         body: JSON.stringify(bookingData)
       });
       const data = await res.json();
-      if (data.success) {
-        setShowSuccess(true);
+      
+      if (res.status === 409) {
+        setPopupData({ type: 'duplicate', data: data.existingBooking });
+        setOpen(false);
+      } else if (data.success) {
+        setPopupData({ type: 'success', data: data.data });
         setOpen(false);
       } else {
         alert("Booking failed: " + data.error);
@@ -372,185 +429,164 @@ export default function BookingSidebar({ tour = {} }) {
    ------------------------------------------------------------------- */
 
   const contentJsx = (
-    <div className="space-y-6">
-      {/* Header for Desktop */}
-      <div className="hidden lg:block pb-4 border-b border-white/10">
-         <h3 className="text-2xl font-bold text-white">
-           Book This Tour
+    <div className="space-y-6 text-gray-100">
+      {/* Header */}
+      <div className="hidden lg:block pb-4 border-b border-white/5">
+         <h3 className="text-xl font-bold text-white tracking-wide">
+           Book Your Trip
          </h3>
-         <p className="text-gray-400 text-sm mt-1">Customize your perfect trip</p>
+         <p className="text-gray-400 text-xs mt-1">Instant confirmation & transparent pricing</p>
       </div>
 
       {/* Inputs */}
-      <div className="space-y-4">
-        <div>
-            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1 mb-1 block">Traveler Name</label>
-            <input
+      <div className="space-y-3">
+        <input
             type="text"
             value={form.name}
             onChange={(e) => handle("name", e.target.value)}
-            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-[#D9A441] text-white placeholder-gray-500 outline-none transition-all focus:bg-white/10"
+            className="w-full px-4 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white placeholder-gray-500 outline-none transition-all text-base sm:text-sm backdrop-blur-sm"
             placeholder="Full Name"
-            />
-        </div>
+        />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1 mb-1 block">Phone Number</label>
-                <div className="relative flex items-center">
-                    <span className="absolute left-3 text-[#D9A441] font-bold text-sm">🇮🇳 +91</span>
-                    <input
-                        type="tel"
-                        value={form.phone}
-                        onChange={handlePhoneChange}
-                        maxLength={10}
-                        className="w-full pl-16 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-[#D9A441] text-white placeholder-gray-500 font-medium outline-none transition-all focus:bg-white/10"
-                        placeholder="98765 43210"
-                    />
-                </div>
-            </div>
-            <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1 mb-1 block">Email (Optional)</label>
+        <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative w-full sm:flex-1">
+                <span className="absolute left-3 top-3.5 text-[#D9A441] font-bold text-xs">🇮🇳 +91</span>
                 <input
-                    type="email"
-                    value={form.email}
-                    onChange={(e) => handle("email", e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-[#D9A441] text-white placeholder-gray-500 outline-none transition-all focus:bg-white/10"
-                    placeholder="mail@example.com"
+                    type="tel"
+                    value={form.phone}
+                    onChange={handlePhoneChange}
+                    maxLength={10}
+                    className="w-full pl-14 pr-3 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white placeholder-gray-500 font-medium outline-none transition-all text-base sm:text-sm backdrop-blur-sm"
+                    placeholder="Mobile Number"
                 />
             </div>
+            <input
+                type="email"
+                value={form.email}
+                onChange={(e) => handle("email", e.target.value)}
+                className="w-full sm:flex-[1.2] px-4 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white placeholder-gray-500 outline-none transition-all text-base sm:text-sm backdrop-blur-sm"
+                placeholder="Email (Optional)"
+            />
         </div>
       </div>
 
       {/* Pax Row */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
         <QuantityControl label="Adults" subLabel="13+" icon={FaUsers} value={form.adults} onChange={(v) => handle('adults', v)} min={1} />
-        <QuantityControl label="Children" subLabel="3-13" icon={FaChild} value={form.children} onChange={(v) => handle('children', v)} min={0} />
+        <QuantityControl label="Kids" subLabel="3-12" icon={FaChild} value={form.children} onChange={(v) => handle('children', v)} min={0} />
       </div>
 
-      {/* Rooms & Transport Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-          {/* Rooms */}
-          <div className="space-y-3">
-            <label className="text-sm text-gray-200 flex items-center gap-2 font-semibold"><FaHotel className="text-[#D9A441]" /> Room Preference</label>
-            <div className="flex gap-2">
-                <button
-                    className={`flex-1 py-2 rounded-lg border text-sm transition-all ${
-                    form.roomType === "standard"
-                        ? "bg-[#D9A441]/20 border-[#D9A441] text-white"
-                        : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
-                    }`}
-                    onClick={() => handle("roomType", "standard")}
-                >
-                    Standard
-                </button>
-                <button
-                    className={`flex-1 py-2 rounded-lg border text-sm transition-all ${
-                    form.roomType === "panoramic"
-                        ? "bg-[#D9A441]/20 border-[#D9A441] text-white"
-                        : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
-                    }`}
-                    onClick={() => handle("roomType", "panoramic")}
-                >
-                    Panoramic
-                </button>
-            </div>
-            
-            <div className="flex items-center justify-between p-1.5 rounded-lg bg-white/5 border border-white/10">
-                <button 
-                  disabled={form.rooms <= minRoomsRequired} 
-                  onClick={() => handle("rooms", Math.max(minRoomsRequired, Number(form.rooms) - 1))} 
-                  className="w-8 h-8 flex items-center justify-center rounded bg-white/5 hover:bg-white/20 text-yellow-400 disabled:opacity-30 disabled:hover:bg-transparent"
-                >
-                  <FaMinus size={10} />
-                </button>
-                <div className="text-sm font-bold text-white">{form.rooms} Room{form.rooms > 1 ? "s" : ""}</div>
-                <button 
-                  onClick={() => handle("rooms", Number(form.rooms) + 1)} 
-                  className="w-8 h-8 flex items-center justify-center rounded bg-white/5 hover:bg-white/20 text-yellow-400"
-                >
-                  <FaPlus size={10} />
-                </button>
-            </div>
+      {/* Preferences Grid */}
+      <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+             {/* Transport Switch */}
+             <div className="bg-white/5 p-2 rounded-xl border border-white/5 flex flex-col justify-center">
+               <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 text-center">Transport</label>
+               <div className="flex bg-black/30 rounded-lg p-1 relative">
+                  <motion.div 
+                    layout 
+                    className="absolute inset-y-1 bg-[#D9A441] rounded-md shadow-md"
+                    initial={false}
+                    animate={{ 
+                        left: form.transport === 'sharing' ? 4 : '50%', 
+                        width: 'calc(50% - 4px)' 
+                    }}
+                  />
+                  <button onClick={() => handle('transport', 'sharing')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Sharing</button>
+                  <button onClick={() => handle('transport', 'personal')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Private</button>
+               </div>
+             </div>
+
+             {/* Room Switch */}
+             <div className="bg-white/5 p-2 rounded-xl border border-white/5 flex flex-col justify-center">
+               <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 text-center">Room Type</label>
+               <div className="flex bg-black/30 rounded-lg p-1 relative">
+                  <motion.div 
+                    layout 
+                    className="absolute inset-y-1 bg-[#D9A441] rounded-md shadow-md"
+                    initial={false}
+                    animate={{ 
+                        left: form.roomType === 'standard' ? 4 : '50%', 
+                        width: 'calc(50% - 4px)' 
+                    }}
+                  />
+                  <button onClick={() => handle('roomType', 'standard')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Std</button>
+                  <button onClick={() => handle('roomType', 'panoramic')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">View</button>
+               </div>
+             </div>
           </div>
 
-          {/* Transport */}
-          <div className="space-y-3">
-            <label className="text-sm text-gray-200 font-semibold flex items-center gap-2"><FaCar className="text-[#D9A441]" /> Transport</label>
-            <div className="flex gap-2 h-[84px]">
-                <button
-                    className={`flex-1 flex flex-col items-center justify-center rounded-lg border text-sm transition-all ${
-                    form.transport === "sharing"
-                        ? "bg-[#D9A441]/15 border-[#D9A441] text-white"
-                        : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
-                    }`}
-                    onClick={() => handle("transport", "sharing")}
-                >
-                    <FaUsers className="mb-1" /> Sharing
-                </button>
-                <button
-                    className={`flex-1 flex flex-col items-center justify-center rounded-lg border text-sm transition-all ${
-                    form.transport === "personal"
-                        ? "bg-[#D9A441]/15 border-[#D9A441] text-white"
-                        : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
-                    }`}
-                    onClick={() => handle("transport", "personal")}
-                >
-                    <FaCar className="mb-1" /> Private
-                </button>
-            </div>
+          <div className="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/5">
+                <span className="text-xs text-gray-300 ml-2 font-medium">Total Rooms Required</span>
+                <div className="flex items-center gap-3">
+                    <button 
+                    disabled={form.rooms <= minRoomsRequired} 
+                    onClick={() => handle("rooms", Math.max(minRoomsRequired, Number(form.rooms) - 1))} 
+                    className="w-6 h-6 flex items-center justify-center rounded bg-black/30 text-white disabled:opacity-20"
+                    >
+                    <FaMinus size={8} />
+                    </button>
+                    <div className="text-sm font-bold text-[#D9A441]">{form.rooms}</div>
+                    <button 
+                    onClick={() => handle("rooms", Number(form.rooms) + 1)} 
+                    className="w-6 h-6 flex items-center justify-center rounded bg-black/30 text-white"
+                    >
+                    <FaPlus size={8} />
+                    </button>
+                </div>
           </div>
       </div>
 
       {/* Add-ons */}
-      <div className="space-y-3 pt-2">
-        <p className="text-sm text-gray-200 font-semibold">Enhance Your Trip</p>
-        <div className="grid grid-cols-2 gap-3">
-          <TickButton label="Bonfire" active={form.bonfire} onClick={() => handle("bonfire", !form.bonfire)} />
-          <TickButton label="Comfort Seat" active={form.comfortSeat} onClick={() => handle("comfortSeat", !form.comfortSeat)} />
-          <TickButton label="Meals" active={form.meal} onClick={() => { handle("meal", !form.meal); if (!form.meal) handle("tea", true); }} />
-          <TickButton label="Tea" active={form.tea} complimentary={form.meal} onClick={() => !form.meal && handle("tea", !form.tea)} />
+      <div className="pt-2">
+        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">Enhancements</p>
+        <div className="grid grid-cols-2 gap-2">
+          <TickButton label="Bonfire" icon={FaFire} active={form.bonfire} onClick={() => handle("bonfire", !form.bonfire)} />
+          <TickButton label="Comfort Seat" icon={FaCouch} active={form.comfortSeat} onClick={() => handle("comfortSeat", !form.comfortSeat)} />
+          <TickButton label="Meals" icon={FaUtensils} active={form.meal} onClick={toggleMeal} />
+          <TickButton label="Tea/Snacks" icon={FaCoffee} active={form.tea} complimentary={form.meal} onClick={toggleTea} />
           <div className="col-span-2">
-             <TickButton label="Tour Guide" active={form.tourGuide} onClick={() => handle("tourGuide", !form.tourGuide)} />
+             <TickButton label="Private Tour Guide" icon={FaHiking} active={form.tourGuide} onClick={() => handle("tourGuide", !form.tourGuide)} />
           </div>
         </div>
       </div>
 
       {/* Coupon */}
-      <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-center gap-3">
-        <div className="p-2 bg-black/20 rounded-lg text-[#D9A441]"><FaTicketAlt /></div>
-        <div className="flex-1">
-            <div className="flex gap-2">
-                <input
-                    className="flex-1 bg-transparent text-sm text-white uppercase placeholder-gray-500 focus:outline-none font-bold tracking-wide"
-                    placeholder="PROMO CODE"
-                    value={couponCode}
-                    onChange={e => setCouponCode(e.target.value)}
-                    disabled={appliedCoupon}
-                />
-                {appliedCoupon ? (
-                    <button onClick={removeCoupon} className="text-red-400 text-xs font-bold hover:text-red-300">REMOVE</button>
-                ) : (
-                    <button onClick={handleApplyCoupon} disabled={!couponCode || isApplyingCoupon} className="text-[#D9A441] text-xs font-bold hover:text-yellow-300 disabled:opacity-50">APPLY</button>
-                )}
-            </div>
-            {couponMessage && <p className={`text-[10px] mt-1 ${appliedCoupon ? "text-green-400" : "text-red-400"}`}>{couponMessage}</p>}
+      <div className="bg-black/20 border border-white/5 rounded-xl p-2.5 flex items-center gap-3">
+        <div className="p-1.5 bg-[#D9A441]/10 rounded text-[#D9A441]"><FaTicketAlt size={12} /></div>
+        <div className="flex-1 flex gap-2">
+            <input
+                className="flex-1 bg-transparent text-xs text-white uppercase placeholder-gray-600 focus:outline-none font-bold tracking-wider"
+                placeholder="PROMO CODE"
+                value={couponCode}
+                onChange={e => setCouponCode(e.target.value)}
+                disabled={appliedCoupon}
+            />
+            {appliedCoupon ? (
+                <button onClick={removeCoupon} className="text-red-400 text-[10px] font-bold hover:text-red-300">REMOVE</button>
+            ) : (
+                <button onClick={handleApplyCoupon} disabled={!couponCode || isApplyingCoupon} className="text-[#D9A441] text-[10px] font-bold hover:text-yellow-300 disabled:opacity-50">APPLY</button>
+            )}
         </div>
       </div>
+      {couponMessage && <p className={`text-[10px] text-center -mt-4 ${appliedCoupon ? "text-green-400" : "text-red-400"}`}>{couponMessage}</p>}
 
-      {/* 💵 PC Price Section (Updated Hierarchy) */}
-      <div className="p-5 rounded-2xl bg-gradient-to-br from-[#D9A441]/20 to-[#b58b2d]/5 border border-yellow-300/20 shadow-lg backdrop-blur-md">
-        <div className="flex justify-between items-end mb-3">
+      {/* 💵 Total & Confirm - WITH ANIMATION */}
+      <motion.div 
+        // Trigger bounce animation when price changes via discount
+        animate={appliedCoupon ? { scale: [1, 1.03, 1] } : {}}
+        transition={{ duration: 0.3 }}
+        className="p-4 rounded-2xl bg-gradient-to-br from-[#D9A441]/10 to-transparent border border-[#D9A441]/20"
+      >
+        <div className="flex justify-between items-end mb-4">
             <div>
-                {/* BIG PER HEAD */}
-                <p className="text-[10px] text-gray-300 uppercase tracking-widest mb-0.5">Price Per Person</p>
-                <p className="text-3xl font-black text-[#D9A441]">₹{perHeadPrice.toLocaleString("en-IN")}</p>
+                <p className="text-[9px] text-gray-400 uppercase tracking-widest mb-0.5">Estimated / Person</p>
+                <p className="text-2xl font-black text-[#D9A441]">₹{perHeadPrice.toLocaleString("en-IN")}</p>
             </div>
             <div className="text-right">
-                {/* SMALL TOTAL */}
-                <p className="text-xs text-yellow-200/70 uppercase tracking-wider">Total Estimate</p>
-                <div className="flex flex-col items-end">
-                  {appliedCoupon && <span className="line-through text-gray-500 text-xs">₹{finalPrice.toLocaleString()}</span>}
+                <p className="text-[9px] text-gray-400 uppercase tracking-wider mb-0.5">Grand Total</p>
+                <div className="flex flex-col items-end leading-none">
+                  {appliedCoupon && <span className="line-through text-gray-600 text-[10px] mb-0.5">₹{finalPrice.toLocaleString()}</span>}
                   <span className="text-lg font-bold text-white">₹{discountedPrice.toLocaleString("en-IN")}</span>
                 </div>
             </div>
@@ -559,78 +595,78 @@ export default function BookingSidebar({ tour = {} }) {
         <button
             onClick={handleBook}
             disabled={submitting}
-            className="w-full bg-gradient-to-r from-[#D9A441] to-[#F59E0B] text-black py-4 rounded-xl font-extrabold text-lg hover:shadow-[0_0_20px_rgba(217,164,65,0.4)] transition active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2"
+            className="w-full bg-[#D9A441] hover:bg-[#fbbf24] text-black py-3.5 rounded-xl font-bold text-base shadow-[0_0_20px_rgba(217,164,65,0.15)] transition active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2"
         >
             {submitting ? <><FaSpinner className="animate-spin" /> Processing...</> : "Confirm Booking"}
         </button>
-      </div>
+      </motion.div>
     </div>
   );
 
   return (
     <>
-      <SuccessPopup isOpen={showSuccess} onClose={() => setShowSuccess(false)} />
+      <StatusPopup 
+        isOpen={!!popupData} 
+        onClose={() => setPopupData(null)} 
+        data={popupData?.data}
+        type={popupData?.type} 
+      />
 
-      {/* PC SIDEBAR */}
+      {/* PC SIDEBAR - HIGH TRANSPARENCY & GLASS EFFECT */}
       <div className="hidden lg:block">
         <div className="
           w-full p-6 rounded-3xl sticky top-24 
-          bg-[#0f172a]/80 backdrop-blur-2xl 
-          border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]
+          bg-[#0f172a]/40 backdrop-blur-3xl 
+          border border-white/10 shadow-2xl
         ">
           {contentJsx}
         </div>
       </div>
 
-      {/* 📱 MOBILE BOTTOM BAR (Updated Glass & Hierarchy) */}
+      {/* 📱 MOBILE BOTTOM BAR */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[999]">
-        <div className="p-4 rounded-t-3xl flex items-center gap-4 border-t border-white/20 bg-[#0f172a]/70 backdrop-blur-xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+        <div className="p-3 px-5 rounded-t-3xl flex items-center gap-4 border-t border-white/10 bg-[#0f172a]/60 backdrop-blur-xl shadow-2xl">
           <div className="flex-1">
-            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-0.5">Per Person</p>
-            <div className="flex flex-col">
-              <span className="text-2xl font-black text-[#D9A441] leading-none">₹{perHeadPrice.toLocaleString("en-IN")}</span>
-              <span className="text-[10px] text-gray-400 mt-1">Total: ₹{discountedPrice.toLocaleString("en-IN")}</span>
+            <p className="text-[9px] text-gray-400 uppercase font-bold tracking-widest mb-0.5">Starting From</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-xl font-black text-[#D9A441] leading-none">₹{perHeadPrice.toLocaleString("en-IN")}</span>
+              <span className="text-[10px] text-gray-500">/ Person</span>
             </div>
           </div>
 
           <button
             onClick={() => setOpen(true)}
             className="
-              relative overflow-hidden
-              bg-gradient-to-r from-[#D9A441] to-[#F59E0B] 
-              text-black py-3 px-8 rounded-xl font-bold text-lg 
+              bg-[#D9A441] hover:bg-[#fbbf24]
+              text-black py-3 px-8 rounded-xl font-bold text-base 
               shadow-lg active:scale-95 transition
-              backdrop-blur-md
             "
           >
-            <span className="relative z-10">Book Now</span>
-            {/* Subtle glass sheen overlay on button */}
-            <div className="absolute inset-0 bg-white/20 pointer-events-none" />
+            Customize
           </button>
         </div>
       </div>
 
-      {/* MOBILE DRAWER */}
+      {/* MOBILE DRAWER - HIGH TRANSPARENCY & GLASS EFFECT */}
       <AnimatePresence>
         {open && (
           <>
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[2000]"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000]"
               onClick={() => setOpen(false)}
             />
 
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed bottom-0 left-0 right-0 z-[2001] bg-[#0f172a]/95 backdrop-blur-xl rounded-t-[2rem] border-t border-white/10 max-h-[85vh] overflow-y-auto shadow-2xl"
+              className="fixed bottom-0 left-0 right-0 z-[2001] bg-[#0f172a]/80 backdrop-blur-3xl rounded-t-[2.5rem] border-t border-white/10 max-h-[85vh] overflow-y-auto shadow-2xl"
             >
-              <div className="sticky top-0 w-full flex justify-center pt-4 pb-2 bg-[#0f172a]/95 backdrop-blur-xl z-10" onClick={() => setOpen(false)}>
+              <div className="sticky top-0 w-full flex justify-center pt-4 pb-2 z-10" onClick={() => setOpen(false)}>
                 <div className="w-12 h-1.5 rounded-full bg-white/20" />
               </div>
 
               <div className="p-6 pb-24">
-                <h2 className="text-2xl font-bold text-white mb-6">Trip Details</h2>
                 {contentJsx}
               </div>
             </motion.div>
