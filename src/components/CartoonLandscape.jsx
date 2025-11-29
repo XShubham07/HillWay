@@ -1,111 +1,127 @@
-// src/components/CartoonLandscape.jsx
-import React from "react";
-import { motion } from "framer-motion";
+/* CartoonLandscape.jsx
+ * A single-file, scroll-aware, parallax + zoom background.
+ * Works with framer-motion v10+.
+ */
+import React from 'react';
+import { motion, useTransform, useScroll, useSpring } from 'framer-motion';
 
 export default function CartoonLandscape({ style }) {
-  // Variants for subtle floating animations
-  const floatingVariant = {
-    animate: {
-      y: [0, -15, 0],
-      transition: {
-        duration: 6,
-        repeat: Infinity,
-        ease: "easeInOut",
-      },
-    },
+  /* ---------- 1.  read scroll progress (0..1) ---------- */
+  const { scrollYProgress } = useScroll();
+
+  /* ---------- 2.  smooth the value a little ---------- */
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 90,
+    damping: 30,
+  });
+
+  /* ---------- 3.  derive parallax & zoom ---------- */
+  // sky moves slowest (illusion of depth)
+  const skyY = useTransform(smoothProgress, [0, 1], ['0%', '-40%']);
+  // mid layer faster
+  const midY = useTransform(smoothProgress, [0, 1], ['0%', '-60%']);
+  // front layer fastest
+  const frontY = useTransform(smoothProgress, [0, 1], ['0%', '-80%']);
+  // whole scene scales a bit while scrolling (fake zoom)
+  const scale = useTransform(smoothProgress, [0, 1], [1, 1.25]);
+
+  /* ---------- 4.  colour theme (change here) ---------- */
+  const palette = {
+    skyTop: '#0b1d39',      // deep navy
+    skyBottom: '#2a6f97',   // alpine blue
+    sun: '#ffc86b',         // warm sunrise
+    cloud: '#ffffff',       // snow
+    backMountain: '#2a6f97',
+    midMountain: '#1a4d3a',
+    frontHill: '#0b1d39',
+    snow: '#ffffff',
   };
 
-  const sunVariant = {
-    animate: {
-      rotate: 360,
-      scale: [1, 1.1, 1],
-      transition: {
-        duration: 20,
-        repeat: Infinity,
-        ease: "linear",
-      },
-    },
-  };
+  /* ---------- 5.  reusable cloud blob ---------- */
+  const Cloud = ({ x, y, scale = 1, opacity = 0.9 }) => (
+    <g opacity={opacity} transform={`translate(${x}, ${y}) scale(${scale})`}>
+      <path
+        d="M25 30Q30 10 50 10Q70 10 75 30Q95 30 95 50Q95 70 75 70L25 70Q5 70 5 50Q5 30 25 30Z"
+        fill={palette.cloud}
+      />
+    </g>
+  );
 
   return (
     <motion.div
       style={{
         ...style,
-        background: "linear-gradient(to bottom, #87CEEB 0%, #E0F7FA 100%)", // Sky gradient
+        position: 'fixed',
+        inset: 0,
+        zIndex: 0,
+        pointerEvents: 'none',
+        overflow: 'hidden',
+        background: `linear-gradient(180deg, ${palette.skyTop} 0%, ${palette.skyBottom} 100%)`,
       }}
-      className="fixed inset-0 w-full h-full z-0 pointer-events-none overflow-hidden origin-bottom"
     >
-      {/* --- SUN --- */}
-      <motion.div
-        variants={sunVariant}
-        animate="animate"
-        className="absolute top-16 right-24 w-32 h-32"
+      {/* ---------- SVG scene ---------- */}
+      <motion.svg
+        preserveAspectRatio="xMidYMax slice"
+        viewBox="0 0 1440 800"
+        className="w-full h-full"
+        style={{ scale }} // zoom whole scene
       >
-        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="50" cy="50" r="30" fill="#FFD700" />
-          <circle cx="50" cy="50" r="38" stroke="#FFD700" strokeWidth="4" strokeDasharray="10 10" opacity="0.6"/>
-        </svg>
-      </motion.div>
+        {/* ----- sun ----- */}
+        <g className="sun">
+          <motion.circle
+            cx="1150"
+            cy="120"
+            r="70"
+            fill={palette.sun}
+            initial={{ scale: 1, rotate: 0 }}
+            animate={{
+              scale: [1, 1.15, 1],
+              rotate: [-8, 8, -8],
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+          <circle cx="1150" cy="120" r="90" fill={palette.sun} opacity=".2" />
+          <circle cx="1150" cy="120" r="110" fill={palette.sun} opacity=".1" />
+        </g>
 
-      {/* --- CLOUDS --- */}
-      <motion.div variants={floatingVariant} animate="animate" className="absolute top-32 left-10 w-48 opacity-80">
-        <Cloud />
-      </motion.div>
-      <motion.div
-        variants={floatingVariant}
-        animate="animate"
-        transition={{ delay: 2 }}
-        className="absolute top-20 right-1/3 w-40 opacity-70"
-      >
-        <Cloud />
-      </motion.div>
+        {/* ----- clouds ----- */}
+        <motion.g style={{ y: skyY }}>
+          <Cloud x={150} y={180} scale={1.2} opacity={0.85} />
+          <Cloud x={650} y={220} scale={0.9} opacity={0.7} />
+          <Cloud x={1050} y={160} scale={1} opacity={0.8} />
+        </motion.g>
 
-      {/* --- MOUNTAINS --- */}
-      <div className="absolute bottom-0 left-0 w-full flex items-end translate-y-1">
-        {/* Back Mountain - Darker, less detail */}
-        <svg
-          className="w-full h-auto absolute bottom-0 -z-10 opacity-80"
-          viewBox="0 0 1440 320"
-          xmlns="http://www.w3.org/2000/svg"
-          preserveAspectRatio="none"
-        >
-          <path fill="#7FB285" d="M0,160 L120,130 C240,100 480,40 720,60 C960,80 1200,180 1320,230 L1440,280 L1440,320 L0,320 Z" />
-        </svg>
+        {/* ----- back mountains ----- */}
+        <motion.g style={{ y: midY }}>
+          <path
+            d="M0 480L120 420L240 380L360 400L480 360L600 340L720 350L840 380L960 370L1080 340L1200 360L1320 400L1440 430V800H0z"
+            fill={palette.backMountain}
+          />
+          {/* snow caps */}
+          <path d="M720 350L680 330L760 335z" fill={palette.snow} opacity=".9" />
+          <path d="M1080 340L1040 320L1120 325z" fill={palette.snow} opacity=".8" />
+        </motion.g>
 
-        {/* Middle Mountain - Medium color */}
-        <svg
-          className="w-full h-auto absolute bottom-0 -z-5"
-          viewBox="0 0 1440 320"
-          xmlns="http://www.w3.org/2000/svg"
-          preserveAspectRatio="none"
-        >
-          <path fill="#95C6A8" d="M0,220 L80,190 C160,160 320,100 480,110 C640,120 800,200 960,210 C1120,220 1280,160 1360,130 L1440,100 L1440,320 L0,320 Z" />
-          {/* Snow cap */}
-          <path fill="#FFFFFF" d="M400,115 L480,110 L560,125 L480,150 Z" opacity="0.8" />
-        </svg>
+        {/* ----- mid mountains ----- */}
+        <motion.g style={{ y: frontY }}>
+          <path
+            d="M0 560L180 480L360 440L540 460L720 420L900 440L1080 400L1260 460L1440 500V800H0z"
+            fill={palette.midMountain}
+          />
+          <path d="M720 420L680 390L760 395z" fill={palette.snow} opacity=".9" />
+          <path d="M1080 400L1040 370L1120 375z" fill={palette.snow} opacity=".8" />
+        </motion.g>
 
-        {/* Front Mountain - Lighter color with simple snow caps */}
-        <svg
-          className="w-full h-auto relative z-0"
-          viewBox="0 0 1440 400"
-          xmlns="http://www.w3.org/2000/svg"
-          preserveAspectRatio="none"
-        >
-          <path fill="#A8D5BA" d="M0,320 L60,280 C120,240 240,160 360,170 C480,180 600,280 720,290 C840,300 960,220 1080,190 C1200,160 1320,180 1380,190 L1440,200 L1440,400 L0,400 Z" />
-          {/* Snow caps */}
-          <path fill="#FFFFFF" d="M300,180 L360,170 L420,190 L360,210 Z" opacity="0.9" />
-          <path fill="#FFFFFF" d="M1020,205 L1080,190 L1140,205 L1080,230 Z" opacity="0.9" />
-        </svg>
-      </div>
+        {/* ----- front silhouette hills ----- */}
+        <path
+          d="M0 640L200 580L400 600L600 560L800 580L1000 540L1200 580L1440 620V800H0z"
+          fill={palette.frontHill}
+        />
+      </motion.svg>
     </motion.div>
-  );
-}
-
-// Simple Cloud Component
-function Cloud() {
-  return (
-    <svg viewBox="0 0 100 60" fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg">
-      <path d="M25,30 Q30,10 50,10 Q70,10 75,30 Q95,30 95,50 Q95,70 75,70 L25,70 Q5,70 5,50 Q5,30 25,30 Z" />
-    </svg>
   );
 }
