@@ -39,6 +39,12 @@ export default function Footer() {
           {/* Changed Facebook Icon to Instagram (React Icon) */}
           <a href="https://www.instagram.com/fuckuoff.69?igsh=YmExN2puN2dmeGti" className="hover:scale-110 transition">
             <IoLogoInstagram size={26} className="text-gray-300 hover:text-white" />
+          </a> 
+           
+          <div className="flex justify-center gap-6 mb-10">
+          {/* Changed Facebook Icon to Instagram (React Icon) */}
+          <a href="https://www.instagram.com/blissful.soul_69?igsh=MWtibjIyejFzNHBjMA==" className="hover:scale-110 transition">
+            <IoLogoInstagram size={26} className="text-gray-300 hover:text-white" />
           </a>
 
           <a href="#" className="hover:scale-110 transition">
@@ -46,6 +52,7 @@ export default function Footer() {
               <path d="M22 12a10 10 0 1 0-11.5 9.9v-7h-2v-3h2v-2.3c0-2 1.2-3.1 3-3.1.9 0 1.8.1 2 .1v2.2h-1.2c-1 0-1.3.6-1.3 1.2V12h2.5l-.4 3h-2.1v7A10 10 0 0 0 22 12z"/>
             </svg>
           </a>
+          
 
       
         
