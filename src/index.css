@@ -265,3 +265,8 @@ body:not(.home-page) {
     }
   }
 }
+.mobile-3d-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
