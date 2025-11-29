@@ -31,7 +31,7 @@ export default function Login() {
         
         if (role === 'admin') {
             // Redirect to backend admin panel
-            window.location.href = "http://localhost:3000/admin"; 
+            window.location.href = "/admin"; 
         } else {
             // Redirect to Agent Dashboard (Frontend Route)
             navigate('/agent-dashboard');
