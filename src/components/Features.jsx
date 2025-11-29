@@ -138,7 +138,7 @@ export default function Features() {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl md:text-5xl font-bold text-gray-900 tracking-tight drop-shadow-sm">
+          <h2 className="text-3xl md:text-5xl font-bold text-pink-00 4tracking-tight drop-shadow-sm">
             Why Choose HillWay?
           </h2>
           <p className="text-gray-600 mt-4 text-lg font-medium">

@@ -1,3 +1,4 @@
+// src/pages/Home.jsx
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
@@ -63,25 +64,25 @@ export default function Home() {
         <motion.section variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="max-w-7xl mx-auto px-6 mt-12">
           <div className="flex justify-between items-end mb-8">
             <div>
-              <h2 className="text-3xl font-bold" style={{ color: "var(--dark)" }}>Trending Packages</h2>
-              <p className="text-gray-600 mt-1">Most loved trips by our travelers</p>
+              <h2 className="text-3xl font-bold text-white drop-shadow-md">Trending Packages</h2>
+              <p className="text-white font-bold mt-1 drop-shadow-md">Most loved trips by our travelers</p>
             </div>
-            <button onClick={() => navigate('/tours')} className="hidden md:block font-semibold btn-ripple" style={{ color: "var(--p1)" }}>View All Tours →</button>
+            <button onClick={() => navigate('/tours')} className="hidden md:block font-bold btn-ripple text-white hover:text-cyan-400 transition-colors drop-shadow-md">View All Tours →</button>
           </div>
           
           {featuredTours.length === 0 ? (
-            <div className="text-center py-10">Loading amazing tours...</div>
+            <div className="text-center py-10 text-white font-bold">Loading amazing tours...</div>
           ) : (
             <PackageGrid list={featuredTours} onView={onView} />
           )}
         </motion.section>
 
         <motion.section variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="max-w-7xl mx-auto px-6 mt-20">
-          <h2 className="text-3xl font-bold mb-6 text-center" style={{ color: "var(--dark)" }}>Traveler Stories</h2>
+          <h2 className="text-3xl font-bold mb-6 text-center text-white drop-shadow-md">Traveler Stories</h2>
           <ReviewsCarousel />
         </motion.section>
         <motion.section variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="max-w-7xl mx-auto px-6 mt-20 mb-24">
-          <h2 className="text-3xl font-bold mb-6 text-center" style={{ color: "var(--dark)" }}>Common Questions</h2>
+          <h2 className="text-3xl font-bold mb-6 text-center text-white drop-shadow-md">Common Questions</h2>
           <FAQ />
         </motion.section>
       </div>

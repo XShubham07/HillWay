@@ -10,92 +10,101 @@ export default function Hero() {
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // 1. SCROLL PHYSICS (Synchronized)
+  // Scroll Physics
   const { scrollY } = useScroll();
   const smoothScroll = useSpring(scrollY, {
-    stiffness: 120, // Snappier response
-    damping: 25,    // Smooth settling
-    restDelta: 0.001
+    stiffness: 120,
+    damping: 25,
+    restDelta: 0.001,
   });
 
-  // 2. SYNCHRONIZED SCROLL EFFECTS
-  // Background: Starts Zoomed IN (1.4), Zooms OUT to (1.0) on scroll
-  // This reveals more scenery as you scroll down.
+  // Effects
   const bgScale = useTransform(smoothScroll, [0, 1000], [1.4, 1]);
-  
-  // Text: Starts Normal (1.0), Zooms IN (1.5) towards the user + Fades Out
-  // This creates a feeling of "passing through" the text into the mountains.
   const contentScale = useTransform(smoothScroll, [0, 500], [1, 1.5]);
   const contentOpacity = useTransform(smoothScroll, [0, 300], [1, 0]);
   const contentY = useTransform(smoothScroll, [0, 500], [0, 100]);
 
+  // PREMIUM CUTOUT TEXT STYLE
+  const mountainCutout = {
+    backgroundImage: `
+      url('/mountain.webp'),
+      radial-gradient(circle at 50% 30%, rgba(255,255,255,0.35), rgba(255,255,255,0))
+    `,
+    backgroundSize: "cover",
+    backgroundPosition: "center 55%",
+    WebkitBackgroundClip: "text",
+    backgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    color: "transparent",
+    filter: "brightness(1.25) contrast(1.2)",
+    animation: "shineMove 6s ease-in-out infinite",
+    willChange: "background-position, filter",
+  };
+
   return (
     <section className="relative h-screen flex items-center justify-center overflow-hidden bg-[#0f172a]">
-      
-      {/* --- BACKGROUND (Zooms Out on Scroll) --- */}
+
+      {/* Background */}
       <motion.div
-        style={{
-          scale: bgScale,
-          willChange: 'transform',
-        }}
+        style={{ scale: bgScale, willChange: "transform" }}
         className="absolute inset-0 z-0"
       >
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage: "url('/mountain.webp')",
-            filter: "brightness(0.85) contrast(1.1)", // Slightly brighter for clarity
+            filter: "brightness(0.85) contrast(1.1)",
             transform: "translateZ(0)",
           }}
         />
-        {/* Subtle Overlay for text contrast */}
         <div className="absolute inset-0 bg-black/20" />
       </motion.div>
 
-      {/* --- MAIN CONTENT (Zooms In on Scroll) --- */}
+      {/* Main Content */}
       <motion.div
         className="relative z-10 max-w-7xl mx-auto px-6 w-full text-center flex flex-col items-center"
-        style={{ 
-          scale: contentScale, 
+        style={{
+          scale: contentScale,
           opacity: contentOpacity,
-          y: contentY 
+          y: contentY,
         }}
-        // Simple, Fast Loading Animation
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
       >
-        
-        {/* Top Tagline */}
+        {/* Tagline */}
         <h2 className="text-2xl md:text-4xl font-bold text-white tracking-wider drop-shadow-md mb-2">
           Your Way to
         </h2>
 
-        {/* Massive Cutout Text */}
-        <h1 className="text-6xl md:text-8xl lg:text-9xl font-black leading-none tracking-tighter">
-          <span 
+        {/* PREMIUM TYPOGRAPHY */}
+        <h1 className="text-6xl md:text-8xl lg:text-9xl font-black leading-none tracking-tighter flex flex-col items-center gap-0">
+
+          {/* THE */}
+          <motion.span
+            style={mountainCutout}
             className="block relative"
-            style={{
-              // Cutout Logic
-              backgroundImage: "url('/mountain.webp')",
-              backgroundAttachment: isMobile ? "scroll" : "fixed", 
-              backgroundPosition: "center",
-              backgroundSize: "cover",
-              WebkitBackgroundClip: "text",
-              backgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              color: "transparent",
-              // Styling
-              filter: "brightness(1.6) contrast(1.3)", // Brighten text to pop
-              WebkitTextStroke: "2px rgba(255,255,255,0.3)", // Subtle border
-            }}
+            initial={{ opacity: 0, scale: 0.9, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 1, ease: "easeOut" }}
           >
-            THE MOUNTAINS
-          </span>
+            THE
+          </motion.span>
+
+          {/* MOUNTAINS */}
+          <motion.span
+            style={mountainCutout}
+            className="block relative"
+            initial={{ opacity: 0, scale: 0.9, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 1.1, ease: "easeOut" }}
+          >
+            MOUNTAINS
+          </motion.span>
         </h1>
 
         {/* Description */}
@@ -103,23 +112,18 @@ export default function Hero() {
           Experience the altitude. Premium tours and hidden trails awaiting your arrival.
         </p>
 
-        {/* Simple CTA Button */}
-        <motion.div 
-          className="mt-10"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
+        {/* CTA */}
+        <motion.div className="mt-10" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
           <button
-            onClick={() => navigate('/tours')}
+            onClick={() => navigate("/tours")}
             className="px-10 py-4 bg-white text-black rounded-full font-extrabold text-lg shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all hover:shadow-[0_0_40px_rgba(255,255,255,0.5)]"
           >
             Start Journey
           </button>
         </motion.div>
-
       </motion.div>
 
-      {/* --- SCROLL MOUSE (Fades out quickly) --- */}
+      {/* Scroll Icon */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -135,7 +139,6 @@ export default function Hero() {
           />
         </div>
       </motion.div>
-
     </section>
   );
 }

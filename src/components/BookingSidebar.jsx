@@ -472,8 +472,8 @@ export default function BookingSidebar({ tour = {} }) {
 
       {/* Pax Row */}
       <div className="grid grid-cols-2 gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
-        <QuantityControl label="Adults" subLabel="13+" icon={FaUsers} value={form.adults} onChange={(v) => handle('adults', v)} min={1} />
-        <QuantityControl label="Kids" subLabel="3-12" icon={FaChild} value={form.children} onChange={(v) => handle('children', v)} min={0} />
+        <QuantityControl label="Adults" subLabel="5+" icon={FaUsers} value={form.adults} onChange={(v) => handle('adults', v)} min={1} />
+        <QuantityControl label="Kids" subLabel="Upto 5" icon={FaChild} value={form.children} onChange={(v) => handle('children', v)} min={0} />
       </div>
 
       {/* Preferences Grid */}
@@ -493,7 +493,7 @@ export default function BookingSidebar({ tour = {} }) {
                     }}
                   />
                   <button onClick={() => handle('transport', 'sharing')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Sharing</button>
-                  <button onClick={() => handle('transport', 'personal')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Private</button>
+                  <button onClick={() => handle('transport', 'personal')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Cab</button>
                </div>
              </div>
 
@@ -510,8 +510,8 @@ export default function BookingSidebar({ tour = {} }) {
                         width: 'calc(50% - 4px)' 
                     }}
                   />
-                  <button onClick={() => handle('roomType', 'standard')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Std</button>
-                  <button onClick={() => handle('roomType', 'panoramic')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">View</button>
+                  <button onClick={() => handle('roomType', 'standard')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Standard</button>
+                  <button onClick={() => handle('roomType', 'panoramic')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Panaromoic</button>
                </div>
              </div>
           </div>
@@ -544,9 +544,9 @@ export default function BookingSidebar({ tour = {} }) {
           <TickButton label="Bonfire" icon={FaFire} active={form.bonfire} onClick={() => handle("bonfire", !form.bonfire)} />
           <TickButton label="Comfort Seat" icon={FaCouch} active={form.comfortSeat} onClick={() => handle("comfortSeat", !form.comfortSeat)} />
           <TickButton label="Meals" icon={FaUtensils} active={form.meal} onClick={toggleMeal} />
-          <TickButton label="Tea/Snacks" icon={FaCoffee} active={form.tea} complimentary={form.meal} onClick={toggleTea} />
+          <TickButton label="Tea" icon={FaCoffee} active={form.tea} complimentary={form.meal} onClick={toggleTea} />
           <div className="col-span-2">
-             <TickButton label="Private Tour Guide" icon={FaHiking} active={form.tourGuide} onClick={() => handle("tourGuide", !form.tourGuide)} />
+             <TickButton label="Tour Guide" icon={FaHiking} active={form.tourGuide} onClick={() => handle("tourGuide", !form.tourGuide)} />
           </div>
         </div>
       </div>
