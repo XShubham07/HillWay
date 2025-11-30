@@ -11,18 +11,10 @@ const TourSchema = new mongoose.Schema({
   nights: { type: Number, default: 3 },
   featured: { type: Boolean, default: false },
 
-  // REQUIRED for multiple images
   images: { type: [String], default: [] },
-  
-  // Backward compatibility
   img: { type: String }, 
 
   mapEmbedUrl: String,
-
-  // --- NEW FIELDS FOR FOOD & STAY TAB ---
-  stayDetails: String,   // Custom text for Stay section
-  foodStayNote: String,  // Note at the bottom of Food & Stay tab
-  // --------------------------------------
 
   pricing: {
     mealPerPerson: { type: Number, default: 450 },
@@ -48,6 +40,7 @@ const TourSchema = new mongoose.Schema({
       day: Number,
       title: String,
       details: String,
+      stay: String, // NEW: Per day stay detail
       meals: { type: [String], default: [] }
     }
   ],
@@ -56,5 +49,4 @@ const TourSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-// Fix for Next.js model recompilation error
 export default mongoose.models.Tour || mongoose.model('Tour', TourSchema);

@@ -14,37 +14,77 @@
 html, body, #root {
   width: 100%;
   min-height: 100vh;
-  /* Prevents z-index conflicts between sections */
-  isolation: isolate; 
-  scroll-behavior: smooth;
+  isolation: isolate;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   LENIS SMOOTH SCROLL SETUP
+   ============================================ */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
 }
 
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   color: var(--dark);
   overflow-x: hidden;
+  overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
 }
 
 /* Clean Background for Non-Home Pages */
 body:not(.home-page) {
   background-color: #ecfeff;
-  /* Subtle texture */
-  background-image: radial-gradient(#cfbaf0 2px, transparent 2px); 
+  background-image: radial-gradient(#cfbaf0 2px, transparent 2px);
   background-size: 32px 32px;
 }
 
 /* ============================================
-   2. UTILITIES & SCROLLBAR
+   ACCESSIBILITY MODES
    ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0s !important;
+    transition-duration: 0s !important;
+  }
+}
 
-/* Custom Scrollbar */
+@media (prefers-contrast: more) {
+  :root {
+    --p1: #0369a1;
+    --p2: #075985;
+  }
+}
+
+/* ============================================
+   2. UTILITIES & SCROLLBAR (Cross-Browser Fix)
+   ============================================ */
+/* Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(8, 145, 178, 0.3) transparent;
+}
+
+/* WebKit (Chrome, Edge, Safari) */
 ::-webkit-scrollbar {
   width: 6px;
-  height: 6px; /* For horizontal scrolling */
-  background: transparent;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -56,47 +96,52 @@ body:not(.home-page) {
   background: rgba(8, 145, 178, 0.6);
 }
 
-/* Utilities */
 .text-shadow {
   text-shadow: 0 2px 10px rgba(0,0,0,0.08);
 }
 
-/* Button Ripple Effect */
+/* ============================================
+   SMOOTHER BUTTON RIPPLE
+   ============================================ */
 .btn-ripple {
   position: relative;
   overflow: hidden;
   cursor: pointer;
   user-select: none;
-  transition: transform 0.2s ease;
-}
-
-.btn-ripple:active {
-  transform: scale(0.96);
+  /* Fixes Safari border-radius overflow issues */
+  transform: translate3d(0, 0, 0); 
 }
 
 .btn-ripple::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle, rgba(255,255,255,0.4) 10%, transparent 70%);
-  transform: scale(0);
+  background: radial-gradient(circle, rgba(255,255,255,0.5) 10%, transparent 80%);
+  
+  /* State: Released (Finished animation) */
+  transform: scale(4);
   opacity: 0;
-  transition: transform 0.5s ease, opacity 0.5s ease;
+  transition: transform 0.6s ease-out, opacity 0.6s ease-out;
   pointer-events: none;
 }
 
 .btn-ripple:active::after {
-  transform: scale(2.5);
-  opacity: 1;
+  /* State: Pressed (Reset to center) */
+  transform: scale(0);
+  opacity: 0.3;
   transition: 0s;
 }
 
-/* ============================================
-   3. NAVBAR STYLES (Clean & Frosted)
-   ============================================ */
+.btn-ripple:active {
+  transform: scale(0.96);
+  transition: transform 0.1s;
+}
 
+/* ============================================
+   3. NAVBAR STYLES
+   ============================================ */
 .navbar-clean {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255,255,255,0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(0,0,0,0.05);
@@ -105,106 +150,81 @@ body:not(.home-page) {
 }
 
 .nav-link-clean {
-  padding: 0.5rem 1rem;
-  border-radius: 0.75rem;
-  transition: all 0.3s ease;
+  padding: .5rem 1rem;
+  border-radius: .75rem;
   font-weight: 500;
   color: #4b5563;
+  transition: all .3s ease;
 }
 
 .nav-link-clean:hover {
-  background: rgba(8, 145, 178, 0.08);
+  background: rgba(8,145,178,0.08);
   color: var(--p1);
 }
 
 .nav-active-clean {
-  background: rgba(8, 145, 178, 0.1);
+  background: rgba(8,145,178,0.1);
   color: var(--p1);
   font-weight: 600;
 }
 
-/* Mobile Menu */
 .mobile-menu-clean {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255,255,255,0.95);
   backdrop-filter: blur(16px);
   border-top: 1px solid rgba(0,0,0,0.05);
 }
 
 /* ============================================
-   4. FEATURES SECTION (Flicker Fixes)
+   4. FEATURES SECTION
    ============================================ */
-
-/* Creates a new stacking context to stop layout thrashing */
 .features-isolation {
   isolation: isolate;
   position: relative;
   z-index: 10;
 }
 
-/* The "Feature Card" - Heavily Optimized */
 .glass-card {
-  /* Visuals */
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(255,255,255,0.35);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255,255,255,0.6);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.05);
   border-radius: 32px;
 
-  /* === HARDWARE ACCELERATION (Stops Flicker) === */
-  /* 1. Force GPU layer */
-  transform: translate3d(0, 0, 0);
-  -webkit-transform: translate3d(0, 0, 0);
-  
-  /* 2. Stop painting outside bounds */
+  /* Performance Boost */
+  transform: translateZ(0);
   contain: layout paint;
-  
-  /* 3. Fix backface glitches during 3D transforms */
   backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  
-  /* 4. Hint to browser to optimize for changes */
   will-change: transform, opacity;
-  
-  /* 5. Fix z-space flickering */
   perspective: 1000px;
 }
 
-/* Icon Container */
 .accent-gradient {
-  background: linear-gradient(135deg, #0ea5e9 0%, #2dd4bf 100%);
+  background: linear-gradient(135deg,#0ea5e9 0%,#2dd4bf 100%);
 }
-
 .icon-wrapper {
   transform: translateZ(0);
-  will-change: transform;
   backface-visibility: hidden;
+  will-change: transform;
 }
 
 /* ============================================
-   5. TOURS PAGE (Mobile 3D Carousel)
+   5. TOURS PAGE (3D CARD CAROUSEL)
    ============================================ */
-
-/* Hide scrollbar but keep functionality */
-.mobile-3d-scroll::-webkit-scrollbar {
-  display: none;
-}
 .mobile-3d-scroll {
   -ms-overflow-style: none;
   scrollbar-width: none;
+  scroll-snap-type: x proximity;
 }
+.mobile-3d-scroll::-webkit-scrollbar { display: none; }
 
 .tour-card-mobile {
   -webkit-tap-highlight-color: transparent;
-  /* Smooth transitions for the scaling effect */
-  transition: transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.2s ease;
-  
-  /* Performance */
+  transition: transform .15s cubic-bezier(.25,.46,.45,.94), box-shadow .2s ease;
   will-change: transform;
   transform: translateZ(0);
 }
 
-/* Desktop Hover Effect */
 @media (min-width: 1025px) {
   .tour-card-mobile:hover {
     transform: translateY(-8px) scale(1.05) !important;
@@ -214,59 +234,47 @@ body:not(.home-page) {
 }
 
 /* ============================================
-   6. BOOKING SIDEBAR & MODALS
+   6. BOOKING SIDEBAR & MODALS (Cleaned)
    ============================================ */
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
 
-/* Remove scrollbars inside sidebar lists */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Strict Centering for Modals */
+/* No more !important needed */
 .modal-overlay-fixed {
-  position: fixed !important;
-  top: 0; left: 0; right: 0; bottom: 0;
-  z-index: 9999 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 1.5rem !important;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  /* Optional: Add a dimming background if the JS component doesn't provide one */
+  /* background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); */
 }
 
 .modal-content-box {
-  width: 100% !important;
-  max-width: 400px !important;
-  margin: 0 auto !important;
-  max-height: 85vh !important;
-  display: flex !important;
-  flex-direction: column !important;
-  position: relative !important;
+  width: 100%;
+  max-width: 400px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
 }
 
 /* ============================================
    7. RESPONSIVE TWEAKS
    ============================================ */
-
 @media (max-width: 640px) {
-  /* Optimize decorative blobs */
-  .absolute.w-\[520px\], .absolute.w-\[440px\] {
+  /* Use this class on your blob divs in HTML instead of "absolute w-[520px]" */
+  .decorative-blob {
     display: none;
   }
-  
-  /* Reduce motion for low-end devices if needed */
-  @media (prefers-reduced-motion: reduce) {
-    * {
-      animation-duration: 0s !important;
-      transition-duration: 0s !important;
-    }
-  }
 }
-.mobile-3d-scroll {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-  scroll-snap-type: x proximity;
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-card-mobile,
+  .glass-card {
+    animation-duration: 0s !important;
+    transition-duration: 0s !important;
+  }
 }
