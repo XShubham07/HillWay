@@ -20,11 +20,15 @@ export async function PUT(request) {
   await dbConnect();
   try {
     const body = await request.json();
-    // Update the first document found (since we only have one global price list)
+    
+    // Update the singleton GlobalPrice document
+    // The 'body' will contain all fields sent from frontend, including 'globalNotes'
     const pricing = await GlobalPrice.findOneAndUpdate({}, body, {
       new: true,
-      upsert: true // Create if doesn't exist
+      upsert: true, // Create if doesn't exist
+      runValidators: true // Ensure schema validation runs
     });
+    
     return NextResponse.json({ success: true, data: pricing });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

@@ -6,7 +6,8 @@ import {
   FaCheck, FaCamera, FaSpinner,
   FaBook, FaEye, FaTimes, FaPhone, FaUser, FaCalendarDay,
   FaSearch, FaCheckCircle, FaTicketAlt, FaImages, FaMoneyBillWave, 
-  FaChartPie, FaUserSecret, FaSignOutAlt, FaPaperPlane, FaBars, FaList, FaUtensils, FaQuestionCircle
+  FaChartPie, FaUserSecret, FaSignOutAlt, FaPaperPlane, FaBars, FaList, FaUtensils, FaQuestionCircle,
+  FaInfoCircle, FaExclamationTriangle
 } from 'react-icons/fa';
 
 export default function AdminDashboard({ onLogout }) {
@@ -30,6 +31,9 @@ export default function AdminDashboard({ onLogout }) {
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
 
+  // Delete Confirmation State
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+
   // === CONFIRMATION/EDIT MODAL STATE ===
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmData, setConfirmData] = useState({
@@ -46,6 +50,7 @@ export default function AdminDashboard({ onLogout }) {
     title: '', subtitle: '', location: '', description: '', 
     basePrice: 0, nights: 3, rating: 4.5, featured: false, 
     images: [], img: '', mapEmbedUrl: '', 
+    stayDetails: '', foodStayNote: '', 
     pricing: { mealPerPerson: 450, teaPerPerson: 60, bonfire: 500, tourGuide: 1000, comfortSeat: 800, room: { standard: 1500, panoramic: 2500 }, personalCab: { rate: 3200, capacity: 4 }, tourManagerFee: 5000 }, 
     inclusions: [], itinerary: [], faqs: [], reviews: [] 
   });
@@ -88,11 +93,23 @@ export default function AdminDashboard({ onLogout }) {
 
   // --- HANDLERS ---
   const handleDeleteBooking = async (id) => {
-    if(!confirm("Delete booking?")) return;
-    try { await fetch(`/api/bookings?id=${id}`, { method: 'DELETE' }); setBookings(prev => prev.filter(b => b._id !== id)); if(selectedBooking?._id === id) setSelectedBooking(null); } catch(e) { alert("Failed"); }
+    if (deleteConfirmId !== id) {
+      setDeleteConfirmId(id);
+      // Reset confirmation after 3 seconds
+      setTimeout(() => setDeleteConfirmId(null), 3000);
+      return;
+    }
+    
+    try { 
+      await fetch(`/api/bookings?id=${id}`, { method: 'DELETE' }); 
+      setBookings(prev => prev.filter(b => b._id !== id)); 
+      if(selectedBooking?._id === id) setSelectedBooking(null);
+      setDeleteConfirmId(null);
+    } catch(e) { 
+      alert("Failed"); 
+    }
   };
 
-  // Open the modal (Used for both Confirming and Editing)
   const initiateConfirmation = () => {
     setConfirmData({
       paymentType: selectedBooking.paymentType || 'Full',
@@ -102,7 +119,6 @@ export default function AdminDashboard({ onLogout }) {
     setShowConfirmModal(true);
   };
 
-  // Save/Confirm Logic
   const handleConfirmBooking = async () => {
     if (!selectedBooking) return;
     setUpdatingStatus(true);
@@ -134,7 +150,6 @@ export default function AdminDashboard({ onLogout }) {
     }
   };
 
-  // --- Coupon Handlers ---
   const handleCreateCoupon = async (e) => {
     e.preventDefault();
     try {
@@ -157,7 +172,6 @@ export default function AdminDashboard({ onLogout }) {
 
   const handleDeleteCoupon = async (id) => { if(confirm("Delete?")) { await fetch(`/api/coupons?id=${id}`, { method: 'DELETE' }); fetchData(); }};
 
-  // --- Agent Handlers ---
   const handleCreateAgent = async (e) => {
     e.preventDefault();
     try {
@@ -171,7 +185,6 @@ export default function AdminDashboard({ onLogout }) {
   const handleDeleteAgent = async (id) => { if(confirm("Delete Agent?")) { await fetch(`/api/agent?id=${id}`, { method: 'DELETE' }); fetchData(); }};
   const handleResendCreds = (email) => { alert(`Credentials resent to ${email} (Simulation)`); };
 
-  // --- Tour Handlers ---
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
@@ -198,12 +211,22 @@ export default function AdminDashboard({ onLogout }) {
   };
 
   const handleCreateNew = () => { setForm(getInitialForm()); setEditingId(null); setView('editor'); setShowImagePreview(false); };
+  
   const handleEdit = (tour) => {
     const defaults = getInitialForm();
     const images = (tour.images && tour.images.length > 0) ? tour.images : (tour.img ? [tour.img] : []);
-    setForm({ ...defaults, ...tour, images, img: tour.img || (images.length > 0 ? images[0] : ''), pricing: { ...defaults.pricing, ...(tour.pricing || {}) } });
+    setForm({ 
+        ...defaults, 
+        ...tour, 
+        stayDetails: tour.stayDetails || '', 
+        foodStayNote: tour.foodStayNote || '', 
+        images, 
+        img: tour.img || (images.length > 0 ? images[0] : ''), 
+        pricing: { ...defaults.pricing, ...(tour.pricing || {}) } 
+    });
     setEditingId(tour._id); setView('editor'); setShowImagePreview(images.length > 0); 
   };
+
   const handleDeleteTour = async (id) => { if(confirm("Delete?")) { await fetch(`/api/tours/${id}`, { method: 'DELETE' }); fetchData(); }};
   const handleSaveTour = async (e) => {
     e.preventDefault(); setLoading(true);
@@ -223,7 +246,6 @@ export default function AdminDashboard({ onLogout }) {
     alert("Updated!"); setLoading(false);
   };
 
-  // Form Helpers
   const updateField = (f, v) => setForm(p => ({ ...p, [f]: v }));
   const updatePricing = (f, v) => setForm(p => ({ ...p, pricing: { ...p.pricing, [f]: v === '' ? '' : Number(v) } }));
   const updatePricingNested = (p, f, v) => setForm(prev => ({ ...prev, pricing: { ...prev.pricing, [p]: { ...prev.pricing[p], [f]: v === '' ? '' : Number(v) } } }));
@@ -232,11 +254,9 @@ export default function AdminDashboard({ onLogout }) {
   const addFaq = () => setForm(p => ({ ...p, faqs: [...(p.faqs || []), { q: '', a: '' }] }));
   const updateFaq = (idx, f, v) => { const newFaqs = [...form.faqs]; newFaqs[idx][f] = v; setForm({ ...form, faqs: newFaqs }); };
 
-  // --- 💡 UPDATED PRICING LOGIC ---
   const getPriceBreakdown = (b) => {
     const tour = tours.find(t => t.title === b.tourTitle);
     
-    // Default prices from tour or globals
     const p = {
         mealPrice: tour?.pricing?.mealPerPerson ?? globalPrices?.mealPrice,
         teaPrice: tour?.pricing?.teaPerPerson ?? globalPrices?.teaPrice,
@@ -248,18 +268,15 @@ export default function AdminDashboard({ onLogout }) {
 
     const items = [];
     const totalPax = (b.adults || 0) + (b.children || 0);
-    const nights = b.rooms > 0 ? (tour?.nights || 1) : 0; // Approx logic
+    const nights = b.rooms > 0 ? (tour?.nights || 1) : 0; 
     const days = nights + 1;
 
-    // MEAL & TEA LOGIC
     if(b.addons?.meal) {
         items.push({ name: "Meal Plan", cost: `₹${p.mealPrice} x ${totalPax} pax x ${days} days` });
-        // Tea is complimentary if Meal is selected
         if(b.addons?.tea) {
             items.push({ name: "Tea/Snacks", cost: <span className="text-green-400">FREE (Complimentary)</span> });
         }
     } else {
-        // If Meal is NOT selected, show Tea price if selected
         if(b.addons?.tea) {
             items.push({ name: "Tea/Snacks", cost: `₹${p.teaPrice} x ${totalPax} pax x ${days} days` });
         }
@@ -281,14 +298,12 @@ export default function AdminDashboard({ onLogout }) {
   return (
     <div className="flex h-screen bg-[#0f172a] text-gray-100 font-sans overflow-hidden relative">
       
-      {/* === UPDATE/CONFIRM DIALOG (MODAL) === */}
       {showConfirmModal && selectedBooking && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
           <div className="bg-[#1e293b] w-full max-w-md rounded-2xl border border-white/10 shadow-2xl p-6 relative">
             <h3 className="text-xl font-bold text-white mb-4">Update Booking</h3>
             
             <div className="space-y-4">
-              {/* Payment Type */}
               <div>
                 <label className="block text-xs text-gray-400 mb-1 uppercase font-bold">Payment Type</label>
                 <div className="flex bg-black/30 rounded-lg p-1">
@@ -307,7 +322,6 @@ export default function AdminDashboard({ onLogout }) {
                 </div>
               </div>
 
-              {/* Partial Amount Input */}
               {confirmData.paymentType === 'Partial' && (
                 <div className="bg-black/20 p-3 rounded-xl border border-white/5">
                   <label className="block text-xs text-gray-400 mb-1 uppercase font-bold">Amount Paid (₹)</label>
@@ -321,7 +335,6 @@ export default function AdminDashboard({ onLogout }) {
                 </div>
               )}
 
-              {/* Admin Note */}
               <div>
                 <label className="block text-xs text-gray-400 mb-1 uppercase font-bold">Admin Note</label>
                 <textarea 
@@ -348,13 +361,10 @@ export default function AdminDashboard({ onLogout }) {
         </div>
       )}
 
-      {/* === BIG BOOKING DETAILS MODAL === */}
       {selectedBooking && !showConfirmModal && (
-        // z-[100] ensures it's above sidebar. lg:pl-72 moves the modal center to the right on large screens.
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 lg:pl-72 animate-fade-in">
           <div className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] w-full max-w-7xl h-[90vh] rounded-3xl border border-white/10 shadow-2xl overflow-hidden flex flex-col relative">
             
-            {/* Header */}
             <div className="p-6 md:p-8 border-b border-white/5 flex justify-between items-start bg-black/20">
               <div>
                 <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mb-2">
@@ -372,15 +382,12 @@ export default function AdminDashboard({ onLogout }) {
               </button>
             </div>
 
-            {/* Body */}
             <div className="flex-1 p-6 md:p-8 overflow-y-auto custom-scroll">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
                 
-                {/* Left Column */}
                 <div className="md:col-span-2 space-y-6 md:space-y-8">
                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       
-                      {/* 1. Customer Info */}
                       <div className="bg-white/5 p-6 rounded-2xl border border-white/5 hover:border-white/10 transition">
                          <h3 className="text-cyan-400 font-bold mb-4 flex items-center gap-2 text-xs uppercase tracking-widest"><FaUser/> Customer</h3>
                          <p className="text-2xl font-semibold text-white mb-1">{selectedBooking.name}</p>
@@ -390,7 +397,6 @@ export default function AdminDashboard({ onLogout }) {
                          </div>
                       </div>
                       
-                      {/* 2. Tour Info */}
                       <div className="bg-white/5 p-6 rounded-2xl border border-white/5 hover:border-white/10 transition">
                          <h3 className="text-purple-400 font-bold mb-4 flex items-center gap-2 text-xs uppercase tracking-widest"><FaMapMarkerAlt/> Tour Details</h3>
                          <p className="text-lg text-white leading-tight font-bold">{selectedBooking.tourTitle}</p>
@@ -402,7 +408,6 @@ export default function AdminDashboard({ onLogout }) {
                       </div>
                    </div>
 
-                   {/* 3. NEW: Trip Data Box */}
                    <div className="bg-white/5 p-6 rounded-2xl border border-white/5 flex flex-col justify-between hover:border-white/10 transition">
                       <div>
                           <h3 className="text-yellow-500 font-bold mb-4 flex items-center gap-2 text-xs uppercase tracking-widest"><FaTicketAlt/> Trip Data</h3>
@@ -427,7 +432,6 @@ export default function AdminDashboard({ onLogout }) {
                       </div>
                    </div>
 
-                   {/* CONFIGURATION PRICING BREAKDOWN */}
                    <div className="bg-black/20 p-6 rounded-2xl border border-white/5">
                       <h3 className="text-gray-500 font-bold mb-4 text-xs uppercase tracking-widest">Pricing Configuration</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -440,7 +444,6 @@ export default function AdminDashboard({ onLogout }) {
                       </div>
                    </div>
 
-                   {/* PAYMENT STATUS SECTION (Visible if confirmed or has notes) */}
                    {(selectedBooking.status === 'Confirmed' || selectedBooking.adminNotes) && (
                      <div className="bg-blue-900/10 p-6 rounded-2xl border border-blue-500/20 relative hover:border-blue-500/40 transition">
                         <div className="flex justify-between items-start mb-4">
@@ -478,7 +481,6 @@ export default function AdminDashboard({ onLogout }) {
                    )}
                 </div>
 
-                {/* Right Column: Totals & Actions */}
                 <div className="md:col-span-1 space-y-6">
                    <div className="bg-gradient-to-b from-white/10 to-white/5 p-6 rounded-2xl border border-white/10 sticky top-4">
                       <h3 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">Total Cost</h3>
@@ -504,9 +506,17 @@ export default function AdminDashboard({ onLogout }) {
                               <FaCheckCircle/> Confirm Booking
                             </button>
                         )}
-                        <button onClick={() => handleDeleteBooking(selectedBooking._id)} className="w-full py-4 bg-red-900/20 hover:bg-red-900/40 text-red-400 border border-red-900/30 rounded-xl font-bold transition flex items-center justify-center gap-2">
-                           <FaTrash/> Delete Booking
-                        </button>
+                        <div className="flex flex-col gap-2">
+                          {deleteConfirmId === selectedBooking._id ? (
+                            <button onClick={() => handleDeleteBooking(selectedBooking._id)} className="w-full py-4 bg-red-600 hover:bg-red-700 text-white border border-red-500 rounded-xl font-bold transition flex items-center justify-center gap-2 animate-pulse">
+                               <FaExclamationTriangle/> Click again to confirm
+                            </button>
+                          ) : (
+                            <button onClick={() => handleDeleteBooking(selectedBooking._id)} className="w-full py-4 bg-red-900/20 hover:bg-red-900/40 text-red-400 border border-red-900/30 rounded-xl font-bold transition flex items-center justify-center gap-2">
+                               <FaTrash/> Delete Booking
+                            </button>
+                          )}
+                        </div>
                       </div>
                    </div>
                 </div>
@@ -517,19 +527,15 @@ export default function AdminDashboard({ onLogout }) {
         </div>
       )}
 
-      {/* === SIDEBAR (RESPONSIVE) === */}
-      {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 bg-[#1e293b] p-4 z-40 flex justify-between items-center border-b border-gray-700 shadow-lg">
         <span className="font-bold text-white text-lg tracking-wide">HillWay Admin</span>
         <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-white p-2 hover:bg-white/10 rounded-lg"><FaBars size={24}/></button>
       </div>
 
-      {/* Overlay */}
       {isSidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)} />
       )}
 
-      {/* Sidebar Drawer */}
       <aside className={`
         fixed inset-y-0 left-0 z-50 w-72 bg-[#1e293b] border-r border-gray-800 flex flex-col flex-shrink-0 transform transition-transform duration-300 shadow-2xl lg:translate-x-0 lg:static lg:inset-auto lg:w-64 lg:shadow-none
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -546,16 +552,13 @@ export default function AdminDashboard({ onLogout }) {
           <button onClick={() => { setActiveTab('pricing'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'pricing' ? 'bg-cyan-600 text-white shadow-lg' : 'hover:bg-gray-700 text-gray-400'}`}><FaTag /> Global Pricing</button>
         </nav>
         
-        {/* Logout Button at Bottom */}
         <div className="p-4 border-t border-gray-800 mt-auto">
            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl text-red-400 bg-red-900/10 hover:bg-red-900/30 font-bold transition border border-red-900/30"><FaSignOutAlt /> Logout</button>
         </div>
       </aside>
 
-      {/* MAIN CONTENT AREA */}
       <main className="flex-1 p-4 lg:p-8 overflow-y-auto pt-20 lg:pt-8 bg-[#0f172a]">
         
-        {/* === BOOKINGS TAB === */}
         {activeTab === 'bookings' && (
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -595,9 +598,11 @@ export default function AdminDashboard({ onLogout }) {
                              {b.status || 'Pending'}
                            </span>
                         </td>
-                        <td className="p-4 text-right flex justify-end gap-2">
-                          <button onClick={() => setSelectedBooking(b)} className="p-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition shadow-md"><FaEye/></button>
-                          <button onClick={() => handleDeleteBooking(b._id)} className="p-2 bg-red-900/20 hover:bg-red-900/40 text-red-400 border border-red-900/30 rounded-lg transition"><FaTrash/></button>
+                        <td className="p-4 text-right flex justify-end gap-2 items-center h-full">
+                          <button onClick={() => setSelectedBooking(b)} className="p-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition shadow-md flex items-center justify-center h-8 w-8"><FaEye/></button>
+                          <button onClick={() => handleDeleteBooking(b._id)} className={`p-2 bg-red-900/20 hover:bg-red-900/40 text-red-400 border border-red-900/30 rounded-lg transition flex items-center justify-center h-8 w-8 ${deleteConfirmId === b._id ? 'animate-pulse border-red-500 text-red-500' : ''}`}>
+                             {deleteConfirmId === b._id ? <FaExclamationTriangle size={12}/> : <FaTrash/>}
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -609,7 +614,6 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         )}
 
-        {/* === AGENTS TAB === */}
         {activeTab === 'agents' && (
           <div className="max-w-6xl mx-auto">
             <h1 className="text-3xl font-bold text-white mb-6">Manage Agents</h1>
@@ -639,7 +643,6 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         )}
 
-        {/* === COUPONS TAB === */}
         {activeTab === 'coupons' && (
           <div className="max-w-6xl mx-auto">
              <h1 className="text-3xl font-bold text-white mb-6">Manage Coupons</h1>
@@ -693,7 +696,6 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         )}
 
-        {/* === PRICING TAB === */}
         {activeTab === 'pricing' && globalPrices && (
           <div className="max-w-4xl mx-auto">
             <h1 className="text-3xl font-bold text-white mb-2">Universal Price List</h1>
@@ -715,11 +717,22 @@ export default function AdminDashboard({ onLogout }) {
                 </div>
               </div>
             </div>
+            {/* Added Global Notes Text Area */}
+            <div className="mt-6 bg-[#1e293b] p-6 rounded-2xl border border-gray-700">
+               <h3 className="text-xl font-bold text-yellow-400 mb-4 flex items-center gap-2"><FaInfoCircle/> Global Notes</h3>
+               <label className="block text-sm font-medium text-gray-300 mb-1">Important notes for all bookings/tours</label>
+               <textarea 
+                  rows={4}
+                  className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-600"
+                  placeholder="e.g. Peak season surcharges apply..."
+                  value={globalPrices.globalNotes || ''}
+                  onChange={e => setGlobalPrices({...globalPrices, globalNotes: e.target.value})}
+               />
+            </div>
             <button onClick={handleSaveGlobalPricing} className="mt-8 w-full bg-green-600 hover:bg-green-700 py-4 rounded-xl font-bold shadow-lg">Save Global Prices</button>
           </div>
         )}
 
-        {/* === TOURS TAB (LIST) === */}
         {activeTab === 'tours' && view === 'list' && (
           <div>
             <div className="flex justify-between items-center mb-8">
@@ -751,7 +764,6 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         )}
 
-        {/* === TOURS TAB (EDITOR) === */}
         {activeTab === 'tours' && view === 'editor' && (
           <div className="max-w-5xl mx-auto bg-[#1e293b] rounded-2xl border border-gray-700 shadow-2xl overflow-hidden">
             <div className="bg-gray-900 p-6 flex justify-between items-center border-b border-gray-700">
@@ -800,6 +812,33 @@ export default function AdminDashboard({ onLogout }) {
                   <div><label className="block text-sm font-medium text-gray-300">Nights</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.nights} onChange={e => updateField('nights', e.target.value)} /></div>
                   <div><label className="block text-sm font-medium text-gray-300">Rating</label><input type="number" step="0.1" className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.rating} onChange={e => updateField('rating', e.target.value)} /></div>
                   <div className="flex items-center gap-3 pt-6"><input type="checkbox" className="w-5 h-5 accent-cyan-500" checked={form.featured} onChange={e => updateField('featured', e.target.checked)} /><label className="font-bold text-white">Featured</label></div>
+                </div>
+              </section>
+
+              {/* -------- FOOD & STAY INFO (Moved Above Specific Costs) -------- */}
+              <section className="bg-yellow-900/10 p-6 rounded-xl border border-yellow-500/20">
+                <h3 className="text-xl font-bold text-yellow-400 mb-4 flex items-center gap-2"><FaBed/> Food & Stay Details</h3>
+                <div className="grid grid-cols-1 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Stay Details (Description of hotels/homestays)</label>
+                    <textarea 
+                      rows={3} 
+                      className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-600" 
+                      placeholder="e.g. Cozy wooden homestays in Lachen with heaters..."
+                      value={form.stayDetails} 
+                      onChange={e => updateField('stayDetails', e.target.value)} 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1">Food & Stay Note (Displayed at bottom of tab)</label>
+                    <textarea 
+                      rows={2} 
+                      className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white placeholder-gray-600" 
+                      placeholder="e.g. Note: Room heater charges are extra and payable directly at the hotel."
+                      value={form.foodStayNote} 
+                      onChange={e => updateField('foodStayNote', e.target.value)} 
+                    />
+                  </div>
                 </div>
               </section>
 

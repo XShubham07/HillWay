@@ -19,6 +19,11 @@ const TourSchema = new mongoose.Schema({
 
   mapEmbedUrl: String,
 
+  // --- NEW FIELDS FOR FOOD & STAY TAB ---
+  stayDetails: String,   // Custom text for Stay section
+  foodStayNote: String,  // Note at the bottom of Food & Stay tab
+  // --------------------------------------
+
   pricing: {
     mealPerPerson: { type: Number, default: 450 },
     teaPerPerson: { type: Number, default: 60 },
