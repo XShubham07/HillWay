@@ -349,50 +349,60 @@ export default function TourDetailsPage() {
                         </motion.div>
                         )}
                         
-                        {/* FOOD TAB - UPDATED: Two-column layout */}
+                        {/* FOOD & STAY TAB (Two-Column Layout) */}
                         {activeTab === "food" && (
-                        <motion.div key="food" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-12">
+                        <motion.div key="food" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-10">
                             
-                            <div className="flex flex-col lg:flex-row gap-8">
-                                {/* LEFT COLUMN: STAY */}
-                                <div className="flex-1">
-                                    <h3 className="text-2xl font-montserrat font-semibold text-[#D9A441] mb-6 flex items-center gap-3">
-                                        <FaBed className="text-xl" /> Premium Accommodation
-                                    </h3>
-                                    
-                                    {/* Stay Details Text */}
-                                    {tour.stayDetails && (
-                                      <p className="text-emerald-100/80 text-sm md:text-base leading-relaxed font-inter font-light mb-6 whitespace-pre-wrap bg-white/5 p-6 rounded-[2rem] border border-white/5">
-                                        {tour.stayDetails}
-                                      </p>
-                                    )}
+                            {/* 1. Accommodation Features (Top Full Width) */}
+                            <div className="bg-white/5 p-8 rounded-[2rem] border border-white/5">
+                                <h3 className="text-xl font-montserrat font-semibold text-[#D9A441] mb-6 flex items-center gap-3">
+                                    <FaBed className="text-2xl" /> Premium Amenities
+                                </h3>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                    {[{ icon: <FaUsers />, text: "Twin Sharing" }, { icon: <FaWifi />, text: "Free WiFi" }, { icon: <FaShower />, text: "Hot Water" }, { icon: <FaMountain />, text: "Scenic View" }].map((am, k) => (
+                                        <div key={k} className="flex flex-col items-center justify-center bg-black/20 p-4 rounded-[1.5rem] border border-white/5 hover:bg-white/5 transition">
+                                            <span className="text-[#D9A441] mb-2 text-2xl">{am.icon}</span>
+                                            <span className="text-sm text-gray-200 font-inter font-light">{am.text}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        {[{ icon: <FaUsers />, text: "Twin Sharing" }, { icon: <FaWifi />, text: "Free WiFi" }, { icon: <FaShower />, text: "Hot Water" }, { icon: <FaMountain />, text: "Scenic View" }].map((am, k) => (
-                                            <div key={k} className="flex flex-col items-center justify-center bg-white/5 p-4 rounded-[1.5rem] border border-white/5 backdrop-blur-sm">
-                                                <span className="text-[#D9A441] mb-2 text-xl">{am.icon}</span>
-                                                <span className="text-xs text-gray-200 font-inter font-light">{am.text}</span>
-                                            </div>
-                                        ))}
+                            {/* 2. Split Layout: Stay Details (Left) & Food Details (Right) */}
+                            <div className="flex flex-col lg:flex-row gap-8">
+                                
+                                {/* LEFT COLUMN: Stay Information */}
+                                <div className="flex-1 flex flex-col">
+                                    <h3 className="text-xl font-montserrat font-semibold text-white mb-6 flex items-center gap-3">
+                                        <FaBed className="text-[#D9A441]" /> Stay Details
+                                    </h3>
+                                    <div className="flex-1 bg-white/5 p-8 rounded-[2rem] border border-white/5">
+                                        {tour.stayDetails ? (
+                                            <p className="text-emerald-100/80 text-sm md:text-base leading-loose font-inter font-light whitespace-pre-wrap">
+                                                {tour.stayDetails}
+                                            </p>
+                                        ) : (
+                                            <p className="text-gray-500 italic font-light">No specific stay details provided.</p>
+                                        )}
                                     </div>
                                 </div>
 
-                                {/* RIGHT COLUMN: FOOD (Vertical Timeline Style) */}
-                                <div className="flex-1">
-                                    <h3 className="text-2xl font-montserrat font-semibold text-[#D9A441] mb-6 flex items-center gap-3">
-                                        <FaUtensils className="text-xl" /> Culinary Experience
+                                {/* RIGHT COLUMN: Food Itinerary */}
+                                <div className="flex-1 flex flex-col">
+                                    <h3 className="text-xl font-montserrat font-semibold text-white mb-6 flex items-center gap-3">
+                                        <FaUtensils className="text-[#D9A441]" /> Food Itinerary
                                     </h3>
                                     <div className="space-y-4">
                                         {tour.itinerary?.map((day, idx) => (
-                                            <div key={idx} className="flex items-center gap-5 bg-white/5 p-5 rounded-[2rem] border border-white/5 hover:bg-white/10 transition-colors duration-300">
-                                                <div className="w-12 h-12 rounded-2xl bg-emerald-900/30 flex items-center justify-center text-sm font-bold text-[#D9A441] shrink-0 border border-[#D9A441]/20 font-inter">
+                                            <div key={idx} className="flex items-center gap-5 bg-white/5 p-5 rounded-[1.5rem] border border-white/5 hover:bg-white/10 transition duration-300">
+                                                <div className="w-12 h-12 rounded-xl bg-emerald-900/30 flex items-center justify-center text-sm font-bold text-[#D9A441] shrink-0 border border-[#D9A441]/20 font-inter">
                                                     D{day.day}
                                                 </div>
                                                 <div className="flex-1">
                                                     <div className="flex flex-wrap gap-2">
                                                         {day.meals?.length > 0 ? (
                                                             day.meals.map((m, i) => (
-                                                                <span key={i} className="text-xs font-medium text-black bg-[#D9A441] px-4 py-1.5 rounded-full tracking-wide font-montserrat">
+                                                                <span key={i} className="text-xs font-medium text-black bg-[#D9A441] px-3 py-1 rounded-full tracking-wide font-montserrat">
                                                                     {m}
                                                                 </span>
                                                             ))
@@ -407,15 +417,16 @@ export default function TourDetailsPage() {
                                 </div>
                             </div>
 
-                            {/* Note Section at Bottom of Food & Stay Tab */}
+                            {/* 3. Important Note (Bottom) */}
                             {tour.foodStayNote && (
-                              <div className="mt-8 p-6 bg-red-900/10 border border-red-500/20 rounded-[1.5rem]">
-                                <h4 className="text-red-400 font-bold mb-2 flex items-center gap-2 text-sm uppercase tracking-wider">
-                                  <FaExclamationTriangle className="text-base" /> Important Note
-                                </h4>
-                                <p className="text-emerald-100/70 text-sm font-inter font-light leading-relaxed whitespace-pre-wrap">
-                                  {tour.foodStayNote}
-                                </p>
+                              <div className="mt-8 p-6 bg-red-900/10 border border-red-500/20 rounded-[1.5rem] flex items-start gap-4">
+                                <FaExclamationTriangle className="text-red-400 text-xl mt-1 shrink-0" />
+                                <div>
+                                    <h4 className="text-red-400 font-bold mb-1 text-sm uppercase tracking-wider font-montserrat">Important Note</h4>
+                                    <p className="text-emerald-100/70 text-sm font-inter font-light leading-relaxed whitespace-pre-wrap">
+                                        {tour.foodStayNote}
+                                    </p>
+                                </div>
                               </div>
                             )}
 
