@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
 // ICONS
-import { FaHome, FaMountain, FaBlog, FaPhone, FaWhatsapp, FaBars, FaTimes } from "react-icons/fa";
+import { FaHome, FaMountain, FaBlog, FaPhone, FaWhatsapp, FaBars, FaTimes,FaSearch} from "react-icons/fa";
 
 // --- 🎨 COLOR PALETTE ---
 const COLORS = {
@@ -36,6 +36,7 @@ export default function Navbar() {
     { path: "/", label: "Home", icon: <FaHome /> },
     { path: "/tours", label: "Tours", icon: <FaMountain /> },
     { path: "/blog", label: "Blog", icon: <FaBlog /> },
+    { path: "/status", label: "Status", icon: <FaSearch /> },
     { path: "/contact", label: "Contact", icon: <FaPhone style={{ transform: 'scaleX(-1)' }} /> },
   ];
 

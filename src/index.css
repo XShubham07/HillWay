@@ -2,38 +2,95 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ============================================
-   1. GLOBAL VARIABLES & RESET
-   ============================================ */
+/* =========================================================
+   1. GLOBAL THEME VARIABLES — EMERALD + ALPINE + GOLD
+   ========================================================= */
 :root {
-  --p1: #0891b2; /* Cyan-600 */
-  --p2: #0284c7; /* Sky-600 */
-  --dark: #0f172a; /* Slate-900 */
+  --emerald: #059669;        /* Emerald 600 */
+  --alpine: #064e3b;         /* Deep Alpine Green */
+  --gold: #facc15;           /* Sunrise Gold */
+  --gold-soft: rgba(250, 204, 21, 0.28);
+  --emerald-glow: rgba(5, 150, 105, 0.22);
+  --alpine-glow: rgba(6, 78, 59, 0.25);
+  --dark: #0f172a;
 }
 
+/* =========================================================
+   2. FULL PAGE 3D BACKGROUND THEME
+   ========================================================= */
 html, body, #root {
   width: 100%;
   min-height: 100vh;
   isolation: isolate;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(
+      135deg,
+      var(--alpine) 0%,
+      var(--emerald) 40%,
+      #0d2d23 70%
+    )
+    fixed;
+  background-attachment: fixed;
+  color: var(--dark);
 }
 
-/* ============================================
-   LENIS SMOOTH SCROLL SETUP
-   ============================================ */
+/* EMERALD–GOLD RADIANCE LAYERS */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(
+      circle at top center,
+      var(--gold-soft) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 20% 70%,
+      var(--emerald-glow) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 85% 80%,
+      var(--alpine-glow) 0%,
+      transparent 60%
+    );
+  z-index: -1;
+  pointer-events: none;
+  filter: blur(40px);
+}
+
+/* SUNRISE GOLD ORB */
+body::after {
+  content: "";
+  position: fixed;
+  bottom: 10vh;
+  left: 50%;
+  width: 400px;
+  height: 400px;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    circle,
+    rgba(250, 204, 21, 0.45),
+    rgba(250, 204, 21, 0.13),
+    transparent 70%
+  );
+  z-index: -1;
+  pointer-events: none;
+  filter: blur(70px);
+}
+
+/* =========================================================
+   3. YOUR ORIGINAL RESET + LENIS
+   ========================================================= */
 html.lenis, html.lenis body {
   height: auto;
 }
-
 .lenis.lenis-smooth {
   scroll-behavior: auto !important;
 }
-
 .lenis.lenis-smooth [data-lenis-prevent] {
   overscroll-behavior: contain;
 }
-
 .lenis.lenis-stopped {
   overflow: hidden;
 }
@@ -42,110 +99,83 @@ body {
   margin: 0;
   padding: 0;
   font-family: "Inter", sans-serif;
-  color: var(--dark);
   overflow-x: hidden;
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Clean Background for Non-Home Pages */
+/* REMOVE OLD NON-HOME BG (Your theme overrides this) */
 body:not(.home-page) {
-  background-color: #ecfeff;
-  background-image: radial-gradient(#cfbaf0 2px, transparent 2px);
-  background-size: 32px 32px;
+  background: none !important;
 }
 
-/* ============================================
-   ACCESSIBILITY MODES
-   ============================================ */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0s !important;
-    transition-duration: 0s !important;
-  }
-}
-
-@media (prefers-contrast: more) {
-  :root {
-    --p1: #0369a1;
-    --p2: #075985;
-  }
-}
-
-/* ============================================
-   2. UTILITIES & SCROLLBAR (Cross-Browser Fix)
-   ============================================ */
-/* Firefox */
+/* =========================================================
+   4. SCROLLBAR (EMERALD THEME)
+   ========================================================= */
 html {
   scrollbar-width: thin;
-  scrollbar-color: rgba(8, 145, 178, 0.3) transparent;
+  scrollbar-color: rgba(5, 150, 105, 0.4) transparent;
 }
 
-/* WebKit (Chrome, Edge, Safari) */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(8, 145, 178, 0.3);
+  background: rgba(5, 150, 105, 0.4);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(8, 145, 178, 0.6);
+  background: rgba(5, 150, 105, 0.7);
 }
 
+/* =========================================================
+   5. GLOW TEXT SHADOW
+   ========================================================= */
 .text-shadow {
   text-shadow: 0 2px 10px rgba(0,0,0,0.08);
 }
 
-/* ============================================
-   SMOOTHER BUTTON RIPPLE
-   ============================================ */
+/* =========================================================
+   6. BUTTON RIPPLE
+   ========================================================= */
 .btn-ripple {
   position: relative;
   overflow: hidden;
   cursor: pointer;
+  transform: translate3d(0, 0, 0);
   user-select: none;
-  /* Fixes Safari border-radius overflow issues */
-  transform: translate3d(0, 0, 0); 
 }
-
 .btn-ripple::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle, rgba(255,255,255,0.5) 10%, transparent 80%);
-  
-  /* State: Released (Finished animation) */
+  background: radial-gradient(circle, rgba(255,255,255,0.6) 10%, transparent 80%);
   transform: scale(4);
   opacity: 0;
   transition: transform 0.6s ease-out, opacity 0.6s ease-out;
   pointer-events: none;
 }
-
 .btn-ripple:active::after {
-  /* State: Pressed (Reset to center) */
   transform: scale(0);
-  opacity: 0.3;
+  opacity: 0.4;
   transition: 0s;
 }
-
 .btn-ripple:active {
   transform: scale(0.96);
   transition: transform 0.1s;
 }
 
-/* ============================================
-   3. NAVBAR STYLES
-   ============================================ */
+/* =========================================================
+   7. NAVBAR CLEAN (EMERALD GLASS)
+   ========================================================= */
 .navbar-clean {
-  background: rgba(255,255,255,0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
   transition: all 0.3s ease;
 }
 
@@ -153,64 +183,41 @@ html {
   padding: .5rem 1rem;
   border-radius: .75rem;
   font-weight: 500;
-  color: #4b5563;
+  color: #e2e8f0;
   transition: all .3s ease;
 }
-
 .nav-link-clean:hover {
-  background: rgba(8,145,178,0.08);
-  color: var(--p1);
+  background: rgba(250,204,21,0.2);
+  color: var(--gold);
 }
-
 .nav-active-clean {
-  background: rgba(8,145,178,0.1);
-  color: var(--p1);
+  background: rgba(250,204,21,0.3);
+  color: var(--gold);
   font-weight: 600;
 }
 
-.mobile-menu-clean {
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(16px);
-  border-top: 1px solid rgba(0,0,0,0.05);
-}
-
-/* ============================================
-   4. FEATURES SECTION
-   ============================================ */
-.features-isolation {
-  isolation: isolate;
-  position: relative;
-  z-index: 10;
-}
-
+/* =========================================================
+   8. FEATURES GLASS CARDS (EMERALD DREAM)
+   ========================================================= */
 .glass-card {
-  background: rgba(255,255,255,0.35);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.6);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.05);
+  background: rgba(255,255,255,0.22);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.4);
+  box-shadow: 0 8px 32px rgba(5,150,105,0.25);
   border-radius: 32px;
-
-  /* Performance Boost */
   transform: translateZ(0);
   contain: layout paint;
-  backface-visibility: hidden;
-  will-change: transform, opacity;
-  perspective: 1000px;
 }
 
+/* Gradient accent for icons & highlights */
 .accent-gradient {
-  background: linear-gradient(135deg,#0ea5e9 0%,#2dd4bf 100%);
-}
-.icon-wrapper {
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  will-change: transform;
+  background: linear-gradient(135deg, var(--emerald), var(--gold));
 }
 
-/* ============================================
-   5. TOURS PAGE (3D CARD CAROUSEL)
-   ============================================ */
+/* =========================================================
+   9. TOUR CARDS (UNCHANGED, PERFECT)
+   ========================================================= */
+
 .mobile-3d-scroll {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -219,27 +226,23 @@ html {
 .mobile-3d-scroll::-webkit-scrollbar { display: none; }
 
 .tour-card-mobile {
-  -webkit-tap-highlight-color: transparent;
   transition: transform .15s cubic-bezier(.25,.46,.45,.94), box-shadow .2s ease;
-  will-change: transform;
   transform: translateZ(0);
 }
-
 @media (min-width: 1025px) {
   .tour-card-mobile:hover {
     transform: translateY(-8px) scale(1.05) !important;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.18) !important;
     z-index: 50 !important;
   }
 }
 
-/* ============================================
-   6. BOOKING SIDEBAR & MODALS (Cleaned)
-   ============================================ */
+/* =========================================================
+   10. MODALS, MOBILE RESPONSIVE, REDUCED MOTION
+   ========================================================= */
 .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
-/* No more !important needed */
 .modal-overlay-fixed {
   position: fixed;
   inset: 0;
@@ -248,8 +251,6 @@ html {
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  /* Optional: Add a dimming background if the JS component doesn't provide one */
-  /* background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); */
 }
 
 .modal-content-box {
@@ -261,14 +262,8 @@ html {
   margin: 0 auto;
 }
 
-/* ============================================
-   7. RESPONSIVE TWEAKS
-   ============================================ */
 @media (max-width: 640px) {
-  /* Use this class on your blob divs in HTML instead of "absolute w-[520px]" */
-  .decorative-blob {
-    display: none;
-  }
+  .decorative-blob { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

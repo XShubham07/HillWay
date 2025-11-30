@@ -1,69 +1,44 @@
-// src/pages/Tours.jsx
 import React, { useState, useEffect, useRef, memo, useLayoutEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion"; // Removed useScroll, useTransform to save resources
+import { motion } from "framer-motion";
 
 // -----------------------------------------
-// INTERNAL COMPONENT: OPTIMIZED BACKGROUND
+// 1. OPTIMIZED BACKGROUND (FIX FOR LAG)
 // -----------------------------------------
-// FIX: Removed scroll-linked animations (useScroll). 
-// Replaced with CSS-based floating animations to free up the main thread.
+// Replaced heavy animated blobs/blurs with static CSS gradients.
+// This frees up the GPU and Main Thread for smooth scrolling.
 const SunriseDepthBackground = memo(() => {
   return (
-    <div className="fixed inset-0 z-[-1] w-full h-full overflow-hidden bg-[#022c22] pointer-events-none transform-gpu">
-      {/* Noise Texture - Added translateZ to force GPU layer */}
+    <div className="fixed inset-0 z-[-1] w-full h-full bg-[#022c22] pointer-events-none transform-gpu">
+      {/* Static Gradients - Zero Animation Cost */}
+      <div 
+        className="absolute inset-0" 
+        style={{
+          background: `
+            radial-gradient(circle at 50% 0%, rgba(217, 164, 65, 0.15) 0%, transparent 60%),
+            radial-gradient(circle at 100% 30%, rgba(31, 79, 60, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 0% 60%, rgba(8, 145, 178, 0.1) 0%, transparent 50%)
+          `
+        }}
+      />
+      
+      {/* Noise Texture */}
       <div
-        className="absolute inset-0 opacity-[0.06] mix-blend-overlay"
+        className="absolute inset-0 opacity-[0.04] mix-blend-overlay"
         style={{ 
           backgroundImage: "url('https://grainy-gradients.vercel.app/noise.svg')",
-          transform: "translateZ(0)" 
         }}
       />
 
-      {/* Sun - Decoupled from Scroll, just breathing animation */}
-      <motion.div
-        animate={{ 
-          scale: [1, 1.05, 1], 
-          opacity: [0.22, 0.32, 0.22],
-          y: [0, -15, 0] // Gentle floating instead of scroll transform
-        }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        style={{ willChange: "transform, opacity" }}
-        className="absolute -top-[15%] left-1/2 -translate-x-1/2 w-[80vw] md:w-[50vw] aspect-square rounded-full bg-gradient-to-b from-[#D9A441] to-[#fbbf24] blur-[100px] md:blur-[120px] mix-blend-screen"
-      />
-
-      {/* Right Blob */}
-      <motion.div
-        animate={{ 
-          x: [0, 20, 0], 
-          y: [0, 20, 0],
-          opacity: [0.08, 0.18, 0.08] 
-        }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        style={{ willChange: "transform, opacity" }}
-        className="absolute top-[30%] -right-[10%] w-[40vw] h-[40vw] bg-[#1F4F3C] blur-[80px] md:blur-[100px] rounded-full mix-blend-screen"
-      />
-
-      {/* Left Blob */}
-      <motion.div
-        animate={{ 
-          x: [0, -30, 0], 
-          y: [0, -20, 0],
-          opacity: [0.05, 0.15, 0.05] 
-        }}
-        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        style={{ willChange: "transform, opacity" }}
-        className="absolute top-[50%] -left-[10%] w-[45vw] h-[45vw] bg-[#0891b2] blur-[100px] md:blur-[120px] rounded-full mix-blend-screen"
-      />
-
-      <div className="absolute inset-0 bg-gradient-to-t from-[#022c22] via-[#022c22]/40 to-transparent" />
+      {/* Bottom Fade */}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#022c22] via-[#022c22]/20 to-transparent" />
     </div>
   );
 });
 SunriseDepthBackground.displayName = "SunriseDepthBackground";
 
 // -----------------------------------------
-// OPTIMIZED SKELETON
+// 2. OPTIMIZED SKELETON
 // -----------------------------------------
 const TourCardSkeleton = memo(({ style = {} }) => (
   <div
@@ -77,26 +52,11 @@ const TourCardSkeleton = memo(({ style = {} }) => (
       flexShrink: 0,
       position: "relative",
       overflow: "hidden",
-      transform: "translateZ(0)",
       border: "1px solid rgba(255,255,255,0.1)",
       ...style,
     }}
   >
     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skeleton-shimmer" />
-    <div className="absolute top-4 right-4 w-16 h-6 bg-white/10 rounded-full" />
-    <div className="absolute bottom-6 left-5 right-5">
-      <div className="w-3/4 h-7 bg-white/10 rounded-md mb-3" />
-      <div className="flex justify-between items-end">
-        <div className="w-1/2 space-y-2">
-          <div className="w-full h-3 bg-white/10 rounded" />
-          <div className="w-4/5 h-3 bg-white/10 rounded" />
-        </div>
-        <div className="flex flex-col items-end gap-1">
-          <div className="w-12 h-2 bg-white/10 rounded" />
-          <div className="w-20 h-6 bg-white/10 rounded" />
-        </div>
-      </div>
-    </div>
     <style>{`
       @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
       .skeleton-shimmer { animation: shimmer 1.5s infinite linear; will-change: transform; }
@@ -106,36 +66,27 @@ const TourCardSkeleton = memo(({ style = {} }) => (
 TourCardSkeleton.displayName = "TourCardSkeleton";
 
 // -----------------------------------------
-// ULTRA-SMOOTH TOUR CARD
+// 3. OPTIMIZED TOUR CARD
 // -----------------------------------------
 const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false }) => {
-  const animProps = isCarousel
-    ? {}
-    : {
-        initial: { opacity: 0, y: 20 }, // Changed x to y for subtler list entry
-        whileInView: { opacity: 1, y: 0 },
-        viewport: { once: true, margin: "50px" },
-        transition: { duration: 0.4, delay: index * 0.05, ease: "easeOut" },
-      };
-
-  const cardWidthStyle = isCarousel
-    ? { minWidth: "260px", width: style.width || "260px" }
-    : { minWidth: 0, width: "100%" };
-
+  // Use simple CSS transition for hover instead of heavy motion variants where possible
   return (
     <motion.div
+      initial={!isCarousel ? { opacity: 0, y: 20 } : {}}
+      whileInView={!isCarousel ? { opacity: 1, y: 0 } : {}}
+      viewport={{ once: true, margin: "50px" }}
+      transition={{ duration: 0.4, delay: index * 0.05 }}
+      
       role="button"
       tabIndex={0}
-      {...animProps}
-      whileHover="hover"
       className="tour-card-mobile group relative"
       onClick={() => onView(tour)}
       onKeyDown={(e) => e.key === "Enter" && onView(tour)}
       style={{
-        ...cardWidthStyle,
+        minWidth: isCarousel ? "260px" : 0,
+        width: isCarousel ? (style.width || "260px") : "100%",
         backgroundColor: "white",
         borderRadius: "24px",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
         overflow: "hidden",
         cursor: "pointer",
         flexShrink: 0,
@@ -144,50 +95,36 @@ const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false
         ...style,
       }}
     >
-      <div style={{ position: "relative", height: "320px", backgroundColor: "#f3f4f6", overflow: "hidden" }}>
-        <motion.img
+      <div style={{ position: "relative", height: "320px", backgroundColor: "#f3f4f6" }}>
+        {/* Image with simple scale on hover via CSS group-hover */}
+        <img
           src={tour.img}
           alt={tour.title}
           loading="lazy"
           decoding="async"
-          variants={{ hover: { scale: 1.06 } }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          style={{ width: "100%", height: "100%", objectFit: "cover", willChange: "transform" }}
+          className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         />
 
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 55%)", pointerEvents: "none" }} />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent pointer-events-none" />
 
-        <div
-          style={{
-            position: "absolute",
-            top: "16px",
-            right: "16px",
-            backgroundColor: "rgba(255,255,255,0.98)",
-            padding: "6px 14px",
-            borderRadius: "20px",
-            fontSize: "12px",
-            fontWeight: 800,
-            color: "#111827",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            zIndex: 10,
-          }}
-        >
+        {/* Days Badge */}
+        <div className="absolute top-4 right-4 bg-white/95 px-3 py-1.5 rounded-full text-xs font-extrabold text-gray-900 shadow-sm z-10">
           {tour.days}
         </div>
 
-        <div style={{ position: "absolute", bottom: "24px", left: "20px", right: "20px", zIndex: 10 }}>
-          <h3 style={{ fontWeight: 900, fontSize: "22px", color: "white", marginBottom: "4px", lineHeight: "1.1", textShadow: "0 2px 8px rgba(0,0,0,0.6)" }}>{tour.title}</h3>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: "8px" }}>
-            <p style={{ fontSize: "13px", color: "#e5e7eb", fontWeight: 500, margin: 0, maxWidth: "65%", lineHeight: "1.4", textShadow: "0 1px 4px rgba(0,0,0,0.6)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{tour.summary}</p>
-            <div style={{ textAlign: "right", flexShrink: 0 }}>
-              <span style={{ display: "block", fontSize: "10px", color: "#d1d5db", textTransform: "uppercase", fontWeight: 700, textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>Starting From</span>
-              <motion.span
-                variants={{ hover: { scale: 1.08, color: "#fbbf24", textShadow: "0 0 8px rgba(251,191,36,0.45)" } }}
-                transition={{ duration: 0.25 }}
-                style={{ display: "block", fontSize: "18px", fontWeight: 800, color: "#fbbf24", textShadow: "0 2px 4px rgba(0,0,0,0.5)", transformOrigin: "right bottom" }}
-              >
+        {/* Content */}
+        <div className="absolute bottom-6 left-5 right-5 z-10">
+          <h3 className="text-2xl font-black text-white mb-1 leading-none drop-shadow-md">{tour.title}</h3>
+          
+          <div className="flex justify-between items-end mt-2">
+            <p className="text-gray-200 text-xs font-medium line-clamp-2 max-w-[65%] leading-snug">
+              {tour.summary}
+            </p>
+            <div className="text-right shrink-0">
+              <span className="block text-[10px] text-gray-400 font-bold uppercase tracking-wider">Starting</span>
+              <span className="block text-xl font-extrabold text-amber-400 drop-shadow-md group-hover:text-amber-300 transition-colors">
                 {tour.price}
-              </motion.span>
+              </span>
             </div>
           </div>
         </div>
@@ -198,7 +135,7 @@ const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false
 TourCard.displayName = "TourCard";
 
 // -----------------------------------------
-// 3D CAROUSEL (Perf Optimized: Batched Reads/Writes)
+// 4. MOBILE 3D CAROUSEL (Unchanged - Logic is fine)
 // -----------------------------------------
 const Mobile3DCarousel = ({ items, onView, isMobile }) => {
   const scrollRef = useRef(null);
@@ -217,7 +154,6 @@ const Mobile3DCarousel = ({ items, onView, isMobile }) => {
 
     const nodes = Array.from(container.querySelectorAll('.carousel-item'));
     
-    // Batch Reads
     const updates = nodes.map(child => {
         const rect = child.getBoundingClientRect();
         const childCenter = rect.left + rect.width / 2;
@@ -225,7 +161,6 @@ const Mobile3DCarousel = ({ items, onView, isMobile }) => {
         return { child, rawDistance };
     });
 
-    // Batch Writes
     updates.forEach(({ child, rawDistance }) => {
       const distance = Math.max(0, rawDistance - 4);
       let progress = distance / maxDistance;
@@ -260,8 +195,6 @@ const Mobile3DCarousel = ({ items, onView, isMobile }) => {
   useLayoutEffect(() => {
     const container = scrollRef.current;
     if (!container) return;
-
-    // Center initial scroll
     const children = container.querySelectorAll('.carousel-item');
     if (children.length > 0) {
       const first = children[0];
@@ -329,7 +262,6 @@ export default function Tours() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   useEffect(() => {
-    // Mocking fetch if API isn't ready, or use real fetch
     fetch('/api/tours')
       .then((res) => res.json())
       .then((data) => {
@@ -372,10 +304,10 @@ export default function Tours() {
     <div className="relative min-h-screen" style={{ isolation: 'isolate' }}>
       <SunriseDepthBackground />
 
-      <div style={{ maxWidth: '1280px', margin: '0 auto', marginTop: '0.5cm', padding: isMobile ? '16px 0' : '24px 16px', marginBottom: '96px', paddingTop: isMobile ? '88px' : '100px' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: isMobile ? '16px 0' : '24px 16px', marginBottom: '96px', paddingTop: isMobile ? '88px' : '100px' }}>
         <div style={{ padding: isMobile ? '0 16px' : '0' }}>
 
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="mb-8 text-center md:text-left">
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="mb-8 text-center md:text-left">
             <h1 className="text-4xl md:text-5xl font-black text-white drop-shadow-lg tracking-tight font-montserrat">Explore Packages</h1>
             <p className="text-emerald-100/80 mt-2 text-sm md:text-base font-medium">Handpicked adventures designed for you</p>
           </motion.div>
@@ -418,9 +350,13 @@ export default function Tours() {
           .mobile-3d-scroll { -ms-overflow-style: none; scrollbar-width: none; scroll-snap-type: x proximity; }
           .tour-card-mobile { -webkit-tap-highlight-color: transparent; }
           .carousel-item { contain: layout paint; }
-          /* Optimized hover for desktop only */
+          
+          /* Simplified Desktop Hover */
           @media (min-width: 1025px) {
-            .tour-card-mobile:hover { transform: translateY(-6px) translateZ(0); box-shadow: 0 16px 32px rgba(0,0,0,0.22); }
+            .tour-card-mobile:hover { 
+              transform: translateY(-4px); 
+              box-shadow: 0 12px 24px rgba(0,0,0,0.2); 
+            }
           }
         `}</style>
       </div>
