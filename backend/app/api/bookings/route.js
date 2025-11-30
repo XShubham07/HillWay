@@ -10,8 +10,6 @@ export async function POST(request) {
   try {
     const body = await request.json();
     
-    // Check for existing active booking for this phone number & tour
-    // We check if status is NOT 'Cancelled' to find active bookings
     const existingBooking = await Booking.findOne({ 
       phone: body.phone, 
       tourTitle: body.tourTitle,
@@ -58,29 +56,26 @@ export async function DELETE(request) {
   }
 }
 
-// PUT: Update Status & Increment Coupon/Commission
+// PUT: Update Status & Payment Info
 export async function PUT(request) {
   await dbConnect();
   try {
     const body = await request.json();
-    const { id, status } = body;
+    const { id, status, paymentType, paidAmount, adminNotes } = body;
     
     if (!id || !status) return NextResponse.json({ success: false, error: "ID/Status missing" }, { status: 400 });
 
     const oldBooking = await Booking.findById(id);
     if (!oldBooking) return NextResponse.json({ success: false, error: "Booking not found" }, { status: 404 });
 
-    // LOGIC: Increment coupon/commission ONLY if status changes to 'Confirmed'
+    // Handle Coupons & Commission on Confirmation
     if (status === 'Confirmed' && oldBooking.status !== 'Confirmed') {
-      
-      // 1. Increment Coupon
       if (oldBooking.couponCode) {
         const coupon = await Coupon.findOneAndUpdate(
           { code: oldBooking.couponCode },
           { $inc: { usedCount: 1 } }
         );
 
-        // 2. Add Agent Commission
         if (coupon && coupon.agentId) {
            const agent = await Agent.findById(coupon.agentId);
            if (agent) {
@@ -92,7 +87,13 @@ export async function PUT(request) {
       }
     }
 
-    const booking = await Booking.findByIdAndUpdate(id, { status }, { new: true });
+    // Construct Update Object
+    const updateData = { status };
+    if (paymentType) updateData.paymentType = paymentType;
+    if (paidAmount !== undefined) updateData.paidAmount = Number(paidAmount);
+    if (adminNotes !== undefined) updateData.adminNotes = adminNotes;
+
+    const booking = await Booking.findByIdAndUpdate(id, updateData, { new: true });
     return NextResponse.json({ success: true, data: booking });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

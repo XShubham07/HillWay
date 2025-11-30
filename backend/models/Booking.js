@@ -18,6 +18,11 @@ const BookingSchema = new mongoose.Schema({
   originalPrice: Number,
   couponCode: String,
   
+  // PAYMENT & ADMIN FIELDS
+  paymentType: { type: String, enum: ['Full', 'Partial'], default: 'Full' },
+  paidAmount: { type: Number, default: 0 },
+  adminNotes: { type: String, default: '' },
+
   // AGENT TRACKING
   agentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Agent', default: null },
   commissionAmount: { type: Number, default: 0 },

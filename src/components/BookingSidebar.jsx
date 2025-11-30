@@ -1,12 +1,11 @@
+// src/components/BookingSidebar.jsx
 import { useState, useEffect } from "react";
 import {
   FaUsers,
   FaChild,
-  FaHotel,
   FaCheck,
   FaPlus,
   FaMinus,
-  FaCar,
   FaTicketAlt,
   FaSpinner,
   FaTimes,
@@ -15,7 +14,8 @@ import {
   FaCouch,      // Comfort Seat
   FaUtensils,   // Meals
   FaCoffee,     // Tea
-  FaHiking      // Guide
+  FaHiking,     // Guide
+  FaCalendarAlt // Date Icon
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
@@ -26,7 +26,6 @@ import confetti from "canvas-confetti";
 const StatusPopup = ({ isOpen, onClose, data, type }) => {
   useEffect(() => {
     if (isOpen && type === 'success') {
-      // BLAST ANIMATION ONLY (Single Burst)
       const count = 200;
       const defaults = {
         origin: { y: 0.7 },
@@ -75,7 +74,6 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
                 : "bg-gradient-to-b from-red-500/20 to-[#0f172a]/90 border-red-500/30"}
             `}
           >
-            {/* Glossy Overlay */}
             <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
 
             <div className="relative p-8 z-10 flex flex-col items-center">
@@ -171,7 +169,7 @@ const QuantityControl = ({ label, subLabel, icon: Icon, value, onChange, min = 0
 );
 
 /* -------------------------------------------
-   ✅ TICK BUTTON (Updated with Icon)
+   ✅ TICK BUTTON
 ------------------------------------------- */
 const TickButton = ({ label, icon: Icon, active, onClick, complimentary = false }) => (
   <button
@@ -209,25 +207,16 @@ const TickButton = ({ label, icon: Icon, active, onClick, complimentary = false 
   </button>
 );
 
-/* -------------------------------------------------------------------
-   🔥🔥 MAIN COMPONENT 🔥🔥
-------------------------------------------------------------------- */
 export default function BookingSidebar({ tour = {} }) {
   const [open, setOpen] = useState(false);
   const [popupData, setPopupData] = useState(null); 
   const [submitting, setSubmitting] = useState(false);
 
-  // --- 🔒 LOCK BACKGROUND SCROLL ON MOBILE OPEN ---
+  // Lock background scroll
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    // Cleanup on unmount
-    return () => {
-      document.body.style.overflow = "unset";
-    };
+    if (open) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "unset";
+    return () => { document.body.style.overflow = "unset"; };
   }, [open]);
 
   const [globalRates, setGlobalRates] = useState({
@@ -257,7 +246,7 @@ export default function BookingSidebar({ tour = {} }) {
   }, []);
 
   const [form, setForm] = useState({
-    name: "", phone: "", email: "",
+    name: "", phone: "", email: "", travelDate: "",
     adults: 2, children: 0,
     roomType: "standard", transport: "sharing",
     bonfire: false, meal: false, tea: false, comfortSeat: false, tourGuide: false,
@@ -267,20 +256,14 @@ export default function BookingSidebar({ tour = {} }) {
   const handle = (k, v) =>
     setForm((p) => ({ ...p, [k]: (k === "adults" || k === "children" || k === "rooms") ? Number(v) : v }));
 
-  // --- LOGIC: MEAL & TEA SYNC ---
   const toggleMeal = () => {
     setForm(prev => {
       const newState = !prev.meal;
-      return { 
-        ...prev, 
-        meal: newState, 
-        tea: newState // Tea mimics meal state (On -> On, Off -> Off)
-      };
+      return { ...prev, meal: newState, tea: newState };
     });
   };
 
   const toggleTea = () => {
-    // If meal is selected, tea is forced complimentary (cannot unselect directly unless meal is unselected)
     if (form.meal) return; 
     handle("tea", !form.tea);
   };
@@ -380,6 +363,7 @@ export default function BookingSidebar({ tour = {} }) {
   const perHeadPrice = Math.round(discountedPrice / totalPersons);
 
   const handleBook = async () => {
+    if (!form.travelDate) return alert("Please select a Journey Date");
     if (!form.name.trim()) return alert("Please enter your Name");
     if (!form.phone || form.phone.length !== 10) return alert("Please enter a valid 10-digit Phone Number");
 
@@ -424,13 +408,8 @@ export default function BookingSidebar({ tour = {} }) {
     setSubmitting(false);
   };
 
-  /* -------------------------------------------------------------------
-       COMPUTED CONTENT FOR SIDEBAR & MOBILE DRAWER
-   ------------------------------------------------------------------- */
-
   const contentJsx = (
     <div className="space-y-6 text-gray-100">
-      {/* Header */}
       <div className="hidden lg:block pb-4 border-b border-white/5">
          <h3 className="text-xl font-bold text-white tracking-wide">
            Book Your Trip
@@ -438,8 +417,21 @@ export default function BookingSidebar({ tour = {} }) {
          <p className="text-gray-400 text-xs mt-1">Instant confirmation & transparent pricing</p>
       </div>
 
-      {/* Inputs */}
       <div className="space-y-3">
+        {/* DATE INPUT ADDED HERE */}
+        <div className="relative w-full">
+            <span className="absolute left-3 top-3.5 text-[#D9A441] text-xs z-10 pointer-events-none"><FaCalendarAlt /></span>
+            <input
+                type="date"
+                value={form.travelDate}
+                onChange={(e) => handle("travelDate", e.target.value)}
+                className="w-full pl-10 pr-3 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white font-medium outline-none transition-all text-base sm:text-sm backdrop-blur-sm appearance-none"
+                style={{ colorScheme: 'dark' }}
+                placeholder="Journey Date"
+                min={new Date().toISOString().split('T')[0]}
+            />
+        </div>
+
         <input
             type="text"
             value={form.name}
@@ -470,16 +462,13 @@ export default function BookingSidebar({ tour = {} }) {
         </div>
       </div>
 
-      {/* Pax Row */}
       <div className="grid grid-cols-2 gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
         <QuantityControl label="Adults" subLabel="5+" icon={FaUsers} value={form.adults} onChange={(v) => handle('adults', v)} min={1} />
         <QuantityControl label="Kids" subLabel="Upto 5" icon={FaChild} value={form.children} onChange={(v) => handle('children', v)} min={0} />
       </div>
 
-      {/* Preferences Grid */}
       <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
-             {/* Transport Switch */}
              <div className="bg-white/5 p-2 rounded-xl border border-white/5 flex flex-col justify-center">
                <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 text-center">Transport</label>
                <div className="flex bg-black/30 rounded-lg p-1 relative">
@@ -497,7 +486,6 @@ export default function BookingSidebar({ tour = {} }) {
                </div>
              </div>
 
-             {/* Room Switch */}
              <div className="bg-white/5 p-2 rounded-xl border border-white/5 flex flex-col justify-center">
                <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 text-center">Room Type</label>
                <div className="flex bg-black/30 rounded-lg p-1 relative">
@@ -537,7 +525,6 @@ export default function BookingSidebar({ tour = {} }) {
           </div>
       </div>
 
-      {/* Add-ons */}
       <div className="pt-2">
         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">Enhancements</p>
         <div className="grid grid-cols-2 gap-2">
@@ -551,7 +538,6 @@ export default function BookingSidebar({ tour = {} }) {
         </div>
       </div>
 
-      {/* Coupon */}
       <div className="bg-black/20 border border-white/5 rounded-xl p-2.5 flex items-center gap-3">
         <div className="p-1.5 bg-[#D9A441]/10 rounded text-[#D9A441]"><FaTicketAlt size={12} /></div>
         <div className="flex-1 flex gap-2">
@@ -571,9 +557,7 @@ export default function BookingSidebar({ tour = {} }) {
       </div>
       {couponMessage && <p className={`text-[10px] text-center -mt-4 ${appliedCoupon ? "text-green-400" : "text-red-400"}`}>{couponMessage}</p>}
 
-      {/* 💵 Total & Confirm - WITH ANIMATION */}
       <motion.div 
-        // Trigger bounce animation when price changes via discount
         animate={appliedCoupon ? { scale: [1, 1.03, 1] } : {}}
         transition={{ duration: 0.3 }}
         className="p-4 rounded-2xl bg-gradient-to-br from-[#D9A441]/10 to-transparent border border-[#D9A441]/20"
@@ -612,7 +596,6 @@ export default function BookingSidebar({ tour = {} }) {
         type={popupData?.type} 
       />
 
-      {/* PC SIDEBAR - HIGH TRANSPARENCY & GLASS EFFECT */}
       <div className="hidden lg:block">
         <div className="
           w-full p-6 rounded-3xl sticky top-24 
@@ -623,7 +606,6 @@ export default function BookingSidebar({ tour = {} }) {
         </div>
       </div>
 
-      {/* 📱 MOBILE BOTTOM BAR */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[999]">
         <div className="p-3 px-5 rounded-t-3xl flex items-center gap-4 border-t border-white/10 bg-[#0f172a]/60 backdrop-blur-xl shadow-2xl">
           <div className="flex-1">
@@ -647,7 +629,6 @@ export default function BookingSidebar({ tour = {} }) {
         </div>
       </div>
 
-      {/* MOBILE DRAWER - HIGH TRANSPARENCY & GLASS EFFECT */}
       <AnimatePresence>
         {open && (
           <>
