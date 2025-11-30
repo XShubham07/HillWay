@@ -12,7 +12,7 @@ import {
 export default function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('bookings');
   const [view, setView] = useState('list');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile Sidebar State
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); 
   
   const [tours, setTours] = useState([]);
   const [bookings, setBookings] = useState([]); 
@@ -33,7 +33,7 @@ export default function AdminDashboard({ onLogout }) {
   // === CONFIRMATION/EDIT MODAL STATE ===
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmData, setConfirmData] = useState({
-    paymentType: 'Full', // 'Full' or 'Partial'
+    paymentType: 'Full', 
     paidAmount: 0,
     adminNotes: ''
   });
@@ -109,7 +109,7 @@ export default function AdminDashboard({ onLogout }) {
     try {
       const payload = { 
         id: selectedBooking._id, 
-        status: 'Confirmed', // Always ensure status is confirmed when saving this
+        status: 'Confirmed', 
         paymentType: confirmData.paymentType,
         paidAmount: confirmData.paymentType === 'Full' ? selectedBooking.totalPrice : confirmData.paidAmount,
         adminNotes: confirmData.adminNotes
@@ -130,7 +130,7 @@ export default function AdminDashboard({ onLogout }) {
 
   const handleLogout = () => {
     if(confirm("Are you sure you want to logout?")) {
-       window.location.href = '/login'; // Simple redirect
+       window.location.href = '/login'; 
     }
   };
 
@@ -232,8 +232,11 @@ export default function AdminDashboard({ onLogout }) {
   const addFaq = () => setForm(p => ({ ...p, faqs: [...(p.faqs || []), { q: '', a: '' }] }));
   const updateFaq = (idx, f, v) => { const newFaqs = [...form.faqs]; newFaqs[idx][f] = v; setForm({ ...form, faqs: newFaqs }); };
 
+  // --- 💡 UPDATED PRICING LOGIC ---
   const getPriceBreakdown = (b) => {
     const tour = tours.find(t => t.title === b.tourTitle);
+    
+    // Default prices from tour or globals
     const p = {
         mealPrice: tour?.pricing?.mealPerPerson ?? globalPrices?.mealPrice,
         teaPrice: tour?.pricing?.teaPerPerson ?? globalPrices?.teaPrice,
@@ -242,15 +245,36 @@ export default function AdminDashboard({ onLogout }) {
         comfortSeatPrice: tour?.pricing?.comfortSeat ?? globalPrices?.comfortSeatPrice,
         personalCabPrice: tour?.pricing?.personalCab?.rate ?? globalPrices?.personalCabPrice
     };
+
     const items = [];
-    if(b.addons?.meal) items.push({ name: "Meal Plan", cost: `₹${p.mealPrice}/pax` });
+    const totalPax = (b.adults || 0) + (b.children || 0);
+    const nights = b.rooms > 0 ? (tour?.nights || 1) : 0; // Approx logic
+    const days = nights + 1;
+
+    // MEAL & TEA LOGIC
+    if(b.addons?.meal) {
+        items.push({ name: "Meal Plan", cost: `₹${p.mealPrice} x ${totalPax} pax x ${days} days` });
+        // Tea is complimentary if Meal is selected
+        if(b.addons?.tea) {
+            items.push({ name: "Tea/Snacks", cost: <span className="text-green-400">FREE (Complimentary)</span> });
+        }
+    } else {
+        // If Meal is NOT selected, show Tea price if selected
+        if(b.addons?.tea) {
+            items.push({ name: "Tea/Snacks", cost: `₹${p.teaPrice} x ${totalPax} pax x ${days} days` });
+        }
+    }
+
     if(b.addons?.bonfire) items.push({ name: "Bonfire", cost: `₹${p.bonfirePrice}` });
     if(b.addons?.tourGuide) items.push({ name: "Tour Guide", cost: `₹${p.tourGuidePrice}` });
     if(b.addons?.comfortSeat) items.push({ name: "Comfort Seat", cost: `₹${p.comfortSeatPrice}` });
-    if(b.addons?.tea) items.push({ name: "Tea/Snacks", cost: `₹${p.teaPrice}/pax` });
-    items.push({ name: "Transport", cost: b.transport === 'personal' ? `₹${p.personalCabPrice}` : 'Shared' });
-    items.push({ name: "Room", cost: `${b.roomType} (x${b.rooms})` });
-    if (b.couponCode && b.originalPrice > b.totalPrice) items.push({ name: `Coupon (${b.couponCode})`, cost: `- ₹${(b.originalPrice - b.totalPrice).toLocaleString()}` });
+    
+    items.push({ name: "Transport", cost: b.transport === 'personal' ? `₹${p.personalCabPrice} (Private Cab)` : 'Shared' });
+    items.push({ name: "Room", cost: `${b.roomType} x ${b.rooms} rooms x ${nights} nights` });
+    
+    if (b.couponCode && b.originalPrice > b.totalPrice) {
+        items.push({ name: `Coupon (${b.couponCode})`, cost: `- ₹${(b.originalPrice - b.totalPrice).toLocaleString()}` });
+    }
     return items;
   };
 
@@ -259,8 +283,8 @@ export default function AdminDashboard({ onLogout }) {
       
       {/* === UPDATE/CONFIRM DIALOG (MODAL) === */}
       {showConfirmModal && selectedBooking && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-[#1e293b] w-full max-w-md rounded-2xl border border-white/10 shadow-2xl p-6">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-[#1e293b] w-full max-w-md rounded-2xl border border-white/10 shadow-2xl p-6 relative">
             <h3 className="text-xl font-bold text-white mb-4">Update Booking</h3>
             
             <div className="space-y-4">
@@ -326,8 +350,9 @@ export default function AdminDashboard({ onLogout }) {
 
       {/* === BIG BOOKING DETAILS MODAL === */}
       {selectedBooking && !showConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
-          <div className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] w-full max-w-5xl h-[90vh] rounded-3xl border border-white/10 shadow-2xl overflow-hidden flex flex-col relative animate-fade-in">
+        // z-[100] ensures it's above sidebar. lg:pl-72 moves the modal center to the right on large screens.
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 lg:pl-72 animate-fade-in">
+          <div className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] w-full max-w-7xl h-[90vh] rounded-3xl border border-white/10 shadow-2xl overflow-hidden flex flex-col relative">
             
             {/* Header */}
             <div className="p-6 md:p-8 border-b border-white/5 flex justify-between items-start bg-black/20">
@@ -404,12 +429,12 @@ export default function AdminDashboard({ onLogout }) {
 
                    {/* CONFIGURATION PRICING BREAKDOWN */}
                    <div className="bg-black/20 p-6 rounded-2xl border border-white/5">
-                      <h3 className="text-gray-500 font-bold mb-4 text-xs uppercase tracking-widest">Configuration & Pricing Estimates</h3>
-                      <div className="grid grid-cols-2 gap-4">
+                      <h3 className="text-gray-500 font-bold mb-4 text-xs uppercase tracking-widest">Pricing Configuration</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                          {getPriceBreakdown(selectedBooking).map((item, idx) => (
-                           <div key={idx} className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                           <div key={idx} className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5 hover:bg-white/10 transition">
                               <span className="text-gray-300 text-sm">{item.name}</span>
-                              <span className="text-cyan-400 text-sm font-mono font-bold">{item.cost}</span>
+                              <span className="text-cyan-400 text-sm font-mono font-bold text-right">{item.cost}</span>
                            </div>
                          ))}
                       </div>
@@ -614,12 +639,11 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         )}
 
-        {/* ... (COUPONS TAB - PRESERVED) ... */}
+        {/* === COUPONS TAB === */}
         {activeTab === 'coupons' && (
           <div className="max-w-6xl mx-auto">
              <h1 className="text-3xl font-bold text-white mb-6">Manage Coupons</h1>
              <form onSubmit={handleCreateCoupon} className="bg-[#1e293b] p-6 rounded-2xl border border-gray-700 mb-8 grid grid-cols-1 md:grid-cols-6 gap-4 items-end shadow-lg">
-                {/* ... Coupon form inputs ... */}
                 <div className="col-span-1 md:col-span-1"><label className="block text-xs text-gray-400 mb-1 uppercase font-bold">Code</label><input required className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white uppercase font-bold tracking-widest" placeholder="SUMMER25" value={couponForm.code} onChange={e=>setCouponForm({...couponForm, code: e.target.value})} /></div>
                 <div className="col-span-1">
                    <label className="block text-xs text-gray-400 mb-1 uppercase font-bold">Discount</label>
@@ -673,7 +697,6 @@ export default function AdminDashboard({ onLogout }) {
         {activeTab === 'pricing' && globalPrices && (
           <div className="max-w-4xl mx-auto">
             <h1 className="text-3xl font-bold text-white mb-2">Universal Price List</h1>
-            {/* ... pricing inputs ... */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
               <div className="bg-[#1e293b] p-6 rounded-2xl border border-gray-700">
                 <h3 className="text-xl font-bold text-cyan-400 mb-6 flex items-center gap-2"><FaTag/> Add-ons</h3>
@@ -696,7 +719,7 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         )}
 
-        {/* === TOURS TAB (LIST & EDITOR) === */}
+        {/* === TOURS TAB (LIST) === */}
         {activeTab === 'tours' && view === 'list' && (
           <div>
             <div className="flex justify-between items-center mb-8">
@@ -728,6 +751,7 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         )}
 
+        {/* === TOURS TAB (EDITOR) === */}
         {activeTab === 'tours' && view === 'editor' && (
           <div className="max-w-5xl mx-auto bg-[#1e293b] rounded-2xl border border-gray-700 shadow-2xl overflow-hidden">
             <div className="bg-gray-900 p-6 flex justify-between items-center border-b border-gray-700">
@@ -741,7 +765,6 @@ export default function AdminDashboard({ onLogout }) {
                   <div><label className="block text-sm font-medium text-gray-300 mb-1">Subtitle</label><input className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.subtitle} onChange={e => updateField('subtitle', e.target.value)} /></div>
                   <div><label className="block text-sm font-medium text-gray-300 mb-1">Location</label><input className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.location} onChange={e => updateField('location', e.target.value)} required /></div>
                   
-                  {/* MULTIPLE IMAGE UPLOAD */}
                   <div className="col-span-2 md:col-span-1">
                     <label className="block text-sm font-medium text-gray-300 mb-1">Gallery Images ({form.images?.length || 0})</label>
                     <div className="flex gap-3">
@@ -783,7 +806,6 @@ export default function AdminDashboard({ onLogout }) {
               <section className="bg-blue-900/20 p-6 rounded-xl border border-blue-500/30">
                 <h3 className="text-xl font-bold text-blue-400 mb-4 flex items-center gap-2"><FaEdit/> Specific Costs</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                   {/* ... simplified inputs for pricing ... */}
                    <div><label className="block text-xs text-gray-400 mb-1">Meal</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.mealPerPerson ?? ''} onChange={e => updatePricing('mealPerPerson', e.target.value)} /></div>
                    <div><label className="block text-xs text-gray-400 mb-1">Bonfire</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.bonfire ?? ''} onChange={e => updatePricing('bonfire', e.target.value)} /></div>
                    <div><label className="block text-xs text-gray-400 mb-1">Guide</label><input type="number" className="w-full bg-black/30 border border-gray-600 rounded p-2 text-white" value={form.pricing?.tourGuide ?? ''} onChange={e => updatePricing('tourGuide', e.target.value)} /></div>

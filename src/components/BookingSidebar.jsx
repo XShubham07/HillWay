@@ -418,14 +418,16 @@ export default function BookingSidebar({ tour = {} }) {
       </div>
 
       <div className="space-y-3">
-        {/* DATE INPUT ADDED HERE */}
-        <div className="relative w-full">
-            <span className="absolute left-3 top-3.5 text-[#D9A441] text-xs z-10 pointer-events-none"><FaCalendarAlt /></span>
+        {/* PREMIUM DATE INPUT */}
+        <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <FaCalendarAlt className="text-[#D9A441] text-lg group-hover:scale-110 transition-transform duration-300" />
+            </div>
             <input
                 type="date"
                 value={form.travelDate}
                 onChange={(e) => handle("travelDate", e.target.value)}
-                className="w-full pl-10 pr-3 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white font-medium outline-none transition-all text-base sm:text-sm backdrop-blur-sm appearance-none"
+                className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-black/20 border border-white/10 text-white font-semibold outline-none transition-all focus:bg-black/30 focus:border-[#D9A441]/50 focus:ring-1 focus:ring-[#D9A441]/50 hover:bg-black/30 hover:border-white/20 text-sm backdrop-blur-md shadow-sm placeholder-gray-400"
                 style={{ colorScheme: 'dark' }}
                 placeholder="Journey Date"
                 min={new Date().toISOString().split('T')[0]}
@@ -538,9 +540,10 @@ export default function BookingSidebar({ tour = {} }) {
         </div>
       </div>
 
-      <div className="bg-black/20 border border-white/5 rounded-xl p-2.5 flex items-center gap-3">
+      {/* COUPON INPUT WITH INTERNAL STATUS */}
+      <div className="bg-black/20 border border-white/5 rounded-xl p-2.5 flex items-center gap-3 relative">
         <div className="p-1.5 bg-[#D9A441]/10 rounded text-[#D9A441]"><FaTicketAlt size={12} /></div>
-        <div className="flex-1 flex gap-2">
+        <div className="flex-1 flex gap-2 items-center">
             <input
                 className="flex-1 bg-transparent text-xs text-white uppercase placeholder-gray-600 focus:outline-none font-bold tracking-wider"
                 placeholder="PROMO CODE"
@@ -549,30 +552,81 @@ export default function BookingSidebar({ tour = {} }) {
                 disabled={appliedCoupon}
             />
             {appliedCoupon ? (
-                <button onClick={removeCoupon} className="text-red-400 text-[10px] font-bold hover:text-red-300">REMOVE</button>
+                <>
+                  {/* Internal Status Text */}
+                  <motion.span 
+                    initial={{ scale: 0.8, opacity: 0 }} 
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="text-[9px] font-bold text-green-400 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20"
+                  >
+                    CODE APPLIED
+                  </motion.span>
+                  <button onClick={removeCoupon} className="text-red-400 text-[10px] font-bold hover:text-red-300">REMOVE</button>
+                </>
             ) : (
                 <button onClick={handleApplyCoupon} disabled={!couponCode || isApplyingCoupon} className="text-[#D9A441] text-[10px] font-bold hover:text-yellow-300 disabled:opacity-50">APPLY</button>
             )}
         </div>
       </div>
-      {couponMessage && <p className={`text-[10px] text-center -mt-4 ${appliedCoupon ? "text-green-400" : "text-red-400"}`}>{couponMessage}</p>}
+      {/* Fallback error message only */}
+      {!appliedCoupon && couponMessage && <p className="text-[10px] text-center -mt-4 text-red-400">{couponMessage}</p>}
 
       <motion.div 
-        animate={appliedCoupon ? { scale: [1, 1.03, 1] } : {}}
-        transition={{ duration: 0.3 }}
-        className="p-4 rounded-2xl bg-gradient-to-br from-[#D9A441]/10 to-transparent border border-[#D9A441]/20"
+        animate={appliedCoupon ? { scale: [1, 1.02, 1] } : {}}
+        transition={{ duration: 0.4 }}
+        className="p-5 rounded-3xl bg-gradient-to-br from-[#D9A441]/10 via-black/20 to-transparent border border-[#D9A441]/20 shadow-lg backdrop-blur-md"
       >
-        <div className="flex justify-between items-end mb-4">
-            <div>
-                <p className="text-[9px] text-gray-400 uppercase tracking-widest mb-0.5">Estimated / Person</p>
-                <p className="text-2xl font-black text-[#D9A441]">₹{perHeadPrice.toLocaleString("en-IN")}</p>
+        <div className="flex justify-between items-start mb-6">
+            <div className="flex flex-col">
+                <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1">Estimated / Person</p>
+                {/* ANIMATED PER PERSON PRICE */}
+                <motion.div
+                    key={perHeadPrice}
+                    initial={{ y: 5, opacity: 0, scale: 0.9 }}
+                    animate={{ y: 0, opacity: 1, scale: 1 }}
+                    className="text-2xl font-black text-[#D9A441] tracking-tight"
+                >
+                    ₹{perHeadPrice.toLocaleString("en-IN")}
+                </motion.div>
             </div>
-            <div className="text-right">
-                <p className="text-[9px] text-gray-400 uppercase tracking-wider mb-0.5">Grand Total</p>
-                <div className="flex flex-col items-end leading-none">
-                  {appliedCoupon && <span className="line-through text-gray-600 text-[10px] mb-0.5">₹{finalPrice.toLocaleString()}</span>}
-                  <span className="text-lg font-bold text-white">₹{discountedPrice.toLocaleString("en-IN")}</span>
-                </div>
+            
+            <div className="text-right flex flex-col items-end">
+                <p className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-1">Grand Total</p>
+                
+                {/* UPDATED PRICE LOGIC */}
+                {appliedCoupon ? (
+                    <div className="flex flex-col items-end">
+                        {/* 1. Original Strikethrough Price */}
+                        <span className="text-gray-500 text-xs font-semibold line-through decoration-red-500/80 mb-0.5">
+                            ₹{finalPrice.toLocaleString()}
+                        </span>
+
+                        {/* 2. Green Animated Discount Value */}
+                        <motion.div 
+                            initial={{ opacity: 0, y: -5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="text-emerald-400 text-[11px] font-bold mb-1 flex items-center gap-1 bg-emerald-900/20 px-2 py-0.5 rounded-full border border-emerald-500/20"
+                        >
+                            <span>Saved ₹{(finalPrice - discountedPrice).toLocaleString()}</span>
+                            <span className="animate-bounce">🎉</span>
+                        </motion.div>
+                        
+                        {/* 3. Final Price (White, text-2xl) */}
+                        <motion.span 
+                            key={discountedPrice}
+                            initial={{ scale: 0.9 }}
+                            animate={{ scale: 1 }}
+                            className="text-2xl font-bold text-white tracking-wide"
+                        >
+                            ₹{discountedPrice.toLocaleString("en-IN")}
+                        </motion.span>
+                    </div>
+                ) : (
+                    // Standard Display
+                    <span className="text-2xl font-bold text-white tracking-wide">
+                        ₹{finalPrice.toLocaleString("en-IN")}
+                    </span>
+                )}
             </div>
         </div>
 
