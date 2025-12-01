@@ -1,4 +1,3 @@
-// src/components/BookingSidebar.jsx
 import { useState, useEffect } from "react";
 import {
   FaUsers,
@@ -10,20 +9,26 @@ import {
   FaSpinner,
   FaTimes,
   FaExclamationTriangle,
-  FaFire,       // Bonfire
-  FaCouch,      // Comfort Seat
-  FaUtensils,   // Meals
-  FaCoffee,     // Tea
-  FaHiking,     // Guide
-  FaCalendarAlt // Date Icon
+  FaFire,       
+  FaCouch,      
+  FaUtensils,   
+  FaCoffee,     
+  FaHiking,     
+  FaCalendarAlt, 
+  FaLink,       
+  FaCopy        
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 /* -------------------------------------------
    🎉 SUCCESS / DUPLICATE POPUP
 ------------------------------------------- */
 const StatusPopup = ({ isOpen, onClose, data, type }) => {
+  const [copied, setCopied] = useState(false);
+
   useEffect(() => {
     if (isOpen && type === 'success') {
       const count = 200;
@@ -50,6 +55,15 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
 
   const isSuccess = type === 'success';
   const refId = data?._id ? `#HW-${data._id.slice(-6).toUpperCase()}` : 'N/A';
+  
+  // Construct Tracking Link
+  const trackingLink = data ? `${window.location.origin}/status?refId=${data._id.slice(-6).toUpperCase()}` : '';
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(trackingLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <AnimatePresence>
@@ -58,8 +72,8 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[2000] flex items-center justify-center px-4"
-          style={{ background: "rgba(0, 0, 0, 0.6)", backdropFilter: "blur(8px)" }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center px-4"
+          style={{ background: "rgba(0, 0, 0, 0.8)", backdropFilter: "blur(10px)" }}
         >
           <motion.div
             initial={{ scale: 0.8, opacity: 0, y: 20 }}
@@ -70,8 +84,8 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
               relative w-full max-w-sm overflow-hidden rounded-[2.5rem]
               border shadow-2xl backdrop-blur-3xl text-center p-0
               ${isSuccess 
-                ? "bg-gradient-to-b from-[#D9A441]/20 to-[#0f172a]/90 border-[#D9A441]/30" 
-                : "bg-gradient-to-b from-red-500/20 to-[#0f172a]/90 border-red-500/30"}
+                ? "bg-gradient-to-b from-[#D9A441]/20 to-[#0f172a]/95 border-[#D9A441]/50" 
+                : "bg-gradient-to-b from-red-500/20 to-[#0f172a]/95 border-red-500/50"}
             `}
           >
             <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
@@ -84,34 +98,61 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
                 <FaTimes size={14} />
               </button>
 
-              <motion.div
-                initial={{ scale: 0, rotate: -45 }} 
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
-                className={`
-                  w-20 h-20 mb-6 rounded-full flex items-center justify-center shadow-lg
-                  ${isSuccess 
-                    ? "bg-gradient-to-tr from-[#D9A441] to-[#fbbf24] text-black" 
-                    : "bg-gradient-to-tr from-red-500 to-red-400 text-white"}
-                `}
-              >
-                {isSuccess ? <FaCheck className="text-3xl" /> : <FaExclamationTriangle className="text-3xl" />}
-              </motion.div>
+              {/* Glowing Tick Container */}
+              <div className="relative mb-6">
+                {isSuccess && <div className="absolute inset-0 bg-[#D9A441] blur-2xl opacity-40 animate-pulse rounded-full"></div>}
+                <motion.div
+                  initial={{ scale: 0, rotate: -45 }} 
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
+                  className={`
+                    relative w-24 h-24 rounded-full flex items-center justify-center shadow-2xl z-10
+                    ${isSuccess 
+                      ? "bg-gradient-to-tr from-[#D9A441] to-[#fbbf24] text-black shadow-[#D9A441]/50" 
+                      : "bg-gradient-to-tr from-red-500 to-red-400 text-white shadow-red-500/50"}
+                  `}
+                >
+                  {isSuccess ? <FaCheck className="text-4xl drop-shadow-md" /> : <FaExclamationTriangle className="text-3xl" />}
+                </motion.div>
+              </div>
 
               <h3 className="text-2xl font-black text-white mb-2 tracking-tight">
                 {isSuccess ? "Booking Confirmed!" : "Booking Found"}
               </h3>
               
-              <div className="bg-black/30 rounded-xl px-4 py-2 mb-4 border border-white/5">
+              <div className="bg-black/40 rounded-xl px-4 py-2 mb-4 border border-white/10">
                 <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-0.5">Reference ID</p>
                 <p className={`font-mono text-xl font-bold tracking-wider ${isSuccess ? "text-[#D9A441]" : "text-red-400"}`}>
                   {refId}
                 </p>
               </div>
 
+              {/* Copy Tracking Link Section */}
+              {isSuccess && (
+                <div className="w-full mb-6">
+                  <div className="bg-white/5 rounded-lg p-3 border border-white/5 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 overflow-hidden">
+                        <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+                            <FaLink size={10} />
+                        </div>
+                        <div className="text-left overflow-hidden">
+                            <p className="text-[10px] text-gray-400 font-bold uppercase">Tracking Link</p>
+                            <p className="text-[10px] text-gray-300 truncate w-32 opacity-70">{trackingLink}</p>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={handleCopyLink}
+                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded-md transition flex items-center gap-1.5 shrink-0"
+                    >
+                        {copied ? <FaCheck/> : <FaCopy/>} {copied ? "Copied" : "Copy"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <p className="text-gray-300 text-sm leading-relaxed mb-8 font-medium px-2">
                 {isSuccess 
-                  ? "Get ready for the mountains! We have received your request and will contact you shortly."
+                  ? "We have received your request! Use the link above or your Reference ID to track your status."
                   : `We found an existing booking for this tour with your number. Current Status: ${data?.status || 'Pending'}.`
                 }
               </p>
@@ -123,7 +164,7 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
                 className={`
                   w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-all
                   ${isSuccess 
-                    ? "bg-gradient-to-r from-[#D9A441] to-[#fbbf24] text-black shadow-[#D9A441]/20" 
+                    ? "bg-gradient-to-r from-[#D9A441] to-[#fbbf24] text-black shadow-[#D9A441]/30" 
                     : "bg-white/10 text-white hover:bg-white/20 border border-white/10"}
                 `}
               >
@@ -137,9 +178,7 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
   );
 };
 
-/* -------------------------------------------
-   ➕ QUANTITY CONTROL
-------------------------------------------- */
+// ... QuantityControl & TickButton components remain same ...
 const QuantityControl = ({ label, subLabel, icon: Icon, value, onChange, min = 0 }) => (
   <div className="space-y-1.5">
     <label className="text-xs text-gray-300 flex justify-between items-center font-medium px-1">
@@ -168,9 +207,6 @@ const QuantityControl = ({ label, subLabel, icon: Icon, value, onChange, min = 0
   </div>
 );
 
-/* -------------------------------------------
-   ✅ TICK BUTTON
-------------------------------------------- */
 const TickButton = ({ label, icon: Icon, active, onClick, complimentary = false }) => (
   <button
     onClick={onClick}
@@ -246,7 +282,7 @@ export default function BookingSidebar({ tour = {} }) {
   }, []);
 
   const [form, setForm] = useState({
-    name: "", phone: "", email: "", travelDate: "",
+    name: "", phone: "", email: "", travelDate: null,
     adults: 2, children: 0,
     roomType: "standard", transport: "sharing",
     bonfire: false, meal: false, tea: false, comfortSeat: false, tourGuide: false,
@@ -418,20 +454,34 @@ export default function BookingSidebar({ tour = {} }) {
       </div>
 
       <div className="space-y-3">
-        {/* PREMIUM DATE INPUT */}
+        
+        {/* PREMIUM PERSONAL CALENDAR */}
         <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <FaCalendarAlt className="text-[#D9A441] text-lg group-hover:scale-110 transition-transform duration-300" />
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                <FaCalendarAlt className="text-[#D9A441] text-lg" />
             </div>
-            <input
-                type="date"
-                value={form.travelDate}
-                onChange={(e) => handle("travelDate", e.target.value)}
-                className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-black/20 border border-white/10 text-white font-semibold outline-none transition-all focus:bg-black/30 focus:border-[#D9A441]/50 focus:ring-1 focus:ring-[#D9A441]/50 hover:bg-black/30 hover:border-white/20 text-sm backdrop-blur-md shadow-sm placeholder-gray-400"
-                style={{ colorScheme: 'dark' }}
-                placeholder="Journey Date"
-                min={new Date().toISOString().split('T')[0]}
+            <DatePicker
+                selected={form.travelDate}
+                onChange={(date) => handle("travelDate", date)}
+                minDate={new Date()}
+                placeholderText="Select Journey Date"
+                dateFormat="dd MMM yyyy"
+                className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-black/20 border border-white/10 text-white font-semibold outline-none transition-all focus:bg-black/30 focus:border-[#D9A441]/50 focus:ring-1 focus:ring-[#D9A441]/50 cursor-pointer placeholder-gray-400 text-sm"
+                calendarClassName="!bg-[#1e293b] !border-white/10 !text-white !font-sans !rounded-xl !shadow-2xl !p-3 custom-datepicker"
+                dayClassName={() => "!text-gray-200 hover:!bg-[#D9A441] hover:!text-black !rounded-full"}
+                monthClassName={() => "!text-[#D9A441] !font-bold"}
+                weekDayClassName={() => "!text-gray-500"}
+                popperClassName="!z-[9999]"
             />
+            {/* Custom Styles for Datepicker Override */}
+            <style>{`
+                .custom-datepicker .react-datepicker__header { background: transparent; border-bottom: 1px solid rgba(255,255,255,0.1); }
+                .custom-datepicker .react-datepicker__current-month { color: white; margin-bottom: 10px; }
+                .custom-datepicker .react-datepicker__day--selected { background-color: #D9A441 !important; color: black !important; font-weight: bold; }
+                .custom-datepicker .react-datepicker__day--keyboard-selected { background-color: rgba(217, 164, 65, 0.3) !important; color: white !important; }
+                .react-datepicker__triangle { display: none; }
+                .react-datepicker-popper { z-index: 1000 !important; }
+            `}</style>
         </div>
 
         <input
@@ -469,6 +519,7 @@ export default function BookingSidebar({ tour = {} }) {
         <QuantityControl label="Kids" subLabel="Upto 5" icon={FaChild} value={form.children} onChange={(v) => handle('children', v)} min={0} />
       </div>
 
+      {/* Rest of the form remains same... */}
       <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
              <div className="bg-white/5 p-2 rounded-xl border border-white/5 flex flex-col justify-center">

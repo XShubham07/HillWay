@@ -5,8 +5,6 @@ import { motion } from "framer-motion";
 // -----------------------------------------
 // 1. OPTIMIZED BACKGROUND (FIX FOR LAG)
 // -----------------------------------------
-// Replaced heavy animated blobs/blurs with static CSS gradients.
-// This frees up the GPU and Main Thread for smooth scrolling.
 const SunriseDepthBackground = memo(() => {
   return (
     <div className="fixed inset-0 z-[-1] w-full h-full bg-[#022c22] pointer-events-none transform-gpu">
@@ -66,20 +64,23 @@ const TourCardSkeleton = memo(({ style = {} }) => (
 TourCardSkeleton.displayName = "TourCardSkeleton";
 
 // -----------------------------------------
-// 3. OPTIMIZED TOUR CARD
+// 3. OPTIMIZED TOUR CARD WITH SMOOTH HOVER
 // -----------------------------------------
 const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false }) => {
-  // Use simple CSS transition for hover instead of heavy motion variants where possible
   return (
     <motion.div
-      initial={!isCarousel ? { opacity: 0, y: 20 } : {}}
-      whileInView={!isCarousel ? { opacity: 1, y: 0 } : {}}
-      viewport={{ once: true, margin: "50px" }}
-      transition={{ duration: 0.4, delay: index * 0.05 }}
+      initial={!isCarousel ? { opacity: 0, y: 40, scale: 0.95 } : {}}
+      animate={!isCarousel ? { opacity: 1, y: 0, scale: 1 } : {}}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ 
+        duration: 0.6, 
+        delay: index * 0.1,
+        ease: [0.22, 0.61, 0.36, 1]
+      }}
       
       role="button"
       tabIndex={0}
-      className="tour-card-mobile group relative"
+      className="tour-card-smooth group relative"
       onClick={() => onView(tour)}
       onKeyDown={(e) => e.key === "Enter" && onView(tour)}
       style={{
@@ -90,39 +91,55 @@ const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false
         overflow: "hidden",
         cursor: "pointer",
         flexShrink: 0,
-        transform: "translateZ(0)", // Force GPU
+        transform: "translateZ(0)",
         backfaceVisibility: "hidden",
+        willChange: "transform, box-shadow",
+        transition: "all 0.5s cubic-bezier(0.22, 0.61, 0.36, 1)",
+        position: "relative",
+        zIndex: 1,
+        outline: "none",
+        WebkitMaskImage: "-webkit-radial-gradient(white, black)",
+        isolation: "isolate",
         ...style,
       }}
     >
       <div style={{ position: "relative", height: "320px", backgroundColor: "#f3f4f6" }}>
-        {/* Image with simple scale on hover via CSS group-hover */}
+        {/* Image with smooth scale */}
         <img
           src={tour.img}
           alt={tour.title}
           loading="lazy"
           decoding="async"
-          className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            transition: "transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1)",
+            willChange: "transform"
+          }}
+          className="group-hover:scale-110"
         />
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent pointer-events-none" />
 
         {/* Days Badge */}
-        <div className="absolute top-4 right-4 bg-white/95 px-3 py-1.5 rounded-full text-xs font-extrabold text-gray-900 shadow-sm z-10">
+        <div className="absolute top-4 right-4 bg-white/95 px-3 py-1.5 rounded-full text-xs font-extrabold text-gray-900 shadow-sm z-10 transition-all duration-500 group-hover:bg-amber-400 group-hover:scale-110">
           {tour.days}
         </div>
 
         {/* Content */}
         <div className="absolute bottom-6 left-5 right-5 z-10">
-          <h3 className="text-2xl font-black text-white mb-1 leading-none drop-shadow-md">{tour.title}</h3>
+          <h3 className="text-2xl font-black text-white mb-1 leading-none drop-shadow-md transition-all duration-500 group-hover:translate-y-[-2px]">
+            {tour.title}
+          </h3>
           
           <div className="flex justify-between items-end mt-2">
-            <p className="text-gray-200 text-xs font-medium line-clamp-2 max-w-[65%] leading-snug">
+            <p className="text-gray-200 text-xs font-medium line-clamp-2 max-w-[65%] leading-snug transition-all duration-500 group-hover:text-white">
               {tour.summary}
             </p>
-            <div className="text-right shrink-0">
+            <div className="text-right shrink-0 transition-all duration-500 group-hover:scale-110">
               <span className="block text-[10px] text-gray-400 font-bold uppercase tracking-wider">Starting</span>
-              <span className="block text-xl font-extrabold text-amber-400 drop-shadow-md group-hover:text-amber-300 transition-colors">
+              <span className="block text-xl font-extrabold text-amber-400 drop-shadow-md transition-colors duration-500 group-hover:text-amber-300">
                 {tour.price}
               </span>
             </div>
@@ -135,7 +152,7 @@ const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false
 TourCard.displayName = "TourCard";
 
 // -----------------------------------------
-// 4. MOBILE 3D CAROUSEL (Unchanged - Logic is fine)
+// 4. MOBILE 3D CAROUSEL
 // -----------------------------------------
 const Mobile3DCarousel = ({ items, onView, isMobile }) => {
   const scrollRef = useRef(null);
@@ -307,7 +324,12 @@ export default function Tours() {
       <div style={{ maxWidth: '1280px', margin: '0 auto', padding: isMobile ? '16px 0' : '24px 16px', marginBottom: '96px', paddingTop: isMobile ? '88px' : '100px' }}>
         <div style={{ padding: isMobile ? '0 16px' : '0' }}>
 
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="mb-8 text-center md:text-left">
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ duration: 0.6 }} 
+            className="mb-8 text-center md:text-left"
+          >
             <h1 className="text-4xl md:text-5xl font-black text-white drop-shadow-lg tracking-tight font-montserrat">Explore Packages</h1>
             <p className="text-emerald-100/80 mt-2 text-sm md:text-base font-medium">Handpicked adventures designed for you</p>
           </motion.div>
@@ -348,16 +370,47 @@ export default function Tours() {
         <style>{`
           .mobile-3d-scroll::-webkit-scrollbar { display: none; }
           .mobile-3d-scroll { -ms-overflow-style: none; scrollbar-width: none; scroll-snap-type: x proximity; }
-          .tour-card-mobile { -webkit-tap-highlight-color: transparent; }
-          .carousel-item { contain: layout paint; }
           
-          /* Simplified Desktop Hover */
+          /* Smooth Desktop Hover - OVERRIDE with 3D Glow */
           @media (min-width: 1025px) {
-            .tour-card-mobile:hover { 
-              transform: translateY(-4px); 
-              box-shadow: 0 12px 24px rgba(0,0,0,0.2); 
+            .tour-card-smooth {
+              filter: drop-shadow(0 0 0 transparent);
+            }
+            
+            .tour-card-smooth:hover { 
+              transform: translateY(-16px) scale(1.08) translateZ(0) !important; 
+              box-shadow: 
+                0 25px 60px rgba(0,0,0,0.35), 
+                0 15px 30px rgba(0,0,0,0.25),
+                0 0 40px rgba(250, 204, 21, 0.4),
+                0 0 80px rgba(250, 204, 21, 0.2) !important; 
+              z-index: 100 !important;
+              filter: drop-shadow(0 10px 30px rgba(250, 204, 21, 0.3)) !important;
+            }
+            
+            .tour-card-smooth::before {
+              content: '';
+              position: absolute;
+              inset: -2px;
+              border-radius: 26px;
+              padding: 2px;
+              background: linear-gradient(135deg, rgba(250, 204, 21, 0.3), transparent);
+              -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+              -webkit-mask-composite: xor;
+              mask-composite: exclude;
+              opacity: 0;
+              transition: opacity 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+              pointer-events: none;
+              z-index: -1;
+            }
+            
+            .tour-card-smooth:hover::before {
+              opacity: 1;
             }
           }
+          
+          .tour-card-smooth { -webkit-tap-highlight-color: transparent; }
+          .carousel-item { contain: layout paint; }
         `}</style>
       </div>
     </div>

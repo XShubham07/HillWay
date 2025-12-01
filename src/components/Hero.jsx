@@ -1,143 +1,147 @@
 // src/components/Hero.jsx
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useRef } from "react";
 
 export default function Hero() {
   const navigate = useNavigate();
-  const [isMobile, setIsMobile] = useState(false);
+  const sectionRef = useRef(null);
 
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  // Scroll Physics
-  const { scrollY } = useScroll();
-  const smoothScroll = useSpring(scrollY, {
-    stiffness: 120,
-    damping: 25,
-    restDelta: 0.001,
+  // ⚙️ SCROLL PHYSICS
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
   });
 
-  // Effects
-  const bgScale = useTransform(smoothScroll, [0, 1000], [1.4, 1]);
-  const contentScale = useTransform(smoothScroll, [0, 500], [1, 1.5]);
-  const contentOpacity = useTransform(smoothScroll, [0, 300], [1, 0]);
-  const contentY = useTransform(smoothScroll, [0, 500], [0, 100]);
+  // Parallax & Zoom Logic
+  // Background zooms IN slightly (creates depth)
+  const bgScale = useTransform(scrollYProgress, [0, 1], [1.1, 1.4]);
+  // Text zooms OUT (recedes away) and fades
+  const textScale = useTransform(scrollYProgress, [0, 0.6], [1, 0.8]);
+  const textOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  const textY = useTransform(scrollYProgress, [0, 1], [0, 100]);
 
-  // PREMIUM CUTOUT TEXT STYLE
+  // 🎨 CUTOUT STYLE
   const mountainCutout = {
-    backgroundImage: `
-      url('/mountain.webp'),
-      radial-gradient(circle at 50% 30%, rgba(255,255,255,0.35), rgba(255,255,255,0))
-    `,
+    backgroundImage: `url('/mountain.webp')`,
     backgroundSize: "cover",
-    backgroundPosition: "center 55%",
+    backgroundPosition: "center 50%",
     WebkitBackgroundClip: "text",
     backgroundClip: "text",
     WebkitTextFillColor: "transparent",
     color: "transparent",
-    filter: "brightness(1.25) contrast(1.2)",
-    animation: "shineMove 6s ease-in-out infinite",
-    willChange: "background-position, filter",
+    // Increased contrast for better visibility on mobile
+    filter: "brightness(1.4) contrast(1.2)",
+  };
+
+  // 🎬 PREMIUM ANIMATION VARIANTS
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: "100%", opacity: 0, rotateX: 45 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      rotateX: 0,
+      transition: {
+        type: "spring",
+        bounce: 0,
+        duration: 1.8, // Slow, elegant ease
+        ease: [0.22, 1, 0.36, 1],
+      },
+    },
   };
 
   return (
-    <section className="relative h-screen flex items-center justify-center overflow-hidden bg-[#0f172a]">
-
-      {/* Background */}
+    <section
+      ref={sectionRef}
+      className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-[#0f172a]"
+    >
+      {/* 1. BACKGROUND LAYER */}
       <motion.div
-        style={{ scale: bgScale, willChange: "transform" }}
-        className="absolute inset-0 z-0"
+        style={{ scale: bgScale }}
+        className="absolute inset-0 z-0 will-change-transform"
       >
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage: "url('/mountain.webp')",
-            filter: "brightness(0.85) contrast(1.1)",
-            transform: "translateZ(0)",
+            filter: "brightness(0.5) blur(0px)", // Darker for text pop
           }}
         />
-        <div className="absolute inset-0 bg-black/20" />
+        {/* Vignette for focus */}
+        <div className="absolute inset-0 bg-radial-gradient from-transparent to-black/80" />
       </motion.div>
 
-      {/* Main Content */}
+      {/* 2. TEXT CONTENT WRAPPER */}
       <motion.div
-        className="relative z-10 max-w-7xl mx-auto px-6 w-full text-center flex flex-col items-center"
+        className="relative z-10 flex flex-col items-center justify-center w-full px-4"
         style={{
-          scale: contentScale,
-          opacity: contentOpacity,
-          y: contentY,
+          scale: textScale,
+          opacity: textOpacity,
+          y: textY,
+          willChange: "transform, opacity"
         }}
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
       >
-        {/* Tagline */}
-        <h2 className="text-2xl md:text-4xl font-bold text-white tracking-wider drop-shadow-md mb-2">
-          Your Way to
-        </h2>
 
-        {/* PREMIUM TYPOGRAPHY */}
-        <h1 className="text-6xl md:text-8xl lg:text-9xl font-black leading-none tracking-tighter flex flex-col items-center gap-0">
-
-          {/* THE */}
-          <motion.span
-            style={mountainCutout}
-            className="block relative"
-            initial={{ opacity: 0, scale: 0.9, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 1, ease: "easeOut" }}
+        {/* --- TOP LINE: "Your way to the" --- */}
+        {/* Using a Mask-div to hide the text before it slides up */}
+        <div className="overflow-hidden mb-2 md:mb-4">
+          <motion.h3
+            variants={itemVariants}
+            className="font-serif italic text-white/90 text-xl md:text-3xl lg:text-4xl tracking-widest font-light text-center"
           >
-            THE
-          </motion.span>
+            Your way to the
+          </motion.h3>
+        </div>
 
-          {/* MOUNTAINS */}
-          <motion.span
-            style={mountainCutout}
-            className="block relative"
-            initial={{ opacity: 0, scale: 0.9, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 1.1, ease: "easeOut" }}
-          >
-            MOUNTAINS
-          </motion.span>
-        </h1>
+        {/* --- CENTER: "MOUNTAINS" --- */}
+        <div className="relative flex flex-wrap justify-center gap-x-[2px] md:gap-x-2 leading-none py-2 overflow-visible">
+          {"MOUNTAINS".split("").map((letter, i) => (
+            <motion.span
+              key={i}
+              variants={itemVariants}
+              style={mountainCutout}
+              // Responsive text size: 13vw on mobile ensures it fits, huge rem on desktop
+              className="text-[13vw] md:text-8xl lg:text-[11rem] xl:text-[13rem] font-black tracking-tighter inline-block transform will-change-transform"
+            >
+              {letter}
+            </motion.span>
+          ))}
+        </div>
 
-        {/* Description */}
-        <p className="mt-8 text-lg md:text-xl text-white/90 font-medium max-w-xl mx-auto drop-shadow-lg">
-          Experience the altitude. Premium tours and hidden trails awaiting your arrival.
-        </p>
+        {/* --- BOTTOM: DECORATIVE LINE & CTA --- */}
+        <motion.div
+          variants={itemVariants}
+          className="flex flex-col items-center mt-6 md:mt-12"
+        >
+          {/* Vertical Line */}
+          <div className="h-12 w-[1px] bg-gradient-to-b from-white to-transparent mb-6 opacity-50" />
 
-        {/* CTA */}
-        <motion.div className="mt-10" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
           <button
             onClick={() => navigate("/tours")}
-            className="px-10 py-4 bg-white text-black rounded-full font-extrabold text-lg shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all hover:shadow-[0_0_40px_rgba(255,255,255,0.5)]"
+            className="group relative px-8 py-3 bg-transparent border border-white/30 rounded-full text-white overflow-hidden transition-all duration-300 hover:border-white hover:bg-white/5"
           >
-            Start Journey
+            <span className="relative z-10 text-sm md:text-base font-bold tracking-widest uppercase">
+              Begin Expedition
+            </span>
+            {/* Hover Glare Effect */}
+            <div className="absolute inset-0 -translate-x-full group-hover:animate-[shine_1s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           </button>
         </motion.div>
-      </motion.div>
 
-      {/* Scroll Icon */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1, duration: 0.5 }}
-        style={{ opacity: contentOpacity }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20"
-      >
-        <div className="w-[26px] h-[42px] border-2 border-white/50 rounded-full flex justify-center p-2">
-          <motion.div
-            animate={{ y: [0, 12, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-            className="w-1 h-1 bg-white rounded-full"
-          />
-        </div>
       </motion.div>
     </section>
   );

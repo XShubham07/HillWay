@@ -6,30 +6,37 @@ export async function GET(request) {
   await dbConnect();
   const { searchParams } = new URL(request.url);
   const phone = searchParams.get('phone');
-  const refId = searchParams.get('refId'); // Expecting format like 'HW-A1B2C3' or just 'A1B2C3'
+  const refId = searchParams.get('refId');
 
-  if (!phone || !refId) {
-    return NextResponse.json({ success: false, error: "Phone and Reference ID are required" }, { status: 400 });
+  // Require at least RefID
+  if (!refId) {
+    return NextResponse.json({ success: false, error: "Reference ID is required" }, { status: 400 });
   }
 
   try {
-    // 1. Clean the Reference ID input (remove '#', 'HW-', whitespace)
     const cleanRef = refId.replace(/#|HW-/gi, '').trim().toUpperCase();
+    let match = null;
 
-    // 2. Fetch all bookings for this phone number (Optimization: Indexing phone in DB recommended)
-    // We search by phone first because searching by partial _id in Mongo is slower without specific setup.
-    // Also, phone + RefID acts as a simple 2-factor verification.
-    const userBookings = await Booking.find({ 
-      phone: { $regex: phone.trim(), $options: 'i' } // Flexible search for phone
-    });
-
-    // 3. Filter in memory to match the last 6 characters of the ObjectId
-    const match = userBookings.find(b => 
-      b._id.toString().slice(-6).toUpperCase() === cleanRef
-    );
+    if (phone) {
+      // 1. If phone is provided, search by phone first (More efficient)
+      const userBookings = await Booking.find({ 
+        phone: { $regex: phone.trim(), $options: 'i' } 
+      });
+      match = userBookings.find(b => 
+        b._id.toString().slice(-6).toUpperCase() === cleanRef
+      );
+    } else {
+      // 2. If NO phone, search by ID suffix alone.
+      // Note: In a production app with millions of records, you should store the 'shortId' 
+      // as a separate indexed field. For this scale, scanning is acceptable.
+      const allBookings = await Booking.find({});
+      match = allBookings.find(b => 
+        b._id.toString().slice(-6).toUpperCase() === cleanRef
+      );
+    }
 
     if (!match) {
-      return NextResponse.json({ success: false, error: "Booking not found. Please check your details." }, { status: 404 });
+      return NextResponse.json({ success: false, error: "Booking not found." }, { status: 404 });
     }
 
     return NextResponse.json({ success: true, data: match });

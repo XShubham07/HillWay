@@ -3,12 +3,12 @@
 @tailwind utilities;
 
 /* =========================================================
-   1. GLOBAL THEME VARIABLES — EMERALD + ALPINE + GOLD
+   1. GLOBAL THEME VARIABLES
    ========================================================= */
 :root {
-  --emerald: #059669;        /* Emerald 600 */
-  --alpine: #064e3b;         /* Deep Alpine Green */
-  --gold: #facc15;           /* Sunrise Gold */
+  --emerald: #059669;
+  --alpine: #064e3b;
+  --gold: #facc15;
   --gold-soft: rgba(250, 204, 21, 0.28);
   --emerald-glow: rgba(5, 150, 105, 0.22);
   --alpine-glow: rgba(6, 78, 59, 0.25);
@@ -18,79 +18,66 @@
 /* =========================================================
    2. FULL PAGE 3D BACKGROUND THEME
    ========================================================= */
-html, body, #root {
+html,
+body,
+#root {
   width: 100%;
   min-height: 100vh;
-  isolation: isolate;
-  background: linear-gradient(
-      135deg,
-      var(--alpine) 0%,
-      var(--emerald) 40%,
-      #0d2d23 70%
-    )
-    fixed;
-  background-attachment: fixed;
+  /* FIX: Removed 'isolation: isolate' to prevent stacking context bugs on mobile */
+  background-color: var(--alpine);
+  /* Fallback */
   color: var(--dark);
 }
 
-/* EMERALD–GOLD RADIANCE LAYERS */
+/* FIX: Moved gradient to a fixed pseudo-element.
+   This prevents 'background-attachment: fixed' jitter on mobile.
+*/
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background:
-    radial-gradient(
-      circle at top center,
-      var(--gold-soft) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      circle at 20% 70%,
-      var(--emerald-glow) 0%,
-      transparent 55%
-    ),
-    radial-gradient(
-      circle at 85% 80%,
-      var(--alpine-glow) 0%,
-      transparent 60%
-    );
-  z-index: -1;
-  pointer-events: none;
-  filter: blur(40px);
+  background: linear-gradient(135deg,
+      var(--alpine) 0%,
+      var(--emerald) 40%,
+      #0d2d23 70%);
+  z-index: -2;
+  /* Hardware acceleration for background */
+  transform: translateZ(0);
 }
 
-/* SUNRISE GOLD ORB */
+/* EMERALD–GOLD RADIANCE LAYERS */
+/* Using a separate div logic approach via pseudo-element */
 body::after {
   content: "";
   position: fixed;
-  bottom: 10vh;
-  left: 50%;
-  width: 400px;
-  height: 400px;
-  transform: translateX(-50%);
-  background: radial-gradient(
-    circle,
-    rgba(250, 204, 21, 0.45),
-    rgba(250, 204, 21, 0.13),
-    transparent 70%
-  );
+  inset: 0;
+  background:
+    radial-gradient(circle at top center, var(--gold-soft) 0%, transparent 50%),
+    radial-gradient(circle at 20% 70%, var(--emerald-glow) 0%, transparent 55%),
+    radial-gradient(circle at 85% 80%, var(--alpine-glow) 0%, transparent 60%);
   z-index: -1;
   pointer-events: none;
-  filter: blur(70px);
+  /* FIX: Reduced blur slightly for performance */
+  filter: blur(30px);
+  transform: translateZ(0);
 }
 
 /* =========================================================
-   3. YOUR ORIGINAL RESET + LENIS
+   3. RESET + LENIS
    ========================================================= */
-html.lenis, html.lenis body {
+html.lenis,
+html.lenis body {
   height: auto;
 }
+
 .lenis.lenis-smooth {
   scroll-behavior: auto !important;
 }
+
 .lenis.lenis-smooth [data-lenis-prevent] {
   overscroll-behavior: contain;
 }
+
 .lenis.lenis-stopped {
   overflow: hidden;
 }
@@ -104,13 +91,8 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* REMOVE OLD NON-HOME BG (Your theme overrides this) */
-body:not(.home-page) {
-  background: none !important;
-}
-
 /* =========================================================
-   4. SCROLLBAR (EMERALD THEME)
+   4. SCROLLBAR
    ========================================================= */
 html {
   scrollbar-width: thin;
@@ -127,56 +109,24 @@ html {
   border-radius: 10px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(5, 150, 105, 0.7);
-}
-
 /* =========================================================
-   5. GLOW TEXT SHADOW
+   5. UTILITIES
    ========================================================= */
 .text-shadow {
-  text-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
 /* =========================================================
-   6. BUTTON RIPPLE
-   ========================================================= */
-.btn-ripple {
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-  transform: translate3d(0, 0, 0);
-  user-select: none;
-}
-.btn-ripple::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle, rgba(255,255,255,0.6) 10%, transparent 80%);
-  transform: scale(4);
-  opacity: 0;
-  transition: transform 0.6s ease-out, opacity 0.6s ease-out;
-  pointer-events: none;
-}
-.btn-ripple:active::after {
-  transform: scale(0);
-  opacity: 0.4;
-  transition: 0s;
-}
-.btn-ripple:active {
-  transform: scale(0.96);
-  transition: transform 0.1s;
-}
-
-/* =========================================================
-   7. NAVBAR CLEAN (EMERALD GLASS)
+   6. NAVBAR CLEAN
    ========================================================= */
 .navbar-clean {
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  /* Slightly reduced for mobile perf */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
   transition: all 0.3s ease;
+  /* FIX: Removed global 'will-change' to let browser decide */
 }
 
 .nav-link-clean {
@@ -186,27 +136,26 @@ html {
   color: #e2e8f0;
   transition: all .3s ease;
 }
+
 .nav-link-clean:hover {
-  background: rgba(250,204,21,0.2);
+  background: rgba(250, 204, 21, 0.2);
   color: var(--gold);
-}
-.nav-active-clean {
-  background: rgba(250,204,21,0.3);
-  color: var(--gold);
-  font-weight: 600;
 }
 
 /* =========================================================
-   8. FEATURES GLASS CARDS (EMERALD DREAM)
+   7. FEATURES GLASS CARDS (CRITICAL FIXES HERE)
    ========================================================= */
 .glass-card {
-  background: rgba(255,255,255,0.22);
+  background: rgba(255, 255, 255, 0.22);
+  /* FIX: -webkit- prefix ensures iOS supports the blur */
+  -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
-  border: 1px solid rgba(255,255,255,0.4);
-  box-shadow: 0 8px 32px rgba(5,150,105,0.25);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 32px rgba(5, 150, 105, 0.25);
   border-radius: 32px;
-  transform: translateZ(0);
-  contain: layout paint;
+
+  /* FIX: Removed 'contain: layout paint' as it clips children with Framer Motion sometimes */
+  /* FIX: Removed 'transform: translateZ(0)' to allow Framer Motion to control the layer */
 }
 
 /* Gradient accent for icons & highlights */
@@ -215,61 +164,73 @@ html {
 }
 
 /* =========================================================
-   9. TOUR CARDS (UNCHANGED, PERFECT)
+   8. MOBILE OPTIMIZATIONS & GPU HANDLING
    ========================================================= */
 
-.mobile-3d-scroll {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-  scroll-snap-type: x proximity;
-}
-.mobile-3d-scroll::-webkit-scrollbar { display: none; }
-
-.tour-card-mobile {
-  transition: transform .15s cubic-bezier(.25,.46,.45,.94), box-shadow .2s ease;
-  transform: translateZ(0);
-}
-@media (min-width: 1025px) {
+/* FIX: Only apply hover effects on devices that actually have hover */
+@media (hover: hover) {
   .tour-card-mobile:hover {
-    transform: translateY(-8px) scale(1.05) !important;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.18) !important;
-    z-index: 50 !important;
+    transform: translateY(-8px) scale(1.05);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+    z-index: 50;
   }
 }
 
-/* =========================================================
-   10. MODALS, MOBILE RESPONSIVE, REDUCED MOTION
-   ========================================================= */
-.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
-.no-scrollbar::-webkit-scrollbar { display: none; }
-
-.modal-overlay-fixed {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-}
-
-.modal-content-box {
-  width: 100%;
-  max-width: 400px;
-  max-height: 85vh;
-  display: flex;
-  flex-direction: column;
-  margin: 0 auto;
-}
-
-@media (max-width: 640px) {
-  .decorative-blob { display: none; }
-}
-
+/* REDUCED MOTION PREFERENCE */
 @media (prefers-reduced-motion: reduce) {
+
   .tour-card-mobile,
   .glass-card {
     animation-duration: 0s !important;
     transition-duration: 0s !important;
+  }
+}
+
+/* CRITICAL FIX: 
+   1. Removed .glass-card from "transform: none !important". 
+      Framer Motion MUST control the transform.
+   2. Removed 'will-change' from this block. 
+      Framer Motion handles will-change via inline styles where needed.
+*/
+.btn-ripple {
+  transform: translate3d(0, 0, 0);
+  /* Force GPU only for ripple */
+}
+
+/* Specific fix for touch devices to prevent white flashes */
+@media (max-width: 768px) {
+  .glass-card {
+    /* Slightly reduce complexity on old phones */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+}
+
+/* Optimized Frosted Glass */
+.glass-card {
+  /* 1. Base High-Performance Translucency */
+  background: rgba(255, 255, 255, 0.25);
+
+  /* 2. The Frost Effect */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  /* 3. Border & Shadow for Depth */
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.05),
+    0 10px 15px rgba(0, 0, 0, 0.1);
+
+  /* 4. Smooth rendering hints */
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  /* Hardware Acceleration */
+}
+
+/* Fallback for low-end devices that don't support backdrop-filter */
+@supports not (backdrop-filter: blur(12px)) {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.85);
+    /* More opaque if no blur */
   }
 }

@@ -1,38 +1,111 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  FaSearch, FaTicketAlt, FaPhone, FaMapMarkerAlt, FaCalendarAlt, 
-  FaUserFriends, FaMoneyBillWave, FaCheckCircle, FaTimesCircle, FaClock 
+  FaSearch, FaTicketAlt, FaMapMarkerAlt, FaCalendarAlt, 
+  FaUserFriends, FaMoneyBillWave, FaCheckCircle, FaTimesCircle, 
+  FaClock, FaShareAlt, FaLink, FaCopy, FaPaste
 } from "react-icons/fa";
 
 export default function BookingStatus() {
-  const [phone, setPhone] = useState("");
-  const [refId, setRefId] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Tabs: 'details' or 'link'
+  const [activeTab, setActiveTab] = useState("details");
+
+  // Inputs
+  const [refId, setRefId] = useState(searchParams.get("refId") || "");
+  const [linkInput, setLinkInput] = useState("");
+  
+  // Data State
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [linkCopied, setLinkCopied] = useState(false);
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
+  // --- CORE FETCH LOGIC ---
+  const fetchBookingStatus = async (refVal, phoneVal = null) => {
+    if (!refVal) {
+      setError("Please provide a Reference ID.");
+      return;
+    }
+
     setLoading(true);
     setError("");
     setBooking(null);
 
     try {
-      const res = await fetch(`/api/bookings/status?phone=${encodeURIComponent(phone)}&refId=${encodeURIComponent(refId)}`);
+      // Build query params
+      let url = `/api/bookings/status?refId=${encodeURIComponent(refVal)}`;
+      if (phoneVal) url += `&phone=${encodeURIComponent(phoneVal)}`;
+
+      const res = await fetch(url);
       const data = await res.json();
 
       if (data.success) {
         setBooking(data.data);
+        const shortId = data.data._id.slice(-6).toUpperCase();
+        
+        // Update URL to reflect the found booking
+        setSearchParams({ refId: shortId }, { replace: true });
+        
+        // Sync input
+        setRefId(shortId);
       } else {
-        setError(data.error);
+        setError(data.error || "Booking not found.");
       }
     } catch (err) {
-      setError("Failed to connect. Please try again.");
+      setError("Failed to connect. Please check your internet.");
     }
     setLoading(false);
   };
 
+  // 1. Auto-fetch on Load
+  useEffect(() => {
+    const urlRef = searchParams.get("refId");
+    const urlPhone = searchParams.get("phone"); // Still support phone from link if present
+    if (urlRef) {
+      fetchBookingStatus(urlRef, urlPhone);
+    }
+  }, []);
+
+  // 2. Manual Search (Details Tab - ID ONLY)
+  const handleDetailsSearch = (e) => {
+    e.preventDefault();
+    fetchBookingStatus(refId);
+  };
+
+  // 3. Manual Search (Link Tab)
+  const handleLinkSearch = (e) => {
+    e.preventDefault();
+    try {
+      const urlObj = new URL(linkInput);
+      const r = urlObj.searchParams.get("refId");
+      const p = urlObj.searchParams.get("phone"); // Optional now
+      
+      if (r) {
+        fetchBookingStatus(r, p);
+      } else {
+        setError("Invalid link. Reference ID missing.");
+      }
+    } catch (err) {
+      setError("Please enter a valid URL.");
+    }
+  };
+
+  // 4. Copy Result Link
+  const handleCopyLink = () => {
+    if (!booking) return;
+    const shortId = booking._id.slice(-6).toUpperCase();
+    // Generate link with just refId for simplicity, or include phone if you want stricter sharing
+    const link = `${window.location.origin}/status?refId=${shortId}`;
+    
+    navigator.clipboard.writeText(link);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
+  };
+
+  // --- HELPERS ---
   const getStatusColor = (status) => {
     switch (status) {
       case 'Confirmed': return 'text-green-400 bg-green-400/10 border-green-400/20';
@@ -52,7 +125,6 @@ export default function BookingStatus() {
   return (
     <div className="min-h-screen pt-28 pb-20 px-4 bg-[#0f172a] text-white font-inter selection:bg-[#D9A441] selection:text-black">
       
-      {/* Background Ambience */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#0891b2] opacity-10 blur-[120px] rounded-full" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#D9A441] opacity-10 blur-[120px] rounded-full" />
@@ -60,68 +132,100 @@ export default function BookingStatus() {
 
       <div className="max-w-xl mx-auto relative z-10">
         
-        {/* Header */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold font-montserrat tracking-tight mb-3">
             Track Your <span className="text-[#D9A441]">Journey</span>
           </h1>
-          <p className="text-gray-400 text-sm">Enter your booking details to view current status</p>
+          <p className="text-gray-400 text-sm">Check status via ID or Link</p>
         </div>
 
-        {/* Search Form */}
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-2xl mb-8">
-          <form onSubmit={handleSearch} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1">Booking Reference ID</label>
-              <div className="relative group">
-                <FaTicketAlt className="absolute left-4 top-4 text-gray-500 group-focus-within:text-[#D9A441] transition-colors" />
-                <input 
-                  type="text" 
-                  placeholder="e.g. HW-A1B2C3" 
-                  value={refId}
-                  onChange={(e) => setRefId(e.target.value)}
-                  className="w-full bg-black/20 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-[#D9A441]/50 focus:ring-1 focus:ring-[#D9A441]/50 transition-all font-mono tracking-wide"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1">Phone Number</label>
-              <div className="relative group">
-                <FaPhone className="absolute left-4 top-4 text-gray-500 group-focus-within:text-[#D9A441] transition-colors" />
-                <input 
-                  type="tel" 
-                  placeholder="Registered Mobile Number" 
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full bg-black/20 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-[#D9A441]/50 focus:ring-1 focus:ring-[#D9A441]/50 transition-all"
-                  required
-                />
-              </div>
-            </div>
-
+        {/* --- TRACKING CARD --- */}
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-1 rounded-3xl shadow-2xl mb-8">
+          
+          {/* Tabs */}
+          <div className="flex p-1 bg-black/20 rounded-[22px] mb-2">
             <button 
-              type="submit" 
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-[#0891b2] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0891b2] text-white font-bold py-4 rounded-xl shadow-lg shadow-cyan-900/20 transform active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-4"
+              onClick={() => setActiveTab('details')}
+              className={`flex-1 py-3 rounded-2xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'details' ? 'bg-[#1e293b] text-white shadow-lg border border-white/10' : 'text-gray-400 hover:text-white'}`}
             >
-              {loading ? <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span> : <><FaSearch /> Check Status</>}
+              <FaTicketAlt /> Booking ID
             </button>
-          </form>
+            <button 
+              onClick={() => setActiveTab('link')}
+              className={`flex-1 py-3 rounded-2xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'link' ? 'bg-[#1e293b] text-white shadow-lg border border-white/10' : 'text-gray-400 hover:text-white'}`}
+            >
+              <FaLink /> Via Link
+            </button>
+          </div>
+
+          <div className="p-5">
+            {/* OPTION 1: DETAILS FORM (ID ONLY) */}
+            {activeTab === 'details' && (
+              <form onSubmit={handleDetailsSearch} className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-300">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1">Reference ID</label>
+                  <div className="relative group">
+                    <FaTicketAlt className="absolute left-4 top-4 text-gray-500 group-focus-within:text-[#D9A441] transition-colors" />
+                    <input 
+                      type="text" 
+                      placeholder="e.g. HW-A1B2C3" 
+                      value={refId}
+                      onChange={(e) => setRefId(e.target.value)}
+                      className="w-full bg-black/20 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-[#D9A441]/50 focus:ring-1 focus:ring-[#D9A441]/50 transition-all font-mono tracking-wide"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-[#0891b2] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0891b2] text-white font-bold py-4 rounded-xl shadow-lg shadow-cyan-900/20 transform active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-2"
+                >
+                  {loading ? <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span> : <><FaSearch /> Check Status</>}
+                </button>
+              </form>
+            )}
+
+            {/* OPTION 2: LINK FORM */}
+            {activeTab === 'link' && (
+              <form onSubmit={handleLinkSearch} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1">Paste Tracking Link</label>
+                  <div className="relative group">
+                    <FaPaste className="absolute left-4 top-4 text-gray-500 group-focus-within:text-[#D9A441] transition-colors" />
+                    <input 
+                      type="url" 
+                      placeholder="https://hillway.in/status?refId=..." 
+                      value={linkInput}
+                      onChange={(e) => setLinkInput(e.target.value)}
+                      className="w-full bg-black/20 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-[#D9A441]/50 focus:ring-1 focus:ring-[#D9A441]/50 transition-all text-sm"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-[#D9A441] to-[#fbbf24] hover:from-[#fbbf24] hover:to-[#D9A441] text-black font-bold py-4 rounded-xl shadow-lg shadow-yellow-900/20 transform active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-2"
+                >
+                  {loading ? <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-black"></span> : <><FaSearch /> Track Via Link</>}
+                </button>
+              </form>
+            )}
+          </div>
 
           {error && (
-            <motion.div 
-              initial={{ opacity: 0, y: -10 }} 
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm text-center font-medium"
-            >
-              {error}
-            </motion.div>
+            <div className="px-6 pb-6 animate-in fade-in zoom-in duration-300">
+              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs text-center font-bold">
+                {error}
+              </div>
+            </div>
           )}
         </div>
 
-        {/* Result Card */}
+        {/* --- RESULT CARD --- */}
         <AnimatePresence mode="wait">
           {booking && (
             <motion.div 
@@ -130,12 +234,28 @@ export default function BookingStatus() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ type: "spring", stiffness: 200, damping: 20 }}
-              className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl"
+              className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative"
             >
-              {/* Card Header */}
-              <div className="bg-white/5 p-6 border-b border-white/5 flex justify-between items-center">
+              <button 
+                onClick={handleCopyLink}
+                className="absolute top-6 right-6 z-20 flex items-center gap-2 bg-black/30 hover:bg-black/50 text-white/80 hover:text-white px-3 py-1.5 rounded-full text-xs font-bold transition-all border border-white/10 backdrop-blur-md"
+              >
+                {linkCopied ? (
+                  <>
+                    <FaCheckCircle className="text-green-400" />
+                    <span className="text-green-400">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <FaShareAlt />
+                    <span>Share Status</span>
+                  </>
+                )}
+              </button>
+
+              <div className="bg-white/5 p-6 border-b border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                  <h2 className="text-xl font-bold text-white mb-1">{booking.tourTitle}</h2>
+                  <h2 className="text-xl font-bold text-white mb-1 pr-24">{booking.tourTitle}</h2>
                   <p className="text-xs text-gray-400 font-mono">ID: #HW-{booking._id.slice(-6).toUpperCase()}</p>
                 </div>
                 <div className={`px-4 py-2 rounded-full border flex items-center gap-2 text-sm font-bold shadow-lg ${getStatusColor(booking.status)}`}>
@@ -144,9 +264,7 @@ export default function BookingStatus() {
                 </div>
               </div>
 
-              {/* Card Body */}
               <div className="p-6 space-y-6">
-                
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-black/20 p-4 rounded-2xl border border-white/5">
                     <p className="text-xs text-gray-500 font-bold uppercase mb-1">Travel Date</p>
@@ -184,7 +302,6 @@ export default function BookingStatus() {
                   </div>
                 </div>
 
-                {/* Total Price */}
                 <div className="mt-4 pt-6 border-t border-dashed border-white/10 flex justify-between items-end">
                   <span className="text-gray-400 text-sm font-medium">Total Booking Value</span>
                   <div className="text-right">
@@ -197,19 +314,16 @@ export default function BookingStatus() {
                   </div>
                 </div>
 
-                {/* Admin Note (Optional) */}
                 {booking.adminNotes && (
                   <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl mt-4">
                     <p className="text-xs text-blue-300 font-bold uppercase mb-1">Note from Admin</p>
                     <p className="text-sm text-blue-100 italic">"{booking.adminNotes}"</p>
                   </div>
                 )}
-
               </div>
             </motion.div>
           )}
         </AnimatePresence>
-
       </div>
     </div>
   );

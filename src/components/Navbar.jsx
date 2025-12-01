@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
 // ICONS
-import { FaHome, FaMountain, FaBlog, FaPhone, FaWhatsapp, FaBars, FaTimes,FaSearch} from "react-icons/fa";
+import { FaHome, FaMountain, FaBlog, FaPhone, FaWhatsapp, FaBars, FaTimes, FaSearch } from "react-icons/fa";
 
 // --- 🎨 COLOR PALETTE ---
 const COLORS = {
@@ -46,79 +46,90 @@ export default function Navbar() {
 
   return (
     <>
-      {/* CSS OVERRIDE FOR MOBILE GLASS */}
+      {/* =======================
+         🎨 GLOBAL STYLES 
+         =======================
+      */}
       <style>{`
+        /* Aquamorphism Base Class */
+        .aqua-glass {
+          background: rgba(16, 42, 67, 0.65) !important; /* Lower opacity for depth */
+          backdrop-filter: blur(25px) saturate(200%) !important; /* Strong blur & high saturation */
+          -webkit-backdrop-filter: blur(25px) saturate(200%) !important;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important; /* Glossy edge */
+          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25) !important;
+        }
+
+        /* Mobile specific adjustments */
         .glass-mobile {
-          background: rgba(16, 42, 67, 0.35) !important; /* Lower opacity for blur visibility */
-          backdrop-filter: blur(30px) saturate(180%) !important;
-          -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+          background: rgba(16, 42, 67, 0.75) !important;
+          backdrop-filter: blur(35px) saturate(180%) !important;
+          -webkit-backdrop-filter: blur(35px) saturate(180%) !important;
           border-top: 1px solid rgba(255, 255, 255, 0.15) !important;
-          box-shadow: 0 -10px 40px rgba(0,0,0,0.3) !important;
+          box-shadow: 0 -10px 40px rgba(0,0,0,0.4) !important;
         }
       `}</style>
 
       {/* =======================
-          🖥️ DESKTOP NAVBAR
+          🖥️ DESKTOP NAVBAR (FIXED)
       ======================== */}
       <motion.nav
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        className="sticky top-0 w-full z-50 hidden md:block"
+        // CHANGED: 'sticky' -> 'fixed' to prevent scrolling away
+        className="fixed top-0 left-0 right-0 z-50 hidden md:block"
       >
-        <div
-          style={{
-            background: `rgba(16, 42, 67, 0.85)`,
-            backdropFilter: "blur(20px) saturate(180%)",
-            WebkitBackdropFilter: "blur(20px) saturate(180%)",
-            borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
-          }}
-        >
+        {/* Applied Custom Aqua Class */}
+        <div className="aqua-glass transition-all duration-300">
           <div className="max-w-7xl mx-auto px-6 py-3.5">
             <div className="flex justify-between items-center">
+
               {/* Logo */}
               <Link
                 to="/"
-                className="text-3xl font-extrabold text-white tracking-tight"
+                className="text-3xl font-extrabold text-white tracking-tight drop-shadow-md"
                 style={{ fontFamily: "'Montserrat', sans-serif" }}
               >
                 HillWay
               </Link>
 
-              {/* Links Container (Background Removed as requested) */}
-              <div className="flex items-center gap-2">
+              {/* Links Container */}
+              <div className="flex items-center gap-1">
                 {navLinks.map((link) => {
                   const isActive = location.pathname === link.path;
                   return (
                     <Link
                       key={link.path}
                       to={link.path}
-                      className="relative px-6 py-2.5 rounded-full text-sm transition-all duration-300 z-10 flex items-center gap-2 overflow-hidden"
+                      className="relative px-6 py-2.5 rounded-full text-sm transition-colors duration-300 z-10 flex items-center gap-2 overflow-hidden"
                       style={{
                         color: isActive ? COLORS.navy : COLORS.stone,
                         fontFamily: "'Inter', sans-serif",
-                        fontWeight: isActive ? 800 : 500,
+                        fontWeight: isActive ? 700 : 500,
                       }}
                     >
-                      {/* Active Background: Solid Accent + Round Pill */}
+                      {/* Active Background: Fluid Animation */}
                       {isActive && (
                         <motion.div
                           layoutId="active-bg"
                           className="absolute inset-0 rounded-full -z-10"
-                          transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                          // CHANGED: Smoother spring physics (less bouncy, more fluid)
+                          transition={{ type: "spring", stiffness: 280, damping: 24 }}
                           style={{
                             background: COLORS.gold,
+                            boxShadow: "0 0 15px rgba(217, 164, 65, 0.4)" // Glow effect
                           }}
                         />
                       )}
 
-                      {/* Icon Animation: Visible ONLY when active */}
-                      <AnimatePresence>
+                      {/* Icon Animation */}
+                      <AnimatePresence mode="popLayout">
                         {isActive && (
                           <motion.span
-                            initial={{ scale: 0, rotate: -45, width: 0, opacity: 0 }}
-                            animate={{ scale: 1, rotate: 0, width: "auto", opacity: 1 }}
-                            exit={{ scale: 0, width: 0, opacity: 0 }}
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0, opacity: 0 }}
                             transition={{ type: "spring", stiffness: 300, damping: 20 }}
                             className="relative z-10 flex items-center justify-center"
                           >
@@ -126,8 +137,11 @@ export default function Navbar() {
                           </motion.span>
                         )}
                       </AnimatePresence>
-                      
-                      <span className="relative z-10">{link.label}</span>
+
+                      {/* Text Label - Added layout prop for smooth sliding */}
+                      <motion.span layout className="relative z-10">
+                        {link.label}
+                      </motion.span>
                     </Link>
                   );
                 })}
@@ -137,7 +151,8 @@ export default function Navbar() {
               <a
                 href={whatsappLink}
                 target="_blank"
-                className="flex items-center gap-2 px-6 py-2.5 text-white font-semibold rounded-full shadow-lg hover:scale-105 transition-all duration-300"
+                rel="noreferrer"
+                className="flex items-center gap-2 px-6 py-2.5 text-white font-semibold rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
                 style={{
                   background: COLORS.forest,
                   border: "1px solid rgba(255, 255, 255, 0.15)",
@@ -153,22 +168,16 @@ export default function Navbar() {
       </motion.nav>
 
       {/* =======================
-          📱 MOBILE HEADER
+          📱 MOBILE HEADER (FIXED)
       ======================== */}
       <motion.header
         initial={{ y: -60, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.7 }}
-        className="fixed top-0 w-full z-50 md:hidden"
+        // CHANGED: 'fixed' to stay on top
+        className="fixed top-0 left-0 right-0 z-50 md:hidden"
       >
-        <div
-          style={{
-            background: `rgba(16, 42, 67, 0.8)`,
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
-          }}
-        >
+        <div className="aqua-glass">
           <div className="flex justify-between items-center px-5 py-3">
             <Link
               to="/"
@@ -184,7 +193,7 @@ export default function Navbar() {
               whileTap={{ scale: 0.95 }}
               style={{
                 background: COLORS.alpine,
-                border: "1px solid rgba(255, 255, 255, 0.1)",
+                border: "1px solid rgba(255, 255, 255, 0.15)",
               }}
             >
               <FaBars size={18} />
@@ -228,12 +237,12 @@ export default function Navbar() {
               <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#D9A441] opacity-20 blur-[80px] pointer-events-none" />
 
               <div className="p-8 relative z-10 flex flex-col items-center">
-                
+
                 {/* Handle */}
                 <div className="w-12 h-1.5 rounded-full bg-white/20 mb-8" />
 
                 {/* Close */}
-                <button 
+                <button
                   onClick={() => setOpen(false)}
                   className="absolute top-6 right-6 p-2.5 bg-white/10 rounded-full text-white hover:bg-white/20 transition border border-white/10"
                 >
@@ -256,13 +265,12 @@ export default function Navbar() {
                           onClick={() => setOpen(false)}
                           className="flex items-center gap-4 px-6 py-4 rounded-full text-lg font-bold transition-all w-full relative overflow-hidden"
                           style={{
-                            background: isActive ? COLORS.gold : "rgba(0, 0, 0, 0.2)",
+                            background: isActive ? COLORS.gold : "rgba(255, 255, 255, 0.03)",
                             color: isActive ? COLORS.navy : COLORS.white,
                             border: isActive ? `1px solid ${COLORS.gold}` : "1px solid rgba(255, 255, 255, 0.05)",
                             fontFamily: "'Inter', sans-serif"
                           }}
                         >
-                          {/* Icon Animation on Mobile too */}
                           <AnimatePresence>
                             {isActive && (
                               <motion.span
@@ -275,7 +283,7 @@ export default function Navbar() {
                               </motion.span>
                             )}
                           </AnimatePresence>
-                          
+
                           {link.label}
                         </Link>
                       </motion.div>

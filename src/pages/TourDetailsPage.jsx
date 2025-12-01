@@ -26,9 +26,9 @@ const fontStyles = `
 // Added 'transform-gpu' to force GPU composition.
 const Background = memo(() => (
   <div className="fixed inset-0 z-[-1] bg-[#022c22] pointer-events-none transform-gpu">
-     <div className="absolute inset-0 opacity-[0.04] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" style={{ transform: 'translateZ(0)' }}></div>
-     <div className="absolute -top-[20%] left-1/2 -translate-x-1/2 w-[80%] h-[50%] bg-[#D9A441] opacity-15 blur-[120px] rounded-full mix-blend-screen" style={{ transform: 'translateZ(0)' }}></div>
-     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#022c22]/40 to-[#022c22]"></div>
+    <div className="absolute inset-0 opacity-[0.04] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" style={{ transform: 'translateZ(0)' }}></div>
+    <div className="absolute -top-[20%] left-1/2 -translate-x-1/2 w-[80%] h-[50%] bg-[#D9A441] opacity-15 blur-[120px] rounded-full mix-blend-screen" style={{ transform: 'translateZ(0)' }}></div>
+    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#022c22]/40 to-[#022c22]"></div>
   </div>
 ));
 Background.displayName = "Background";
@@ -39,7 +39,7 @@ MemoizedSidebar.displayName = "MemoizedSidebar";
 
 export default function TourDetailsPage() {
   const { id } = useParams();
-  
+
   const [tour, setTour] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
@@ -52,45 +52,45 @@ export default function TourDetailsPage() {
   // OPTIMIZATION: Lenis requires immediate jumps on route change. 
   // Native smooth scrolling fights Lenis inertia.
   useEffect(() => {
-    window.scrollTo(0, 0); 
+    window.scrollTo(0, 0);
   }, [id]);
 
   // --- FETCH DATA ---
   useEffect(() => {
-    if(!id) return;
+    if (!id) return;
     setLoading(true);
 
     const controller = new AbortController();
 
     // Parallel Fetching
     Promise.all([
-        fetch(`/api/tours/${id}`, { signal: controller.signal }).then(res => res.json()),
-        fetch('/api/pricing', { signal: controller.signal }).then(res => res.json())
+      fetch(`/api/tours/${id}`, { signal: controller.signal }).then(res => res.json()),
+      fetch('/api/pricing', { signal: controller.signal }).then(res => res.json())
     ]).then(([tourData, pricingData]) => {
-        
-        // Handle Tour Data
-        if(tourData.success) {
-            const t = tourData.data;
-            if (!t.images || t.images.length === 0) {
-                t.images = t.img ? [t.img] : ['/placeholder.jpg'];
-            }
-            setTour(t);
-        }
 
-        // Handle Pricing Data
-        if(pricingData.success && pricingData.data) {
-            setGlobalNotes({
-                stayNote: pricingData.data.stayNote || '',
-                foodNote: pricingData.data.foodNote || ''
-            });
+      // Handle Tour Data
+      if (tourData.success) {
+        const t = tourData.data;
+        if (!t.images || t.images.length === 0) {
+          t.images = t.img ? [t.img] : ['/placeholder.jpg'];
         }
-        
-        setLoading(false);
+        setTour(t);
+      }
+
+      // Handle Pricing Data
+      if (pricingData.success && pricingData.data) {
+        setGlobalNotes({
+          stayNote: pricingData.data.stayNote || '',
+          foodNote: pricingData.data.foodNote || ''
+        });
+      }
+
+      setLoading(false);
     }).catch(err => {
-        if (err.name !== 'AbortError') {
-            console.error("Data load failed", err);
-            setLoading(false);
-        }
+      if (err.name !== 'AbortError') {
+        console.error("Data load failed", err);
+        setLoading(false);
+      }
     });
 
     return () => controller.abort();
@@ -100,8 +100,8 @@ export default function TourDetailsPage() {
   useEffect(() => {
     if (!tour || !tour.images || tour.images.length <= 1) return;
     const interval = setInterval(() => {
-        setCurrentImageIndex(prev => (prev + 1) % tour.images.length);
-    }, 5000); 
+      setCurrentImageIndex(prev => (prev + 1) % tour.images.length);
+    }, 5000);
     return () => clearInterval(interval);
   }, [tour]); // Dependency fixed to tour object presence
 
@@ -146,9 +146,9 @@ export default function TourDetailsPage() {
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden text-white bg-[#022c22] selection:bg-[#D9A441] selection:text-black">
       <style>{fontStyles}</style>
-      
+
       <Background />
-      
+
       {loading ? (
         <SkeletonLoader />
       ) : (
@@ -165,42 +165,42 @@ export default function TourDetailsPage() {
 
               {/* 1. HERO GALLERY */}
               <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.8, ease: "easeOut" }} className="relative group rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/50 border border-white/10 h-[28rem] md:h-[34rem] bg-black/40 transform-gpu">
-                  <AnimatePresence mode="wait">
-                      <motion.img
-                          key={currentImageIndex}
-                          src={tour.images[currentImageIndex]}
-                          initial={{ opacity: 0, scale: 1.1 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 1.5, ease: "easeOut" }}
-                          className="absolute inset-0 w-full h-full object-cover"
-                          loading="eager"
-                          decoding="async" // Optimization: Non-blocking decoding
-                      />
-                  </AnimatePresence>
-                  
-                  {/* Indicators */}
-                  {tour.images.length > 1 && (
-                      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-20">
-                          {tour.images.map((_, i) => (
-                              <button
-                                  key={i}
-                                  onClick={() => setCurrentImageIndex(i)}
-                                  className={`h-1.5 rounded-full transition-all duration-500 shadow-sm backdrop-blur-md ${i === currentImageIndex ? 'bg-[#D9A441] w-8' : 'bg-white/40 w-2 hover:bg-white/80'}`}
-                              />
-                          ))}
-                      </div>
-                  )}
-                  
-                  {/* Navigation Buttons */}
-                  {tour.images.length > 1 && (
-                    <>
-                      <button onClick={() => setCurrentImageIndex(prev => (prev - 1 + tour.images.length) % tour.images.length)} className="absolute left-6 top-1/2 -translate-y-1/2 p-4 bg-black/10 hover:bg-black/50 text-white/70 hover:text-[#D9A441] rounded-full opacity-0 group-hover:opacity-100 transition duration-300 backdrop-blur-md border border-white/5 font-inter font-light text-xl">‹</button>
-                      <button onClick={() => setCurrentImageIndex(prev => (prev + 1) % tour.images.length)} className="absolute right-6 top-1/2 -translate-y-1/2 p-4 bg-black/10 hover:bg-black/50 text-white/70 hover:text-[#D9A441] rounded-full opacity-0 group-hover:opacity-100 transition duration-300 backdrop-blur-md border border-white/5 font-inter font-light text-xl">›</button>
-                    </>
-                  )}
+                <AnimatePresence mode="wait">
+                  <motion.img
+                    key={currentImageIndex}
+                    src={tour.images[currentImageIndex]}
+                    initial={{ opacity: 0, scale: 1.1 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 1.5, ease: "easeOut" }}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    loading="eager"
+                    decoding="async" // Optimization: Non-blocking decoding
+                  />
+                </AnimatePresence>
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-70 pointer-events-none" />
+                {/* Indicators */}
+                {tour.images.length > 1 && (
+                  <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-20">
+                    {tour.images.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentImageIndex(i)}
+                        className={`h-1.5 rounded-full transition-all duration-500 shadow-sm backdrop-blur-md ${i === currentImageIndex ? 'bg-[#D9A441] w-8' : 'bg-white/40 w-2 hover:bg-white/80'}`}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Navigation Buttons */}
+                {tour.images.length > 1 && (
+                  <>
+                    <button onClick={() => setCurrentImageIndex(prev => (prev - 1 + tour.images.length) % tour.images.length)} className="absolute left-6 top-1/2 -translate-y-1/2 p-4 bg-black/10 hover:bg-black/50 text-white/70 hover:text-[#D9A441] rounded-full opacity-0 group-hover:opacity-100 transition duration-300 backdrop-blur-md border border-white/5 font-inter font-light text-xl">‹</button>
+                    <button onClick={() => setCurrentImageIndex(prev => (prev + 1) % tour.images.length)} className="absolute right-6 top-1/2 -translate-y-1/2 p-4 bg-black/10 hover:bg-black/50 text-white/70 hover:text-[#D9A441] rounded-full opacity-0 group-hover:opacity-100 transition duration-300 backdrop-blur-md border border-white/5 font-inter font-light text-xl">›</button>
+                  </>
+                )}
+
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-70 pointer-events-none" />
               </motion.div>
 
               {/* 2. TITLE & DETAILS */}
@@ -215,19 +215,19 @@ export default function TourDetailsPage() {
                     <FaMapMarkerAlt className="text-[#D9A441]" />
                     <span className="font-inter font-light tracking-wide text-sm">{tour.location}</span>
                   </div>
-                  
-                  <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2 text-[#D9A441] bg-white/5 px-5 py-2.5 rounded-full border border-white/10 backdrop-blur-sm">
-                        <FaStar />
-                        <span className="text-white font-inter font-medium">{tour.rating}</span>
-                      </div>
 
-                      <button 
-                          onClick={handleShare}
-                          className="w-11 h-11 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-[#D9A441] hover:border-[#D9A441] hover:text-black transition-all duration-300 group"
-                      >
-                          <FaShareAlt className="text-sm group-hover:scale-110 transition-transform" />
-                      </button>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 text-[#D9A441] bg-white/5 px-5 py-2.5 rounded-full border border-white/10 backdrop-blur-sm">
+                      <FaStar />
+                      <span className="text-white font-inter font-medium">{tour.rating}</span>
+                    </div>
+
+                    <button
+                      onClick={handleShare}
+                      className="w-11 h-11 flex items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-[#D9A441] hover:border-[#D9A441] hover:text-black transition-all duration-300 group"
+                    >
+                      <FaShareAlt className="text-sm group-hover:scale-110 transition-transform" />
+                    </button>
                   </div>
                 </div>
 
@@ -277,178 +277,178 @@ export default function TourDetailsPage() {
 
                   <div className="mt-4 p-6 md:p-12 bg-black/20 border border-white/5 rounded-[2.5rem] backdrop-blur-md min-h-[300px]">
                     <AnimatePresence mode="wait">
-                        
-                        {/* OVERVIEW TAB */}
-                        {activeTab === "overview" && (
-                        <motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.4 }}>
-                            <div className="prose prose-invert max-w-none">
-                               <p className="text-emerald-50/80 text-lg leading-loose font-inter font-light whitespace-pre-wrap">{overviewText}</p>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
-                              <div className="bg-emerald-900/10 p-8 rounded-[2rem] border border-emerald-500/10">
-                                  <h3 className="text-lg font-montserrat font-semibold text-emerald-400 mb-5 flex items-center gap-2"><FaCheckCircle /> Included</h3>
-                                  <ul className="space-y-4">
-                                  {tour.inclusions?.map((item, i) => (
-                                      <li key={i} className="flex items-start gap-3 text-emerald-100/80 text-sm font-inter font-light"><span className="text-emerald-400 mt-0.5">✓</span> {item}</li>
-                                  ))}
-                                  </ul>
-                              </div>
-                              <div className="bg-red-900/10 p-8 rounded-[2rem] border border-red-500/10">
-                                  <h3 className="text-lg font-montserrat font-semibold text-red-400 mb-5 flex items-center gap-2"><FaTimesCircle /> Excluded</h3>
-                                  <ul className="space-y-4">
-                                  {["Personal Expenses", "Airfare / Train Tickets", "Lunch", "Entry Fees"].map((item, i) => (
-                                      <li key={i} className="flex items-start gap-3 text-gray-400 text-sm font-inter font-light"><span className="text-red-500 mt-0.5">✕</span> {item}</li>
-                                  ))}
-                                  </ul>
-                              </div>
-                            </div>
-                        </motion.div>
-                        )}
 
-                        {/* ITINERARY TAB */}
-                        {activeTab === "itinerary" && (
+                      {/* OVERVIEW TAB */}
+                      {activeTab === "overview" && (
+                        <motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.4 }}>
+                          <div className="prose prose-invert max-w-none">
+                            <p className="text-emerald-50/80 text-lg leading-loose font-inter font-light whitespace-pre-wrap">{overviewText}</p>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
+                            <div className="bg-emerald-900/10 p-8 rounded-[2rem] border border-emerald-500/10">
+                              <h3 className="text-lg font-montserrat font-semibold text-emerald-400 mb-5 flex items-center gap-2"><FaCheckCircle /> Included</h3>
+                              <ul className="space-y-4">
+                                {tour.inclusions?.map((item, i) => (
+                                  <li key={i} className="flex items-start gap-3 text-emerald-100/80 text-sm font-inter font-light"><span className="text-emerald-400 mt-0.5">✓</span> {item}</li>
+                                ))}
+                              </ul>
+                            </div>
+                            <div className="bg-red-900/10 p-8 rounded-[2rem] border border-red-500/10">
+                              <h3 className="text-lg font-montserrat font-semibold text-red-400 mb-5 flex items-center gap-2"><FaTimesCircle /> Excluded</h3>
+                              <ul className="space-y-4">
+                                {["Personal Expenses", "Airfare / Train Tickets", "Lunch", "Entry Fees"].map((item, i) => (
+                                  <li key={i} className="flex items-start gap-3 text-gray-400 text-sm font-inter font-light"><span className="text-red-500 mt-0.5">✕</span> {item}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {/* ITINERARY TAB */}
+                      {activeTab === "itinerary" && (
                         <motion.div key="itinerary" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pl-1">
-                           <div className="relative border-l border-white/10 ml-2 md:ml-4 space-y-10 pb-4">
-                              {tour.itinerary?.map((item, i) => (
-                              <motion.div 
-                                key={i} 
-                                initial={{ opacity: 0, x: -10 }} 
+                          <div className="relative border-l border-white/10 ml-2 md:ml-4 space-y-10 pb-4">
+                            {tour.itinerary?.map((item, i) => (
+                              <motion.div
+                                key={i}
+                                initial={{ opacity: 0, x: -10 }}
                                 whileInView={{ opacity: 1, x: 0 }} // Optim: Render when in view
                                 viewport={{ once: true, margin: "100px" }}
-                                transition={{delay: i * 0.1}} 
+                                transition={{ delay: i * 0.1 }}
                                 className="relative pl-8 md:pl-12"
                               >
-                                  <div className="absolute -left-[7px] top-1.5 flex items-center justify-center w-[15px] h-[15px] rounded-full bg-[#022c22] border-2 border-[#D9A441] shadow-[0_0_12px_rgba(217,164,65,0.6)] z-10"></div>
-                                  <div className="flex flex-col gap-3">
-                                      <div className="flex flex-wrap items-baseline gap-3">
-                                          <span className="text-[#D9A441] font-inter font-medium text-lg">Day {item.day}</span>
-                                          <h3 className="text-lg md:text-xl font-montserrat font-semibold text-white leading-tight">{item.title}</h3>
-                                      </div>
-                                      <div className="mt-1 text-emerald-100/70 text-sm md:text-base font-inter font-light leading-relaxed bg-white/5 p-6 rounded-2xl border border-white/5 hover:bg-white/10 transition duration-300">
-                                          <ul className="space-y-3">
-                                            {item.details?.split('\n').filter(l => l.trim()).map((s, idx) => (
-                                              <li key={idx} className="flex items-start gap-3">
-                                                <span className="text-[#D9A441] mt-2 text-[5px] shrink-0 opacity-70">●</span>
-                                                <span>{s.trim()}</span>
-                                              </li>
-                                            ))}
-                                          </ul>
-                                      </div>
+                                <div className="absolute -left-[7px] top-1.5 flex items-center justify-center w-[15px] h-[15px] rounded-full bg-[#022c22] border-2 border-[#D9A441] shadow-[0_0_12px_rgba(217,164,65,0.6)] z-10"></div>
+                                <div className="flex flex-col gap-3">
+                                  <div className="flex flex-wrap items-baseline gap-3">
+                                    <span className="text-[#D9A441] font-inter font-medium text-lg">Day {item.day}</span>
+                                    <h3 className="text-lg md:text-xl font-montserrat font-semibold text-white leading-tight">{item.title}</h3>
                                   </div>
+                                  <div className="mt-1 text-emerald-100/70 text-sm md:text-base font-inter font-light leading-relaxed bg-white/5 p-6 rounded-2xl border border-white/5 hover:bg-white/10 transition duration-300">
+                                    <ul className="space-y-3">
+                                      {item.details?.split('\n').filter(l => l.trim()).map((s, idx) => (
+                                        <li key={idx} className="flex items-start gap-3">
+                                          <span className="text-[#D9A441] mt-2 text-[5px] shrink-0 opacity-70">●</span>
+                                          <span>{s.trim()}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                </div>
                               </motion.div>
-                              ))}
-                           </div>
-                        </motion.div>
-                        )}
-                        
-                        {/* FOOD & STAY TAB */}
-                        {activeTab === "food" && (
-                        <motion.div key="food" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-12">
-                            <div>
-                                <h3 className="text-2xl font-montserrat font-semibold text-[#D9A441] mb-6 flex items-center gap-3">
-                                    <FaBed className="text-xl" /> Premium Accommodation
-                                </h3>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    {[{ icon: <FaUsers />, text: "Twin Sharing" }, { icon: <FaWifi />, text: "Free WiFi" }, { icon: <FaShower />, text: "Hot Water" }, { icon: <FaMountain />, text: "Scenic View" }].map((am, k) => (
-                                        <div key={k} className="flex flex-col items-center justify-center bg-white/5 p-6 rounded-[2rem] border border-white/5 backdrop-blur-sm">
-                                            <span className="text-[#D9A441] mb-3 text-2xl">{am.icon}</span>
-                                            <span className="text-sm text-gray-200 font-inter font-light">{am.text}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                <div className="flex flex-col">
-                                    <h3 className="text-xl font-montserrat font-semibold text-white mb-6 flex items-center gap-3">
-                                        <FaBed className="text-[#D9A441]" /> Stay Itinerary
-                                    </h3>
-                                    <div className="space-y-4">
-                                        {tour.itinerary?.map((day, idx) => (
-                                            <div key={idx} className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/5 hover:bg-white/10 transition">
-                                                <div className="w-12 h-12 rounded-xl bg-purple-900/30 flex items-center justify-center text-sm font-bold text-purple-400 shrink-0 border border-purple-500/20 font-inter">D{day.day}</div>
-                                                <div className="text-gray-300 text-sm font-medium">
-                                                    {day.stay || <span className="text-gray-500 italic font-light">Standard Stay</span>}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    {globalNotes.stayNote && (
-                                        <p className="mt-6 text-red-400 italic text-sm font-inter leading-relaxed bg-red-900/10 p-4 rounded-xl border border-red-500/10">* {globalNotes.stayNote}</p>
-                                    )}
-                                </div>
-
-                                <div className="flex flex-col">
-                                    <h3 className="text-xl font-montserrat font-semibold text-white mb-6 flex items-center gap-3">
-                                        <FaUtensils className="text-[#D9A441]" /> Food Itinerary
-                                    </h3>
-                                    <div className="space-y-4">
-                                        {tour.itinerary?.map((day, idx) => (
-                                            <div key={idx} className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/5 hover:bg-white/10 transition">
-                                                <div className="w-12 h-12 rounded-xl bg-orange-900/30 flex items-center justify-center text-sm font-bold text-orange-400 shrink-0 border border-orange-500/20 font-inter">D{day.day}</div>
-                                                <div className="flex-1">
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {day.meals?.length > 0 ? (
-                                                            day.meals.map((m, i) => (
-                                                                <span key={i} className="text-[10px] font-bold text-black bg-[#D9A441] px-2 py-1 rounded-md tracking-wide font-montserrat uppercase">{m}</span>
-                                                            ))
-                                                        ) : (
-                                                            <span className="text-xs text-gray-500 italic font-inter font-light">No meals</span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    {globalNotes.foodNote && (
-                                        <p className="mt-6 text-red-400 italic text-sm font-inter leading-relaxed bg-red-900/10 p-4 rounded-xl border border-red-500/10">* {globalNotes.foodNote}</p>
-                                    )}
-                                </div>
-                            </div>
-                        </motion.div>
-                        )}
-
-                        {/* REVIEWS TAB */}
-                        {activeTab === "reviews" && (
-                        <motion.div key="reviews" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
-                            {tour.reviews?.length > 0 ? tour.reviews.map((r, i) => (
-                                <div key={i} className="bg-white/5 p-8 rounded-[2rem] border border-white/5">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-full bg-emerald-900/50 flex items-center justify-center text-[#D9A441] font-inter font-bold text-lg border border-white/10">{r.name.charAt(0)}</div>
-                                            <div>
-                                                <h4 className="font-semibold text-white text-base font-montserrat">{r.name}</h4>
-                                                <div className="flex text-[#D9A441] text-xs mt-1 gap-0.5">{[...Array(5)].map((_, k) => <FaStar key={k} className={k < r.rating ? "text-[#D9A441]" : "text-gray-700"} />)}</div>
-                                            </div>
-                                        </div>
-                                        <span className="text-xs text-gray-500 font-inter font-light">{r.date}</span>
-                                    </div>
-                                    <p className="text-gray-300 text-sm leading-relaxed pl-16 font-inter font-light italic">"{r.text}"</p>
-                                </div>
-                            )) : <div className="text-center py-20 text-gray-400 bg-white/5 rounded-[2rem] border border-white/10 border-dashed font-inter font-light"><p>No reviews yet.</p></div>}
-                        </motion.div>
-                        )}
-
-                        {/* FAQ TAB */}
-                        {activeTab === "faq" && (
-                        <motion.div key="faq" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
-                            {faqs.map((f, i) => (
-                            <div key={i} className="bg-white/5 border border-white/10 rounded-[1.5rem] overflow-hidden hover:bg-white/10 transition">
-                                <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full p-6 flex justify-between items-center text-left focus:outline-none">
-                                    <span className="font-semibold text-emerald-50 text-sm md:text-base pr-4 font-montserrat">{f.q}</span>
-                                    <FaChevronDown className={`text-[#D9A441] transition-transform duration-300 ${openFaq === i ? "rotate-180" : ""}`} />
-                                </button>
-                                <AnimatePresence>
-                                    {openFaq === i && (
-                                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden bg-black/20">
-                                            <div className="p-6 pt-0"><p className="text-emerald-100/70 text-sm leading-relaxed pt-4 border-t border-white/10 font-inter font-light">{f.a}</p></div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
                             ))}
+                          </div>
                         </motion.div>
-                        )}
+                      )}
+
+                      {/* FOOD & STAY TAB */}
+                      {activeTab === "food" && (
+                        <motion.div key="food" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-12">
+                          <div>
+                            <h3 className="text-2xl font-montserrat font-semibold text-[#D9A441] mb-6 flex items-center gap-3">
+                              <FaBed className="text-xl" /> Premium Accommodation
+                            </h3>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                              {[{ icon: <FaUsers />, text: "Twin Sharing" }, { icon: <FaWifi />, text: "Free WiFi" }, { icon: <FaShower />, text: "Hot Water" }, { icon: <FaMountain />, text: "Scenic View" }].map((am, k) => (
+                                <div key={k} className="flex flex-col items-center justify-center bg-white/5 p-6 rounded-[2rem] border border-white/5 backdrop-blur-sm">
+                                  <span className="text-[#D9A441] mb-3 text-2xl">{am.icon}</span>
+                                  <span className="text-sm text-gray-200 font-inter font-light">{am.text}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div className="flex flex-col">
+                              <h3 className="text-xl font-montserrat font-semibold text-white mb-6 flex items-center gap-3">
+                                <FaBed className="text-[#D9A441]" /> Stay Itinerary
+                              </h3>
+                              <div className="space-y-4">
+                                {tour.itinerary?.map((day, idx) => (
+                                  <div key={idx} className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/5 hover:bg-white/10 transition">
+                                    <div className="w-12 h-12 rounded-xl bg-purple-900/30 flex items-center justify-center text-sm font-bold text-purple-400 shrink-0 border border-purple-500/20 font-inter">D{day.day}</div>
+                                    <div className="text-gray-300 text-sm font-medium">
+                                      {day.stay || <span className="text-gray-500 italic font-light">Standard Stay</span>}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                              {globalNotes.stayNote && (
+                                <p className="mt-6 text-red-400 italic text-sm font-inter leading-relaxed bg-red-900/10 p-4 rounded-xl border border-red-500/10">* {globalNotes.stayNote}</p>
+                              )}
+                            </div>
+
+                            <div className="flex flex-col">
+                              <h3 className="text-xl font-montserrat font-semibold text-white mb-6 flex items-center gap-3">
+                                <FaUtensils className="text-[#D9A441]" /> Food Itinerary
+                              </h3>
+                              <div className="space-y-4">
+                                {tour.itinerary?.map((day, idx) => (
+                                  <div key={idx} className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/5 hover:bg-white/10 transition">
+                                    <div className="w-12 h-12 rounded-xl bg-orange-900/30 flex items-center justify-center text-sm font-bold text-orange-400 shrink-0 border border-orange-500/20 font-inter">D{day.day}</div>
+                                    <div className="flex-1">
+                                      <div className="flex flex-wrap gap-2">
+                                        {day.meals?.length > 0 ? (
+                                          day.meals.map((m, i) => (
+                                            <span key={i} className="text-[10px] font-bold text-black bg-[#D9A441] px-2 py-1 rounded-md tracking-wide font-montserrat uppercase">{m}</span>
+                                          ))
+                                        ) : (
+                                          <span className="text-xs text-gray-500 italic font-inter font-light">No meals</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                              {globalNotes.foodNote && (
+                                <p className="mt-6 text-red-400 italic text-sm font-inter leading-relaxed bg-red-900/10 p-4 rounded-xl border border-red-500/10">* {globalNotes.foodNote}</p>
+                              )}
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {/* REVIEWS TAB */}
+                      {activeTab === "reviews" && (
+                        <motion.div key="reviews" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+                          {tour.reviews?.length > 0 ? tour.reviews.map((r, i) => (
+                            <div key={i} className="bg-white/5 p-8 rounded-[2rem] border border-white/5">
+                              <div className="flex justify-between items-start mb-4">
+                                <div className="flex items-center gap-4">
+                                  <div className="w-12 h-12 rounded-full bg-emerald-900/50 flex items-center justify-center text-[#D9A441] font-inter font-bold text-lg border border-white/10">{r.name.charAt(0)}</div>
+                                  <div>
+                                    <h4 className="font-semibold text-white text-base font-montserrat">{r.name}</h4>
+                                    <div className="flex text-[#D9A441] text-xs mt-1 gap-0.5">{[...Array(5)].map((_, k) => <FaStar key={k} className={k < r.rating ? "text-[#D9A441]" : "text-gray-700"} />)}</div>
+                                  </div>
+                                </div>
+                                <span className="text-xs text-gray-500 font-inter font-light">{r.date}</span>
+                              </div>
+                              <p className="text-gray-300 text-sm leading-relaxed pl-16 font-inter font-light italic">"{r.text}"</p>
+                            </div>
+                          )) : <div className="text-center py-20 text-gray-400 bg-white/5 rounded-[2rem] border border-white/10 border-dashed font-inter font-light"><p>No reviews yet.</p></div>}
+                        </motion.div>
+                      )}
+
+                      {/* FAQ TAB */}
+                      {activeTab === "faq" && (
+                        <motion.div key="faq" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+                          {faqs.map((f, i) => (
+                            <div key={i} className="bg-white/5 border border-white/10 rounded-[1.5rem] overflow-hidden hover:bg-white/10 transition">
+                              <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full p-6 flex justify-between items-center text-left focus:outline-none">
+                                <span className="font-semibold text-emerald-50 text-sm md:text-base pr-4 font-montserrat">{f.q}</span>
+                                <FaChevronDown className={`text-[#D9A441] transition-transform duration-300 ${openFaq === i ? "rotate-180" : ""}`} />
+                              </button>
+                              <AnimatePresence>
+                                {openFaq === i && (
+                                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden bg-black/20">
+                                    <div className="p-6 pt-0"><p className="text-emerald-100/70 text-sm leading-relaxed pt-4 border-t border-white/10 font-inter font-light">{f.a}</p></div>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
+                          ))}
+                        </motion.div>
+                      )}
                     </AnimatePresence>
                   </div>
                 </div>
@@ -467,23 +467,23 @@ export default function TourDetailsPage() {
 
       {/* MOBILE FLOATING BUTTON (Memoized) */}
       {!loading && (
-          <div className="lg:hidden fixed bottom-4 left-0 right-0 px-4 z-[9999] pointer-events-none">
-            <div className="pointer-events-auto"><MemoizedSidebar tour={tour} /></div>
-          </div>
+        <div className="lg:hidden fixed bottom-4 left-0 right-0 px-4 z-[9999] pointer-events-none">
+          <div className="pointer-events-auto"><MemoizedSidebar tour={tour} /></div>
+        </div>
       )}
 
       {/* --- SHARE TOAST --- */}
       <AnimatePresence>
         {showShareToast && (
-            <motion.div 
-                initial={{ opacity: 0, y: 50 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                exit={{ opacity: 0, y: 20 }}
-                className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[10000] bg-black/80 backdrop-blur-md text-white px-6 py-3 rounded-full border border-[#D9A441]/50 shadow-[0_0_20px_rgba(217,164,65,0.3)] flex items-center gap-3 font-montserrat"
-            >
-                <FaLink className="text-[#D9A441]" />
-                <span className="font-semibold text-sm">Link Copied!</span>
-            </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[10000] bg-black/80 backdrop-blur-md text-white px-6 py-3 rounded-full border border-[#D9A441]/50 shadow-[0_0_20px_rgba(217,164,65,0.3)] flex items-center gap-3 font-montserrat"
+          >
+            <FaLink className="text-[#D9A441]" />
+            <span className="font-semibold text-sm">Link Copied!</span>
+          </motion.div>
         )}
       </AnimatePresence>
 
