@@ -9,8 +9,8 @@ const SunriseDepthBackground = memo(() => {
   return (
     <div className="fixed inset-0 z-[-1] w-full h-full bg-[#022c22] pointer-events-none transform-gpu">
       {/* Static Gradients - Zero Animation Cost */}
-      <div 
-        className="absolute inset-0" 
+      <div
+        className="absolute inset-0"
         style={{
           background: `
             radial-gradient(circle at 50% 0%, rgba(217, 164, 65, 0.15) 0%, transparent 60%),
@@ -19,11 +19,11 @@ const SunriseDepthBackground = memo(() => {
           `
         }}
       />
-      
+
       {/* Noise Texture */}
       <div
         className="absolute inset-0 opacity-[0.04] mix-blend-overlay"
-        style={{ 
+        style={{
           backgroundImage: "url('https://grainy-gradients.vercel.app/noise.svg')",
         }}
       />
@@ -72,12 +72,12 @@ const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false
       initial={!isCarousel ? { opacity: 0, y: 40, scale: 0.95 } : {}}
       animate={!isCarousel ? { opacity: 1, y: 0, scale: 1 } : {}}
       viewport={{ once: true, amount: 0.2 }}
-      transition={{ 
-        duration: 0.6, 
+      transition={{
+        duration: 0.6,
         delay: index * 0.1,
         ease: [0.22, 0.61, 0.36, 1]
       }}
-      
+
       role="button"
       tabIndex={0}
       className="tour-card-smooth group relative"
@@ -132,7 +132,7 @@ const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false
           <h3 className="text-2xl font-black text-white mb-1 leading-none drop-shadow-md transition-all duration-500 group-hover:translate-y-[-2px]">
             {tour.title}
           </h3>
-          
+
           <div className="flex justify-between items-end mt-2">
             <p className="text-gray-200 text-xs font-medium line-clamp-2 max-w-[65%] leading-snug transition-all duration-500 group-hover:text-white">
               {tour.summary}
@@ -170,12 +170,12 @@ const Mobile3DCarousel = ({ items, onView, isMobile }) => {
     const maxDistance = containerRect.width / 1.35;
 
     const nodes = Array.from(container.querySelectorAll('.carousel-item'));
-    
+
     const updates = nodes.map(child => {
-        const rect = child.getBoundingClientRect();
-        const childCenter = rect.left + rect.width / 2;
-        const rawDistance = Math.abs(viewportCenter - childCenter);
-        return { child, rawDistance };
+      const rect = child.getBoundingClientRect();
+      const childCenter = rect.left + rect.width / 2;
+      const rawDistance = Math.abs(viewportCenter - childCenter);
+      return { child, rawDistance };
     });
 
     updates.forEach(({ child, rawDistance }) => {
@@ -295,22 +295,22 @@ export default function Tours() {
         }
         requestAnimationFrame(() => setLoading(false));
       })
-      .catch((err) => { 
-          console.error(err); 
-          setLoading(false); 
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
       });
   }, []);
 
   useEffect(() => {
     let timeoutId = null;
     const handleResize = () => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => setWindowWidth(window.innerWidth), 100);
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => setWindowWidth(window.innerWidth), 100);
     };
     window.addEventListener('resize', handleResize);
     return () => {
-        window.removeEventListener('resize', handleResize);
-        clearTimeout(timeoutId);
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timeoutId);
     }
   }, []);
 
@@ -324,10 +324,10 @@ export default function Tours() {
       <div style={{ maxWidth: '1280px', margin: '0 auto', padding: isMobile ? '16px 0' : '24px 16px', marginBottom: '96px', paddingTop: isMobile ? '88px' : '100px' }}>
         <div style={{ padding: isMobile ? '0 16px' : '0' }}>
 
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            transition={{ duration: 0.6 }} 
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
             className="mb-8 text-center md:text-left"
           >
             <h1 className="text-4xl md:text-5xl font-black text-white drop-shadow-lg tracking-tight font-montserrat">Explore Packages</h1>

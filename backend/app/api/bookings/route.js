@@ -9,18 +9,18 @@ export async function POST(request) {
   await dbConnect();
   try {
     const body = await request.json();
-    
-    const existingBooking = await Booking.findOne({ 
-      phone: body.phone, 
+
+    const existingBooking = await Booking.findOne({
+      phone: body.phone,
       tourTitle: body.tourTitle,
-      status: { $ne: 'Cancelled' } 
+      status: { $ne: 'Cancelled' }
     });
 
     if (existingBooking) {
-      return NextResponse.json({ 
-        success: false, 
-        error: "Booking already exists", 
-        existingBooking: existingBooking 
+      return NextResponse.json({
+        success: false,
+        error: "Booking already exists",
+        existingBooking: existingBooking
       }, { status: 409 });
     }
 
@@ -62,7 +62,7 @@ export async function PUT(request) {
   try {
     const body = await request.json();
     const { id, status, paymentType, paidAmount, adminNotes } = body;
-    
+
     if (!id || !status) return NextResponse.json({ success: false, error: "ID/Status missing" }, { status: 400 });
 
     const oldBooking = await Booking.findById(id);
@@ -77,12 +77,12 @@ export async function PUT(request) {
         );
 
         if (coupon && coupon.agentId) {
-           const agent = await Agent.findById(coupon.agentId);
-           if (agent) {
-             const commission = Math.round(oldBooking.totalPrice * (agent.commissionRate / 100));
-             await Agent.findByIdAndUpdate(coupon.agentId, { $inc: { totalCommission: commission } });
-             await Booking.findByIdAndUpdate(id, { agentId: coupon.agentId, commissionAmount: commission });
-           }
+          const agent = await Agent.findById(coupon.agentId);
+          if (agent) {
+            const commission = Math.round(oldBooking.totalPrice * (agent.commissionRate / 100));
+            await Agent.findByIdAndUpdate(coupon.agentId, { $inc: { totalCommission: commission } });
+            await Booking.findByIdAndUpdate(id, { agentId: coupon.agentId, commissionAmount: commission });
+          }
         }
       }
     }

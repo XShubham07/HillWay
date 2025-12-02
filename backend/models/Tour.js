@@ -5,14 +5,14 @@ const TourSchema = new mongoose.Schema({
   subtitle: String,
   location: String,
   description: String,
-  
+
   basePrice: { type: Number, required: true },
   rating: { type: Number, default: 4.5 },
   nights: { type: Number, default: 3 },
   featured: { type: Boolean, default: false },
 
   images: { type: [String], default: [] },
-  img: { type: String }, 
+  img: { type: String },
 
   mapEmbedUrl: String,
 
@@ -40,12 +40,22 @@ const TourSchema = new mongoose.Schema({
       day: Number,
       title: String,
       details: String,
-      stay: String, // NEW: Per day stay detail
+      stay: String,
       meals: { type: [String], default: [] }
     }
   ],
   faqs: [{ q: String, a: String }],
-  reviews: [{ name: String, rating: Number, text: String, date: String }]
+
+  // UPDATED REVIEWS SCHEMA
+  reviews: [{
+    title: String,   // Review Title
+    name: String,
+    email: String,   // Private (Stored but not shown)
+    mobile: String,  // Private (Stored but not shown)
+    rating: Number,
+    text: String,
+    date: String
+  }]
 
 }, { timestamps: true });
 

@@ -19,10 +19,10 @@ export async function GET(request) {
 
     if (phone) {
       // 1. If phone is provided, search by phone first (More efficient)
-      const userBookings = await Booking.find({ 
-        phone: { $regex: phone.trim(), $options: 'i' } 
+      const userBookings = await Booking.find({
+        phone: { $regex: phone.trim(), $options: 'i' }
       });
-      match = userBookings.find(b => 
+      match = userBookings.find(b =>
         b._id.toString().slice(-6).toUpperCase() === cleanRef
       );
     } else {
@@ -30,7 +30,7 @@ export async function GET(request) {
       // Note: In a production app with millions of records, you should store the 'shortId' 
       // as a separate indexed field. For this scale, scanning is acceptable.
       const allBookings = await Booking.find({});
-      match = allBookings.find(b => 
+      match = allBookings.find(b =>
         b._id.toString().slice(-6).toUpperCase() === cleanRef
       );
     }

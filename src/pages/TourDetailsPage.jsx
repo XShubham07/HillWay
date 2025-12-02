@@ -3,14 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   FaMapMarkerAlt, FaCalendarAlt, FaStar, FaRupeeSign,
   FaCheckCircle, FaTimesCircle, FaBed, FaWifi, FaShower,
-  FaMountain, FaUtensils, FaUsers, FaChevronDown, FaShareAlt, FaLink
+  FaMountain, FaUtensils, FaUsers, FaChevronDown, FaShareAlt, FaLink,
+  FaPenNib
 } from "react-icons/fa";
 import { useState, useEffect, memo, useMemo } from "react";
 import BookingSidebar from "../components/BookingSidebar";
 
 // --- GLOBAL STYLES ---
-// OPTIMIZATION: Removed 'html { scroll-behavior: smooth }'
-// This conflicts with Lenis and causes jitter.
 const fontStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@600;700&display=swap');
   
@@ -22,8 +21,6 @@ const fontStyles = `
 `;
 
 // --- MEMOIZED BACKGROUND COMPONENT ---
-// OPTIMIZATION: Separated to prevent re-renders when Tabs/Images change.
-// Added 'transform-gpu' to force GPU composition.
 const Background = memo(() => (
   <div className="fixed inset-0 z-[-1] bg-[#022c22] pointer-events-none transform-gpu">
     <div className="absolute inset-0 opacity-[0.04] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" style={{ transform: 'translateZ(0)' }}></div>
@@ -48,9 +45,19 @@ export default function TourDetailsPage() {
   const [showShareToast, setShowShareToast] = useState(false);
   const [globalNotes, setGlobalNotes] = useState({ stayNote: '', foodNote: '' });
 
+  // --- REVIEW SYSTEM STATE ---
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewInput, setReviewInput] = useState({
+    title: '',
+    name: '',
+    email: '',
+    mobile: '',
+    rating: 5,
+    text: ''
+  });
+  const [submittingReview, setSubmittingReview] = useState(false);
+
   // --- SCROLL TO TOP ---
-  // OPTIMIZATION: Lenis requires immediate jumps on route change. 
-  // Native smooth scrolling fights Lenis inertia.
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [id]);
@@ -103,12 +110,52 @@ export default function TourDetailsPage() {
       setCurrentImageIndex(prev => (prev + 1) % tour.images.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, [tour]); // Dependency fixed to tour object presence
+  }, [tour]);
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
     setShowShareToast(true);
     setTimeout(() => setShowShareToast(false), 3000);
+  };
+
+  // --- SUBMIT REVIEW HANDLER ---
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    setSubmittingReview(true);
+
+    // 1. Mobile Validation (Indian Number Check: Starts with 6-9, followed by 9 digits)
+    const indianMobileRegex = /^[6-9]\d{9}$/;
+    if (!indianMobileRegex.test(reviewInput.mobile)) {
+      alert("Please enter a valid 10-digit Indian mobile number.");
+      setSubmittingReview(false);
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tourId: tour._id,
+          ...reviewInput
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Update local tour state with new reviews
+        setTour(prev => ({ ...prev, reviews: data.data }));
+        setShowReviewForm(false);
+        // Reset form
+        setReviewInput({ title: '', name: '', email: '', mobile: '', rating: 5, text: '' });
+        alert("Review submitted successfully!");
+      } else {
+        alert("Failed to post review. Please try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error connecting to server.");
+    }
+    setSubmittingReview(false);
   };
 
   // Memoize derived data
@@ -175,7 +222,7 @@ export default function TourDetailsPage() {
                     transition={{ duration: 1.5, ease: "easeOut" }}
                     className="absolute inset-0 w-full h-full object-cover"
                     loading="eager"
-                    decoding="async" // Optimization: Non-blocking decoding
+                    decoding="async"
                   />
                 </AnimatePresence>
 
@@ -313,7 +360,7 @@ export default function TourDetailsPage() {
                               <motion.div
                                 key={i}
                                 initial={{ opacity: 0, x: -10 }}
-                                whileInView={{ opacity: 1, x: 0 }} // Optim: Render when in view
+                                whileInView={{ opacity: 1, x: 0 }}
                                 viewport={{ once: true, margin: "100px" }}
                                 transition={{ delay: i * 0.1 }}
                                 className="relative pl-8 md:pl-12"
@@ -408,24 +455,161 @@ export default function TourDetailsPage() {
                         </motion.div>
                       )}
 
-                      {/* REVIEWS TAB */}
+                      {/* REVIEWS TAB (UPDATED WITH FORM) */}
                       {activeTab === "reviews" && (
-                        <motion.div key="reviews" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
-                          {tour.reviews?.length > 0 ? tour.reviews.map((r, i) => (
-                            <div key={i} className="bg-white/5 p-8 rounded-[2rem] border border-white/5">
-                              <div className="flex justify-between items-start mb-4">
-                                <div className="flex items-center gap-4">
-                                  <div className="w-12 h-12 rounded-full bg-emerald-900/50 flex items-center justify-center text-[#D9A441] font-inter font-bold text-lg border border-white/10">{r.name.charAt(0)}</div>
+                        <motion.div key="reviews" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
+
+                          {/* Header with Button */}
+                          <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-montserrat font-semibold text-white">Traveler Experiences</h3>
+                            <button
+                              onClick={() => setShowReviewForm(!showReviewForm)}
+                              className="px-4 py-2 bg-[#D9A441] text-black text-sm font-bold rounded-full hover:bg-white transition flex items-center gap-2"
+                            >
+                              <FaPenNib /> Write Review
+                            </button>
+                          </div>
+
+                          {/* Review Form */}
+                          <AnimatePresence>
+                            {showReviewForm && (
+                              <motion.form
+                                initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                                onSubmit={handleSubmitReview}
+                                className="bg-white/5 border border-white/10 p-6 rounded-2xl mb-8 overflow-hidden"
+                              >
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                  {/* Name Field */}
                                   <div>
-                                    <h4 className="font-semibold text-white text-base font-montserrat">{r.name}</h4>
-                                    <div className="flex text-[#D9A441] text-xs mt-1 gap-0.5">{[...Array(5)].map((_, k) => <FaStar key={k} className={k < r.rating ? "text-[#D9A441]" : "text-gray-700"} />)}</div>
+                                    <label className="text-xs text-gray-400 block mb-1">Your Name</label>
+                                    <input
+                                      required
+                                      className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white text-sm outline-none focus:border-[#D9A441]"
+                                      value={reviewInput.name}
+                                      onChange={e => setReviewInput({ ...reviewInput, name: e.target.value })}
+                                    />
+                                  </div>
+                                  {/* Rating Field */}
+                                  <div>
+                                    <label className="text-xs text-gray-400 block mb-1">Rating</label>
+                                    <div className="flex gap-2 mt-2">
+                                      {[1, 2, 3, 4, 5].map((star) => (
+                                        <button
+                                          type="button"
+                                          key={star}
+                                          onClick={() => setReviewInput({ ...reviewInput, rating: star })}
+                                          className={`text-lg transition ${star <= reviewInput.rating ? 'text-[#D9A441]' : 'text-gray-600'}`}
+                                        >
+                                          <FaStar />
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                  {/* Mobile Number Field */}
+                                  <div>
+                                    <label className="text-xs text-gray-400 block mb-1">Mobile (Private)</label>
+                                    <input
+                                      required
+                                      type="tel"
+                                      placeholder="10 digit number"
+                                      className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white text-sm outline-none focus:border-[#D9A441]"
+                                      value={reviewInput.mobile}
+                                      onChange={e => {
+                                        const val = e.target.value.replace(/\D/g, "");
+                                        if (val.length <= 10) setReviewInput({ ...reviewInput, mobile: val });
+                                      }}
+                                    />
+                                  </div>
+                                  {/* Email Field */}
+                                  <div>
+                                    <label className="text-xs text-gray-400 block mb-1">Email (Private)</label>
+                                    <input
+                                      required
+                                      type="email"
+                                      className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white text-sm outline-none focus:border-[#D9A441]"
+                                      value={reviewInput.email}
+                                      onChange={e => setReviewInput({ ...reviewInput, email: e.target.value })}
+                                    />
                                   </div>
                                 </div>
-                                <span className="text-xs text-gray-500 font-inter font-light">{r.date}</span>
+
+                                {/* Review Title Field (MOVED ABOVE EXPERIENCE) */}
+                                <div className="mb-4">
+                                  <label className="text-xs text-gray-400 block mb-1">Review Title</label>
+                                  <input
+                                    required
+                                    placeholder="e.g. Awesome Experience!"
+                                    className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white text-sm outline-none focus:border-[#D9A441]"
+                                    value={reviewInput.title}
+                                    onChange={e => setReviewInput({ ...reviewInput, title: e.target.value })}
+                                  />
+                                </div>
+
+                                <div className="mb-4">
+                                  <label className="text-xs text-gray-400 block mb-1">Your Experience</label>
+                                  <textarea
+                                    required
+                                    rows={3}
+                                    className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white text-sm outline-none focus:border-[#D9A441]"
+                                    value={reviewInput.text}
+                                    onChange={e => setReviewInput({ ...reviewInput, text: e.target.value })}
+                                  />
+                                </div>
+                                <div className="flex justify-end gap-3">
+                                  <button type="button" onClick={() => setShowReviewForm(false)} className="px-4 py-2 text-gray-400 text-sm hover:text-white">Cancel</button>
+                                  <button disabled={submittingReview} className="px-6 py-2 bg-[#D9A441] text-black font-bold rounded-lg hover:bg-white transition text-sm">
+                                    {submittingReview ? "Posting..." : "Submit Review"}
+                                  </button>
+                                </div>
+                              </motion.form>
+                            )}
+                          </AnimatePresence>
+
+                          {/* Reviews List (Email/Phone HIDDEN) */}
+                          {tour.reviews?.length > 0 ? tour.reviews.slice().reverse().map((r, i) => (
+                            <div key={i} className="bg-white/5 p-6 rounded-[2rem] border border-white/5">
+                              <div className="flex flex-col gap-2 mb-4">
+                                <div className="flex items-center gap-4">
+                                  {/* User Avatar */}
+                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#D9A441] to-orange-600 flex items-center justify-center text-black font-bold text-lg border border-white/10">
+                                    {r.name.charAt(0).toUpperCase()}
+                                  </div>
+
+                                  {/* Name + Badge */}
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <h4 className="font-semibold text-white text-sm font-montserrat">{r.name}</h4>
+                                      {/* Verified Traveler Badge */}
+                                      <div className="flex items-center gap-1 bg-green-500/20 px-2 py-0.5 rounded-full border border-green-500/30">
+                                        <FaCheckCircle className="text-[10px] text-green-400" />
+                                        <span className="text-[10px] font-bold text-green-400">Verified Traveler</span>
+                                      </div>
+                                    </div>
+
+                                    {/* Date */}
+                                    <span className="text-[10px] text-gray-500 font-inter font-light">{r.date}</span>
+                                  </div>
+                                </div>
+
+                                {/* Stars Row */}
+                                <div className="pl-14 flex text-[#D9A441] text-xs gap-0.5">
+                                  {[...Array(5)].map((_, k) => (
+                                    <FaStar key={k} className={k < r.rating ? "text-[#D9A441]" : "text-gray-700"} />
+                                  ))}
+                                </div>
                               </div>
-                              <p className="text-gray-300 text-sm leading-relaxed pl-16 font-inter font-light italic">"{r.text}"</p>
+
+                              <div className="pl-14">
+                                {/* Title Displayed Here in BOLD WHITE */}
+                                {r.title && <h5 className="text-white font-bold text-base mb-1 block">{r.title}</h5>}
+                                <p className="text-gray-300 text-sm leading-relaxed font-inter font-light">"{r.text}"</p>
+                              </div>
                             </div>
-                          )) : <div className="text-center py-20 text-gray-400 bg-white/5 rounded-[2rem] border border-white/10 border-dashed font-inter font-light"><p>No reviews yet.</p></div>}
+                          )) : (
+                            <div className="text-center py-12 text-gray-400 bg-white/5 rounded-[2rem] border border-white/10 border-dashed font-inter font-light">
+                              <p>No reviews yet. Be the first to share your experience!</p>
+                            </div>
+                          )}
                         </motion.div>
                       )}
 

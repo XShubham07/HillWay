@@ -9,14 +9,14 @@ import {
   FaSpinner,
   FaTimes,
   FaExclamationTriangle,
-  FaFire,       
-  FaCouch,      
-  FaUtensils,   
-  FaCoffee,     
-  FaHiking,     
-  FaCalendarAlt, 
-  FaLink,       
-  FaCopy        
+  FaFire,
+  FaCouch,
+  FaUtensils,
+  FaCoffee,
+  FaHiking,
+  FaCalendarAlt,
+  FaLink,
+  FaCopy
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
@@ -55,7 +55,7 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
 
   const isSuccess = type === 'success';
   const refId = data?._id ? `#HW-${data._id.slice(-6).toUpperCase()}` : 'N/A';
-  
+
   // Construct Tracking Link
   const trackingLink = data ? `${window.location.origin}/status?refId=${data._id.slice(-6).toUpperCase()}` : '';
 
@@ -83,16 +83,16 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
             className={`
               relative w-full max-w-sm overflow-hidden rounded-[2.5rem]
               border shadow-2xl backdrop-blur-3xl text-center p-0
-              ${isSuccess 
-                ? "bg-gradient-to-b from-[#D9A441]/20 to-[#0f172a]/95 border-[#D9A441]/50" 
+              ${isSuccess
+                ? "bg-gradient-to-b from-[#D9A441]/20 to-[#0f172a]/95 border-[#D9A441]/50"
                 : "bg-gradient-to-b from-red-500/20 to-[#0f172a]/95 border-red-500/50"}
             `}
           >
             <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
 
             <div className="relative p-8 z-10 flex flex-col items-center">
-              <button 
-                onClick={onClose} 
+              <button
+                onClick={onClose}
                 className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition text-white/70"
               >
                 <FaTimes size={14} />
@@ -102,13 +102,13 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
               <div className="relative mb-6">
                 {isSuccess && <div className="absolute inset-0 bg-[#D9A441] blur-2xl opacity-40 animate-pulse rounded-full"></div>}
                 <motion.div
-                  initial={{ scale: 0, rotate: -45 }} 
+                  initial={{ scale: 0, rotate: -45 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
                   className={`
                     relative w-24 h-24 rounded-full flex items-center justify-center shadow-2xl z-10
-                    ${isSuccess 
-                      ? "bg-gradient-to-tr from-[#D9A441] to-[#fbbf24] text-black shadow-[#D9A441]/50" 
+                    ${isSuccess
+                      ? "bg-gradient-to-tr from-[#D9A441] to-[#fbbf24] text-black shadow-[#D9A441]/50"
                       : "bg-gradient-to-tr from-red-500 to-red-400 text-white shadow-red-500/50"}
                   `}
                 >
@@ -119,7 +119,7 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
               <h3 className="text-2xl font-black text-white mb-2 tracking-tight">
                 {isSuccess ? "Booking Confirmed!" : "Booking Found"}
               </h3>
-              
+
               <div className="bg-black/40 rounded-xl px-4 py-2 mb-4 border border-white/10">
                 <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-0.5">Reference ID</p>
                 <p className={`font-mono text-xl font-bold tracking-wider ${isSuccess ? "text-[#D9A441]" : "text-red-400"}`}>
@@ -132,26 +132,26 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
                 <div className="w-full mb-6">
                   <div className="bg-white/5 rounded-lg p-3 border border-white/5 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 overflow-hidden">
-                        <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
-                            <FaLink size={10} />
-                        </div>
-                        <div className="text-left overflow-hidden">
-                            <p className="text-[10px] text-gray-400 font-bold uppercase">Tracking Link</p>
-                            <p className="text-[10px] text-gray-300 truncate w-32 opacity-70">{trackingLink}</p>
-                        </div>
+                      <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+                        <FaLink size={10} />
+                      </div>
+                      <div className="text-left overflow-hidden">
+                        <p className="text-[10px] text-gray-400 font-bold uppercase">Tracking Link</p>
+                        <p className="text-[10px] text-gray-300 truncate w-32 opacity-70">{trackingLink}</p>
+                      </div>
                     </div>
-                    <button 
-                        onClick={handleCopyLink}
-                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded-md transition flex items-center gap-1.5 shrink-0"
+                    <button
+                      onClick={handleCopyLink}
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded-md transition flex items-center gap-1.5 shrink-0"
                     >
-                        {copied ? <FaCheck/> : <FaCopy/>} {copied ? "Copied" : "Copy"}
+                      {copied ? <FaCheck /> : <FaCopy />} {copied ? "Copied" : "Copy"}
                     </button>
                   </div>
                 </div>
               )}
 
               <p className="text-gray-300 text-sm leading-relaxed mb-8 font-medium px-2">
-                {isSuccess 
+                {isSuccess
                   ? "We have received your request! Use the link above or your Reference ID to track your status."
                   : `We found an existing booking for this tour with your number. Current Status: ${data?.status || 'Pending'}.`
                 }
@@ -163,8 +163,8 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
                 onClick={onClose}
                 className={`
                   w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-all
-                  ${isSuccess 
-                    ? "bg-gradient-to-r from-[#D9A441] to-[#fbbf24] text-black shadow-[#D9A441]/30" 
+                  ${isSuccess
+                    ? "bg-gradient-to-r from-[#D9A441] to-[#fbbf24] text-black shadow-[#D9A441]/30"
                     : "bg-white/10 text-white hover:bg-white/20 border border-white/10"}
                 `}
               >
@@ -194,9 +194,9 @@ const QuantityControl = ({ label, subLabel, icon: Icon, value, onChange, min = 0
       >
         <FaMinus size={8} />
       </button>
-      
+
       <div className="flex-1 text-center font-bold text-white text-base">{value}</div>
-      
+
       <button
         onClick={() => onChange(Number(value) + 1)}
         className="h-full w-8 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-yellow-400 transition-all"
@@ -211,22 +211,22 @@ const TickButton = ({ label, icon: Icon, active, onClick, complimentary = false 
   <button
     onClick={onClick}
     className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all duration-200 group
-      ${active 
-        ? complimentary 
-          ? "bg-emerald-500/10 border-emerald-500/50" 
+      ${active
+        ? complimentary
+          ? "bg-emerald-500/10 border-emerald-500/50"
           : "bg-[#D9A441]/10 border-[#D9A441]/50"
         : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10"}
     `}
   >
     <div className="flex items-center gap-3">
       <div className={`w-4 h-4 rounded-full flex items-center justify-center border transition-colors
-        ${active 
-          ? (complimentary ? "bg-emerald-500 border-emerald-500" : "bg-[#D9A441] border-[#D9A441]") 
+        ${active
+          ? (complimentary ? "bg-emerald-500 border-emerald-500" : "bg-[#D9A441] border-[#D9A441]")
           : "border-gray-600 group-hover:border-gray-500"}
       `}>
         {active && <FaCheck className="text-[8px] text-black" />}
       </div>
-      
+
       <div className="flex items-center gap-2">
         {Icon && <Icon className={`text-sm ${active ? (complimentary ? "text-emerald-400" : "text-[#D9A441]") : "text-gray-500"}`} />}
         <span className={`text-xs font-medium ${active ? "text-white" : "text-gray-400"}`}>
@@ -245,7 +245,7 @@ const TickButton = ({ label, icon: Icon, active, onClick, complimentary = false 
 
 export default function BookingSidebar({ tour = {} }) {
   const [open, setOpen] = useState(false);
-  const [popupData, setPopupData] = useState(null); 
+  const [popupData, setPopupData] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   // Lock background scroll
@@ -300,7 +300,7 @@ export default function BookingSidebar({ tour = {} }) {
   };
 
   const toggleTea = () => {
-    if (form.meal) return; 
+    if (form.meal) return;
     handle("tea", !form.tea);
   };
 
@@ -428,7 +428,7 @@ export default function BookingSidebar({ tour = {} }) {
         body: JSON.stringify(bookingData)
       });
       const data = await res.json();
-      
+
       if (res.status === 409) {
         setPopupData({ type: 'duplicate', data: data.existingBooking });
         setOpen(false);
@@ -447,34 +447,34 @@ export default function BookingSidebar({ tour = {} }) {
   const contentJsx = (
     <div className="space-y-6 text-gray-100">
       <div className="hidden lg:block pb-4 border-b border-white/5">
-         <h3 className="text-xl font-bold text-white tracking-wide">
-           Book Your Trip
-         </h3>
-         <p className="text-gray-400 text-xs mt-1">Instant confirmation & transparent pricing</p>
+        <h3 className="text-xl font-bold text-white tracking-wide">
+          Book Your Trip
+        </h3>
+        <p className="text-gray-400 text-xs mt-1">Instant confirmation & transparent pricing</p>
       </div>
 
       <div className="space-y-3">
-        
+
         {/* PREMIUM PERSONAL CALENDAR */}
         <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                <FaCalendarAlt className="text-[#D9A441] text-lg" />
-            </div>
-            <DatePicker
-                selected={form.travelDate}
-                onChange={(date) => handle("travelDate", date)}
-                minDate={new Date()}
-                placeholderText="Select Journey Date"
-                dateFormat="dd MMM yyyy"
-                className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-black/20 border border-white/10 text-white font-semibold outline-none transition-all focus:bg-black/30 focus:border-[#D9A441]/50 focus:ring-1 focus:ring-[#D9A441]/50 cursor-pointer placeholder-gray-400 text-sm"
-                calendarClassName="!bg-[#1e293b] !border-white/10 !text-white !font-sans !rounded-xl !shadow-2xl !p-3 custom-datepicker"
-                dayClassName={() => "!text-gray-200 hover:!bg-[#D9A441] hover:!text-black !rounded-full"}
-                monthClassName={() => "!text-[#D9A441] !font-bold"}
-                weekDayClassName={() => "!text-gray-500"}
-                popperClassName="!z-[9999]"
-            />
-            {/* Custom Styles for Datepicker Override */}
-            <style>{`
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+            <FaCalendarAlt className="text-[#D9A441] text-lg" />
+          </div>
+          <DatePicker
+            selected={form.travelDate}
+            onChange={(date) => handle("travelDate", date)}
+            minDate={new Date()}
+            placeholderText="Select Journey Date"
+            dateFormat="dd MMM yyyy"
+            className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-black/20 border border-white/10 text-white font-semibold outline-none transition-all focus:bg-black/30 focus:border-[#D9A441]/50 focus:ring-1 focus:ring-[#D9A441]/50 cursor-pointer placeholder-gray-400 text-sm"
+            calendarClassName="!bg-[#1e293b] !border-white/10 !text-white !font-sans !rounded-xl !shadow-2xl !p-3 custom-datepicker"
+            dayClassName={() => "!text-gray-200 hover:!bg-[#D9A441] hover:!text-black !rounded-full"}
+            monthClassName={() => "!text-[#D9A441] !font-bold"}
+            weekDayClassName={() => "!text-gray-500"}
+            popperClassName="!z-[9999]"
+          />
+          {/* Custom Styles for Datepicker Override */}
+          <style>{`
                 .custom-datepicker .react-datepicker__header { background: transparent; border-bottom: 1px solid rgba(255,255,255,0.1); }
                 .custom-datepicker .react-datepicker__current-month { color: white; margin-bottom: 10px; }
                 .custom-datepicker .react-datepicker__day--selected { background-color: #D9A441 !important; color: black !important; font-weight: bold; }
@@ -485,32 +485,32 @@ export default function BookingSidebar({ tour = {} }) {
         </div>
 
         <input
-            type="text"
-            value={form.name}
-            onChange={(e) => handle("name", e.target.value)}
-            className="w-full px-4 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white placeholder-gray-500 outline-none transition-all text-base sm:text-sm backdrop-blur-sm"
-            placeholder="Full Name"
+          type="text"
+          value={form.name}
+          onChange={(e) => handle("name", e.target.value)}
+          className="w-full px-4 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white placeholder-gray-500 outline-none transition-all text-base sm:text-sm backdrop-blur-sm"
+          placeholder="Full Name"
         />
 
         <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative w-full sm:flex-1">
-                <span className="absolute left-3 top-3.5 text-[#D9A441] font-bold text-xs">🇮🇳 +91</span>
-                <input
-                    type="tel"
-                    value={form.phone}
-                    onChange={handlePhoneChange}
-                    maxLength={10}
-                    className="w-full pl-14 pr-3 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white placeholder-gray-500 font-medium outline-none transition-all text-base sm:text-sm backdrop-blur-sm"
-                    placeholder="Mobile Number"
-                />
-            </div>
+          <div className="relative w-full sm:flex-1">
+            <span className="absolute left-3 top-3.5 text-[#D9A441] font-bold text-xs">🇮🇳 +91</span>
             <input
-                type="email"
-                value={form.email}
-                onChange={(e) => handle("email", e.target.value)}
-                className="w-full sm:flex-[1.2] px-4 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white placeholder-gray-500 outline-none transition-all text-base sm:text-sm backdrop-blur-sm"
-                placeholder="Email (Optional)"
+              type="tel"
+              value={form.phone}
+              onChange={handlePhoneChange}
+              maxLength={10}
+              className="w-full pl-14 pr-3 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white placeholder-gray-500 font-medium outline-none transition-all text-base sm:text-sm backdrop-blur-sm"
+              placeholder="Mobile Number"
             />
+          </div>
+          <input
+            type="email"
+            value={form.email}
+            onChange={(e) => handle("email", e.target.value)}
+            className="w-full sm:flex-[1.2] px-4 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white placeholder-gray-500 outline-none transition-all text-base sm:text-sm backdrop-blur-sm"
+            placeholder="Email (Optional)"
+          />
         </div>
       </div>
 
@@ -521,61 +521,61 @@ export default function BookingSidebar({ tour = {} }) {
 
       {/* Rest of the form remains same... */}
       <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-             <div className="bg-white/5 p-2 rounded-xl border border-white/5 flex flex-col justify-center">
-               <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 text-center">Transport</label>
-               <div className="flex bg-black/30 rounded-lg p-1 relative">
-                  <motion.div 
-                    layout 
-                    className="absolute inset-y-1 bg-[#D9A441] rounded-md shadow-md"
-                    initial={false}
-                    animate={{ 
-                        left: form.transport === 'sharing' ? 4 : '50%', 
-                        width: 'calc(50% - 4px)' 
-                    }}
-                  />
-                  <button onClick={() => handle('transport', 'sharing')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Sharing</button>
-                  <button onClick={() => handle('transport', 'personal')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Cab</button>
-               </div>
-             </div>
-
-             <div className="bg-white/5 p-2 rounded-xl border border-white/5 flex flex-col justify-center">
-               <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 text-center">Room Type</label>
-               <div className="flex bg-black/30 rounded-lg p-1 relative">
-                  <motion.div 
-                    layout 
-                    className="absolute inset-y-1 bg-[#D9A441] rounded-md shadow-md"
-                    initial={false}
-                    animate={{ 
-                        left: form.roomType === 'standard' ? 4 : '50%', 
-                        width: 'calc(50% - 4px)' 
-                    }}
-                  />
-                  <button onClick={() => handle('roomType', 'standard')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Standard</button>
-                  <button onClick={() => handle('roomType', 'panoramic')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Panaromoic</button>
-               </div>
-             </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white/5 p-2 rounded-xl border border-white/5 flex flex-col justify-center">
+            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 text-center">Transport</label>
+            <div className="flex bg-black/30 rounded-lg p-1 relative">
+              <motion.div
+                layout
+                className="absolute inset-y-1 bg-[#D9A441] rounded-md shadow-md"
+                initial={false}
+                animate={{
+                  left: form.transport === 'sharing' ? 4 : '50%',
+                  width: 'calc(50% - 4px)'
+                }}
+              />
+              <button onClick={() => handle('transport', 'sharing')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Sharing</button>
+              <button onClick={() => handle('transport', 'personal')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Cab</button>
+            </div>
           </div>
 
-          <div className="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/5">
-                <span className="text-xs text-gray-300 ml-2 font-medium">Total Rooms Required</span>
-                <div className="flex items-center gap-3">
-                    <button 
-                    disabled={form.rooms <= minRoomsRequired} 
-                    onClick={() => handle("rooms", Math.max(minRoomsRequired, Number(form.rooms) - 1))} 
-                    className="w-6 h-6 flex items-center justify-center rounded bg-black/30 text-white disabled:opacity-20"
-                    >
-                    <FaMinus size={8} />
-                    </button>
-                    <div className="text-sm font-bold text-[#D9A441]">{form.rooms}</div>
-                    <button 
-                    onClick={() => handle("rooms", Number(form.rooms) + 1)} 
-                    className="w-6 h-6 flex items-center justify-center rounded bg-black/30 text-white"
-                    >
-                    <FaPlus size={8} />
-                    </button>
-                </div>
+          <div className="bg-white/5 p-2 rounded-xl border border-white/5 flex flex-col justify-center">
+            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 text-center">Room Type</label>
+            <div className="flex bg-black/30 rounded-lg p-1 relative">
+              <motion.div
+                layout
+                className="absolute inset-y-1 bg-[#D9A441] rounded-md shadow-md"
+                initial={false}
+                animate={{
+                  left: form.roomType === 'standard' ? 4 : '50%',
+                  width: 'calc(50% - 4px)'
+                }}
+              />
+              <button onClick={() => handle('roomType', 'standard')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Standard</button>
+              <button onClick={() => handle('roomType', 'panoramic')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Panaromoic</button>
+            </div>
           </div>
+        </div>
+
+        <div className="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/5">
+          <span className="text-xs text-gray-300 ml-2 font-medium">Total Rooms Required</span>
+          <div className="flex items-center gap-3">
+            <button
+              disabled={form.rooms <= minRoomsRequired}
+              onClick={() => handle("rooms", Math.max(minRoomsRequired, Number(form.rooms) - 1))}
+              className="w-6 h-6 flex items-center justify-center rounded bg-black/30 text-white disabled:opacity-20"
+            >
+              <FaMinus size={8} />
+            </button>
+            <div className="text-sm font-bold text-[#D9A441]">{form.rooms}</div>
+            <button
+              onClick={() => handle("rooms", Number(form.rooms) + 1)}
+              className="w-6 h-6 flex items-center justify-center rounded bg-black/30 text-white"
+            >
+              <FaPlus size={8} />
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="pt-2">
@@ -586,7 +586,7 @@ export default function BookingSidebar({ tour = {} }) {
           <TickButton label="Meals" icon={FaUtensils} active={form.meal} onClick={toggleMeal} />
           <TickButton label="Tea" icon={FaCoffee} active={form.tea} complimentary={form.meal} onClick={toggleTea} />
           <div className="col-span-2">
-             <TickButton label="Tour Guide" icon={FaHiking} active={form.tourGuide} onClick={() => handle("tourGuide", !form.tourGuide)} />
+            <TickButton label="Tour Guide" icon={FaHiking} active={form.tourGuide} onClick={() => handle("tourGuide", !form.tourGuide)} />
           </div>
         </div>
       </div>
@@ -595,98 +595,98 @@ export default function BookingSidebar({ tour = {} }) {
       <div className="bg-black/20 border border-white/5 rounded-xl p-2.5 flex items-center gap-3 relative">
         <div className="p-1.5 bg-[#D9A441]/10 rounded text-[#D9A441]"><FaTicketAlt size={12} /></div>
         <div className="flex-1 flex gap-2 items-center">
-            <input
-                className="flex-1 bg-transparent text-xs text-white uppercase placeholder-gray-600 focus:outline-none font-bold tracking-wider"
-                placeholder="PROMO CODE"
-                value={couponCode}
-                onChange={e => setCouponCode(e.target.value)}
-                disabled={appliedCoupon}
-            />
-            {appliedCoupon ? (
-                <>
-                  {/* Internal Status Text */}
-                  <motion.span 
-                    initial={{ scale: 0.8, opacity: 0 }} 
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="text-[9px] font-bold text-green-400 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20"
-                  >
-                    CODE APPLIED
-                  </motion.span>
-                  <button onClick={removeCoupon} className="text-red-400 text-[10px] font-bold hover:text-red-300">REMOVE</button>
-                </>
-            ) : (
-                <button onClick={handleApplyCoupon} disabled={!couponCode || isApplyingCoupon} className="text-[#D9A441] text-[10px] font-bold hover:text-yellow-300 disabled:opacity-50">APPLY</button>
-            )}
+          <input
+            className="flex-1 bg-transparent text-xs text-white uppercase placeholder-gray-600 focus:outline-none font-bold tracking-wider"
+            placeholder="PROMO CODE"
+            value={couponCode}
+            onChange={e => setCouponCode(e.target.value)}
+            disabled={appliedCoupon}
+          />
+          {appliedCoupon ? (
+            <>
+              {/* Internal Status Text */}
+              <motion.span
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="text-[9px] font-bold text-green-400 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20"
+              >
+                CODE APPLIED
+              </motion.span>
+              <button onClick={removeCoupon} className="text-red-400 text-[10px] font-bold hover:text-red-300">REMOVE</button>
+            </>
+          ) : (
+            <button onClick={handleApplyCoupon} disabled={!couponCode || isApplyingCoupon} className="text-[#D9A441] text-[10px] font-bold hover:text-yellow-300 disabled:opacity-50">APPLY</button>
+          )}
         </div>
       </div>
       {/* Fallback error message only */}
       {!appliedCoupon && couponMessage && <p className="text-[10px] text-center -mt-4 text-red-400">{couponMessage}</p>}
 
-      <motion.div 
+      <motion.div
         animate={appliedCoupon ? { scale: [1, 1.02, 1] } : {}}
         transition={{ duration: 0.4 }}
         className="p-5 rounded-3xl bg-gradient-to-br from-[#D9A441]/10 via-black/20 to-transparent border border-[#D9A441]/20 shadow-lg backdrop-blur-md"
       >
         <div className="flex justify-between items-start mb-6">
-            <div className="flex flex-col">
-                <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1">Estimated / Person</p>
-                {/* ANIMATED PER PERSON PRICE */}
-                <motion.div
-                    key={perHeadPrice}
-                    initial={{ y: 5, opacity: 0, scale: 0.9 }}
-                    animate={{ y: 0, opacity: 1, scale: 1 }}
-                    className="text-2xl font-black text-[#D9A441] tracking-tight"
-                >
-                    ₹{perHeadPrice.toLocaleString("en-IN")}
-                </motion.div>
-            </div>
-            
-            <div className="text-right flex flex-col items-end">
-                <p className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-1">Grand Total</p>
-                
-                {/* UPDATED PRICE LOGIC */}
-                {appliedCoupon ? (
-                    <div className="flex flex-col items-end">
-                        {/* 1. Original Strikethrough Price */}
-                        <span className="text-gray-500 text-xs font-semibold line-through decoration-red-500/80 mb-0.5">
-                            ₹{finalPrice.toLocaleString()}
-                        </span>
+          <div className="flex flex-col">
+            <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1">Estimated / Person</p>
+            {/* ANIMATED PER PERSON PRICE */}
+            <motion.div
+              key={perHeadPrice}
+              initial={{ y: 5, opacity: 0, scale: 0.9 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              className="text-2xl font-black text-[#D9A441] tracking-tight"
+            >
+              ₹{perHeadPrice.toLocaleString("en-IN")}
+            </motion.div>
+          </div>
 
-                        {/* 2. Green Animated Discount Value */}
-                        <motion.div 
-                            initial={{ opacity: 0, y: -5 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="text-emerald-400 text-[11px] font-bold mb-1 flex items-center gap-1 bg-emerald-900/20 px-2 py-0.5 rounded-full border border-emerald-500/20"
-                        >
-                            <span>Saved ₹{(finalPrice - discountedPrice).toLocaleString()}</span>
-                            <span className="animate-bounce">🎉</span>
-                        </motion.div>
-                        
-                        {/* 3. Final Price (White, text-2xl) */}
-                        <motion.span 
-                            key={discountedPrice}
-                            initial={{ scale: 0.9 }}
-                            animate={{ scale: 1 }}
-                            className="text-2xl font-bold text-white tracking-wide"
-                        >
-                            ₹{discountedPrice.toLocaleString("en-IN")}
-                        </motion.span>
-                    </div>
-                ) : (
-                    // Standard Display
-                    <span className="text-2xl font-bold text-white tracking-wide">
-                        ₹{finalPrice.toLocaleString("en-IN")}
-                    </span>
-                )}
-            </div>
+          <div className="text-right flex flex-col items-end">
+            <p className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-1">Grand Total</p>
+
+            {/* UPDATED PRICE LOGIC */}
+            {appliedCoupon ? (
+              <div className="flex flex-col items-end">
+                {/* 1. Original Strikethrough Price */}
+                <span className="text-gray-500 text-xs font-semibold line-through decoration-red-500/80 mb-0.5">
+                  ₹{finalPrice.toLocaleString()}
+                </span>
+
+                {/* 2. Green Animated Discount Value */}
+                <motion.div
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-emerald-400 text-[11px] font-bold mb-1 flex items-center gap-1 bg-emerald-900/20 px-2 py-0.5 rounded-full border border-emerald-500/20"
+                >
+                  <span>Saved ₹{(finalPrice - discountedPrice).toLocaleString()}</span>
+                  <span className="animate-bounce">🎉</span>
+                </motion.div>
+
+                {/* 3. Final Price (White, text-2xl) */}
+                <motion.span
+                  key={discountedPrice}
+                  initial={{ scale: 0.9 }}
+                  animate={{ scale: 1 }}
+                  className="text-2xl font-bold text-white tracking-wide"
+                >
+                  ₹{discountedPrice.toLocaleString("en-IN")}
+                </motion.span>
+              </div>
+            ) : (
+              // Standard Display
+              <span className="text-2xl font-bold text-white tracking-wide">
+                ₹{finalPrice.toLocaleString("en-IN")}
+              </span>
+            )}
+          </div>
         </div>
 
         <button
-            onClick={handleBook}
-            disabled={submitting}
-            className="w-full bg-[#D9A441] hover:bg-[#fbbf24] text-black py-3.5 rounded-xl font-bold text-base shadow-[0_0_20px_rgba(217,164,65,0.15)] transition active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2"
+          onClick={handleBook}
+          disabled={submitting}
+          className="w-full bg-[#D9A441] hover:bg-[#fbbf24] text-black py-3.5 rounded-xl font-bold text-base shadow-[0_0_20px_rgba(217,164,65,0.15)] transition active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2"
         >
-            {submitting ? <><FaSpinner className="animate-spin" /> Processing...</> : "Confirm Booking"}
+          {submitting ? <><FaSpinner className="animate-spin" /> Processing...</> : "Confirm Booking"}
         </button>
       </motion.div>
     </div>
@@ -694,11 +694,11 @@ export default function BookingSidebar({ tour = {} }) {
 
   return (
     <>
-      <StatusPopup 
-        isOpen={!!popupData} 
-        onClose={() => setPopupData(null)} 
+      <StatusPopup
+        isOpen={!!popupData}
+        onClose={() => setPopupData(null)}
         data={popupData?.data}
-        type={popupData?.type} 
+        type={popupData?.type}
       />
 
       <div className="hidden lg:block">

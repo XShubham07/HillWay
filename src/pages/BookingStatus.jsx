@@ -1,22 +1,19 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom"; // Import useNavigate
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  FaSearch, FaTicketAlt, FaMapMarkerAlt, FaCalendarAlt, 
-  FaUserFriends, FaMoneyBillWave, FaCheckCircle, FaTimesCircle, 
-  FaClock, FaShareAlt, FaLink, FaCopy, FaPaste
+import {
+  FaSearch, FaTicketAlt, FaMapMarkerAlt, FaCalendarAlt,
+  FaUserFriends, FaMoneyBillWave, FaCheckCircle, FaTimesCircle,
+  FaClock, FaShareAlt, FaLink, FaCopy, FaPaste, FaArrowRight, FaEye
 } from "react-icons/fa";
 
 export default function BookingStatus() {
   const [searchParams, setSearchParams] = useSearchParams();
-  
-  // Tabs: 'details' or 'link'
-  const [activeTab, setActiveTab] = useState("details");
+  const navigate = useNavigate(); // Initialize useNavigate
 
-  // Inputs
+  // Only one active mode now: 'details' (Reference ID search)
   const [refId, setRefId] = useState(searchParams.get("refId") || "");
-  const [linkInput, setLinkInput] = useState("");
-  
+
   // Data State
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -24,7 +21,7 @@ export default function BookingStatus() {
   const [linkCopied, setLinkCopied] = useState(false);
 
   // --- CORE FETCH LOGIC ---
-  const fetchBookingStatus = async (refVal, phoneVal = null) => {
+  const fetchBookingStatus = async (refVal) => {
     if (!refVal) {
       setError("Please provide a Reference ID.");
       return;
@@ -35,9 +32,8 @@ export default function BookingStatus() {
     setBooking(null);
 
     try {
-      // Build query params
+      // Build query params - removed phone support for cleaner UI as per request context implies simplification
       let url = `/api/bookings/status?refId=${encodeURIComponent(refVal)}`;
-      if (phoneVal) url += `&phone=${encodeURIComponent(phoneVal)}`;
 
       const res = await fetch(url);
       const data = await res.json();
@@ -45,10 +41,10 @@ export default function BookingStatus() {
       if (data.success) {
         setBooking(data.data);
         const shortId = data.data._id.slice(-6).toUpperCase();
-        
+
         // Update URL to reflect the found booking
         setSearchParams({ refId: shortId }, { replace: true });
-        
+
         // Sync input
         setRefId(shortId);
       } else {
@@ -60,46 +56,41 @@ export default function BookingStatus() {
     setLoading(false);
   };
 
-  // 1. Auto-fetch on Load
+  // 1. Auto-fetch on Load if ID is present
   useEffect(() => {
     const urlRef = searchParams.get("refId");
-    const urlPhone = searchParams.get("phone"); // Still support phone from link if present
     if (urlRef) {
-      fetchBookingStatus(urlRef, urlPhone);
+      fetchBookingStatus(urlRef);
     }
   }, []);
 
-  // 2. Manual Search (Details Tab - ID ONLY)
-  const handleDetailsSearch = (e) => {
+  // 2. Manual Search
+  const handleSearch = (e) => {
     e.preventDefault();
     fetchBookingStatus(refId);
   };
 
-  // 3. Manual Search (Link Tab)
-  const handleLinkSearch = (e) => {
-    e.preventDefault();
-    try {
-      const urlObj = new URL(linkInput);
-      const r = urlObj.searchParams.get("refId");
-      const p = urlObj.searchParams.get("phone"); // Optional now
-      
-      if (r) {
-        fetchBookingStatus(r, p);
-      } else {
-        setError("Invalid link. Reference ID missing.");
-      }
-    } catch (err) {
-      setError("Please enter a valid URL.");
+  // Pre-fill #HW- logic
+  const handleInputChange = (e) => {
+    let val = e.target.value.toUpperCase();
+
+    // Ensure it always starts with #HW- unless empty
+    if (val && !val.startsWith("#HW-")) {
+      // If user types just numbers/letters, prepend #HW-
+      // If user deletes, allow flexibility, but we guide them
+      if (val.startsWith("HW-")) val = "#" + val;
+      else if (val.startsWith("#HW")) val = val; // do nothing
+      else val = "#HW-" + val.replace(/^(#HW-|HW-|#)/, "");
     }
+    setRefId(val);
   };
 
-  // 4. Copy Result Link
+  // 3. Copy Result Link
   const handleCopyLink = () => {
     if (!booking) return;
     const shortId = booking._id.slice(-6).toUpperCase();
-    // Generate link with just refId for simplicity, or include phone if you want stricter sharing
     const link = `${window.location.origin}/status?refId=${shortId}`;
-    
+
     navigator.clipboard.writeText(link);
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2000);
@@ -108,9 +99,9 @@ export default function BookingStatus() {
   // --- HELPERS ---
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Confirmed': return 'text-green-400 bg-green-400/10 border-green-400/20';
-      case 'Cancelled': return 'text-red-400 bg-red-400/10 border-red-400/20';
-      default: return 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20';
+      case 'Confirmed': return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20 shadow-[0_0_15px_rgba(52,211,153,0.1)]';
+      case 'Cancelled': return 'text-red-400 bg-red-400/10 border-red-400/20 shadow-[0_0_15px_rgba(248,113,113,0.1)]';
+      default: return 'text-amber-400 bg-amber-400/10 border-amber-400/20 shadow-[0_0_15px_rgba(251,191,36,0.1)]';
     }
   };
 
@@ -123,203 +114,217 @@ export default function BookingStatus() {
   };
 
   return (
-    <div className="min-h-screen pt-28 pb-20 px-4 bg-[#0f172a] text-white font-inter selection:bg-[#D9A441] selection:text-black">
-      
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-[#0891b2] opacity-10 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#D9A441] opacity-10 blur-[120px] rounded-full" />
+    <div className="min-h-screen pt-32 pb-20 px-4 bg-[#0f172a] text-white font-inter selection:bg-[#D9A441] selection:text-black overflow-hidden relative">
+
+      {/* Background Elements */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] bg-cyan-900/20 blur-[120px] rounded-full animate-pulse duration-[10s]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-amber-600/10 blur-[120px] rounded-full animate-pulse duration-[8s]" />
       </div>
 
-      <div className="max-w-xl mx-auto relative z-10">
-        
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold font-montserrat tracking-tight mb-3">
-            Track Your <span className="text-[#D9A441]">Journey</span>
+      <div className="max-w-3xl mx-auto relative z-10">
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <h1 className="text-4xl md:text-5xl font-black font-montserrat tracking-tight mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-400 drop-shadow-sm">
+            Track Your Journey
           </h1>
-          <p className="text-gray-400 text-sm">Check status via ID or Link</p>
-        </div>
+          <p className="text-gray-400 text-base md:text-lg font-light">Enter your Booking ID to see real-time updates.</p>
+        </motion.div>
 
-        {/* --- TRACKING CARD --- */}
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-1 rounded-3xl shadow-2xl mb-8">
-          
-          {/* Tabs */}
-          <div className="flex p-1 bg-black/20 rounded-[22px] mb-2">
-            <button 
-              onClick={() => setActiveTab('details')}
-              className={`flex-1 py-3 rounded-2xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'details' ? 'bg-[#1e293b] text-white shadow-lg border border-white/10' : 'text-gray-400 hover:text-white'}`}
-            >
-              <FaTicketAlt /> Booking ID
-            </button>
-            <button 
-              onClick={() => setActiveTab('link')}
-              className={`flex-1 py-3 rounded-2xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'link' ? 'bg-[#1e293b] text-white shadow-lg border border-white/10' : 'text-gray-400 hover:text-white'}`}
-            >
-              <FaLink /> Via Link
-            </button>
-          </div>
-
-          <div className="p-5">
-            {/* OPTION 1: DETAILS FORM (ID ONLY) */}
-            {activeTab === 'details' && (
-              <form onSubmit={handleDetailsSearch} className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-300">
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1">Reference ID</label>
-                  <div className="relative group">
-                    <FaTicketAlt className="absolute left-4 top-4 text-gray-500 group-focus-within:text-[#D9A441] transition-colors" />
-                    <input 
-                      type="text" 
-                      placeholder="e.g. HW-A1B2C3" 
-                      value={refId}
-                      onChange={(e) => setRefId(e.target.value)}
-                      className="w-full bg-black/20 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-[#D9A441]/50 focus:ring-1 focus:ring-[#D9A441]/50 transition-all font-mono tracking-wide"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <button 
-                  type="submit" 
-                  disabled={loading}
-                  className="w-full bg-gradient-to-r from-[#0891b2] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0891b2] text-white font-bold py-4 rounded-xl shadow-lg shadow-cyan-900/20 transform active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-2"
-                >
-                  {loading ? <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span> : <><FaSearch /> Check Status</>}
-                </button>
-              </form>
-            )}
-
-            {/* OPTION 2: LINK FORM */}
-            {activeTab === 'link' && (
-              <form onSubmit={handleLinkSearch} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1">Paste Tracking Link</label>
-                  <div className="relative group">
-                    <FaPaste className="absolute left-4 top-4 text-gray-500 group-focus-within:text-[#D9A441] transition-colors" />
-                    <input 
-                      type="url" 
-                      placeholder="https://hillway.in/status?refId=..." 
-                      value={linkInput}
-                      onChange={(e) => setLinkInput(e.target.value)}
-                      className="w-full bg-black/20 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-[#D9A441]/50 focus:ring-1 focus:ring-[#D9A441]/50 transition-all text-sm"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <button 
-                  type="submit" 
-                  disabled={loading}
-                  className="w-full bg-gradient-to-r from-[#D9A441] to-[#fbbf24] hover:from-[#fbbf24] hover:to-[#D9A441] text-black font-bold py-4 rounded-xl shadow-lg shadow-yellow-900/20 transform active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-2"
-                >
-                  {loading ? <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-black"></span> : <><FaSearch /> Track Via Link</>}
-                </button>
-              </form>
-            )}
-          </div>
+        {/* --- SEARCH INPUT AREA --- */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1, duration: 0.4 }}
+          className="max-w-md mx-auto mb-12"
+        >
+          <form onSubmit={handleSearch} className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-500" />
+            <div className="relative flex items-center bg-[#1e293b]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-2 shadow-2xl transition-all focus-within:border-cyan-500/50 focus-within:bg-[#1e293b]">
+              <div className="pl-4 text-gray-500 group-focus-within:text-cyan-400 transition-colors">
+                <FaTicketAlt size={18} />
+              </div>
+              <input
+                type="text"
+                placeholder="#HW-A1B2C3"
+                value={refId}
+                onChange={handleInputChange}
+                onFocus={() => !refId && setRefId("#HW-")}
+                className="w-full bg-transparent text-white placeholder-gray-500 px-4 py-3 outline-none font-mono tracking-wider text-lg uppercase"
+              />
+              <button
+                type="submit"
+                disabled={loading}
+                className="bg-cyan-600 hover:bg-cyan-500 text-white p-3 rounded-xl transition-all shadow-lg hover:shadow-cyan-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? <FaClock className="animate-spin" /> : <FaArrowRight />}
+              </button>
+            </div>
+          </form>
 
           {error && (
-            <div className="px-6 pb-6 animate-in fade-in zoom-in duration-300">
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs text-center font-bold">
-                {error}
-              </div>
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm font-medium text-center flex items-center justify-center gap-2"
+            >
+              <FaTimesCircle /> {error}
+            </motion.div>
           )}
-        </div>
+        </motion.div>
 
         {/* --- RESULT CARD --- */}
         <AnimatePresence mode="wait">
           {booking && (
-            <motion.div 
+            <motion.div
               key="result"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ type: "spring", stiffness: 200, damping: 20 }}
-              className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative"
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ type: "spring", stiffness: 150, damping: 20 }}
+              className="bg-[#1e293b]/60 backdrop-blur-md border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl"
             >
-              <button 
-                onClick={handleCopyLink}
-                className="absolute top-6 right-6 z-20 flex items-center gap-2 bg-black/30 hover:bg-black/50 text-white/80 hover:text-white px-3 py-1.5 rounded-full text-xs font-bold transition-all border border-white/10 backdrop-blur-md"
-              >
-                {linkCopied ? (
-                  <>
-                    <FaCheckCircle className="text-green-400" />
-                    <span className="text-green-400">Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <FaShareAlt />
-                    <span>Share Status</span>
-                  </>
-                )}
-              </button>
+              {/* 1. HEADER */}
+              <div className="relative p-8 border-b border-white/5 overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-cyan-500/10 to-purple-500/10 blur-[60px] rounded-full pointer-events-none" />
 
-              <div className="bg-white/5 p-6 border-b border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                  <h2 className="text-xl font-bold text-white mb-1 pr-24">{booking.tourTitle}</h2>
-                  <p className="text-xs text-gray-400 font-mono">ID: #HW-{booking._id.slice(-6).toUpperCase()}</p>
-                </div>
-                <div className={`px-4 py-2 rounded-full border flex items-center gap-2 text-sm font-bold shadow-lg ${getStatusColor(booking.status)}`}>
-                  {getStatusIcon(booking.status)}
-                  {booking.status || 'Pending'}
+                <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                  <div className="flex-1">
+                    {/* Clickable Title Redirects to Tour Details */}
+                    <h2
+                      onClick={() => navigate(`/tour/${booking.tourId}`)}
+                      className="text-3xl font-black text-white mb-2 tracking-tight cursor-pointer hover:text-cyan-400 transition-colors duration-300 decoration-cyan-500/30 underline-offset-4 hover:underline"
+                    >
+                      {booking.tourTitle}
+                    </h2>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="bg-white/5 border border-white/10 px-3 py-1 rounded-lg text-xs font-mono text-gray-400 tracking-widest">
+                        #HW-{booking._id.slice(-6).toUpperCase()}
+                      </span>
+                      <span className="text-gray-500 text-xs">
+                        • Booked on {new Date(booking.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+
+                    {/* View Tour Button */}
+                    <button
+                      onClick={() => navigate(`/tour/${booking.tourId}`)}
+                      className="mt-4 text-xs font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-3 py-1.5 rounded-lg hover:bg-cyan-500/20 transition flex items-center gap-2 w-fit"
+                    >
+                      <FaEye /> View Tour Details
+                    </button>
+                  </div>
+
+                  <div className={`px-5 py-2 rounded-full border flex items-center gap-2.5 text-sm font-bold uppercase tracking-wide shadow-xl backdrop-blur-sm shrink-0 ${getStatusColor(booking.status)}`}>
+                    {getStatusIcon(booking.status)}
+                    {booking.status || 'Pending'}
+                  </div>
                 </div>
               </div>
 
-              <div className="p-6 space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-black/20 p-4 rounded-2xl border border-white/5">
-                    <p className="text-xs text-gray-500 font-bold uppercase mb-1">Travel Date</p>
-                    <div className="flex items-center gap-2 text-white font-medium">
-                      <FaCalendarAlt className="text-[#D9A441]" />
-                      {new Date(booking.travelDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+              <div className="p-8 space-y-8">
+
+                {/* 2. KEY METRICS GRID */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-black/20 p-5 rounded-2xl border border-white/5 flex flex-col items-center justify-center text-center hover:bg-white/5 transition-colors">
+                    <div className="w-10 h-10 rounded-full bg-amber-500/10 text-amber-400 flex items-center justify-center mb-3 text-lg">
+                      <FaCalendarAlt />
                     </div>
+                    <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Travel Date</p>
+                    <p className="text-white font-bold text-lg">
+                      {new Date(booking.travelDate).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </p>
                   </div>
-                  <div className="bg-black/20 p-4 rounded-2xl border border-white/5">
-                    <p className="text-xs text-gray-500 font-bold uppercase mb-1">Travelers</p>
-                    <div className="flex items-center gap-2 text-white font-medium">
-                      <FaUserFriends className="text-[#D9A441]" />
+
+                  <div className="bg-black/20 p-5 rounded-2xl border border-white/5 flex flex-col items-center justify-center text-center hover:bg-white/5 transition-colors">
+                    <div className="w-10 h-10 rounded-full bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-3 text-lg">
+                      <FaUserFriends />
+                    </div>
+                    <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Passengers</p>
+                    <p className="text-white font-bold text-lg">
                       {booking.adults} Adults, {booking.children} Kids
+                    </p>
+                  </div>
+
+                  <div className="bg-black/20 p-5 rounded-2xl border border-white/5 flex flex-col items-center justify-center text-center hover:bg-white/5 transition-colors">
+                    <div className="w-10 h-10 rounded-full bg-purple-500/10 text-purple-400 flex items-center justify-center mb-3 text-lg">
+                      <FaMapMarkerAlt />
+                    </div>
+                    <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Transport</p>
+                    <p className="text-white font-bold text-lg capitalize">
+                      {booking.transport === 'personal' ? 'Private Cab' : 'Shared'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 3. DETAILS LIST */}
+                <div className="bg-white/5 rounded-3xl p-6 md:p-8 border border-white/5">
+                  <h3 className="text-gray-300 font-bold mb-6 flex items-center gap-2">
+                    <FaCheckCircle className="text-cyan-500" /> Booking Summary
+                  </h3>
+
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                      <span className="text-gray-400 text-sm">Primary Guest</span>
+                      <span className="text-white font-medium">{booking.name}</span>
+                    </div>
+                    <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                      <span className="text-gray-400 text-sm">Room Plan</span>
+                      <span className="text-white font-medium capitalize">{booking.rooms}x {booking.roomType} Room</span>
+                    </div>
+                    <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                      <span className="text-gray-400 text-sm">Payment Status</span>
+                      <span className={`font-bold ${(booking.paymentType === 'Partial' && booking.paidAmount < booking.totalPrice)
+                        ? 'text-amber-400'
+                        : 'text-emerald-400'
+                        }`}>
+                        {booking.paymentType === 'Partial' && booking.paidAmount < booking.totalPrice
+                          ? `Partial (Due: ₹${(booking.totalPrice - booking.paidAmount).toLocaleString()})`
+                          : 'Fully Paid'
+                        }
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* TOTAL PRICE */}
+                  <div className="mt-6 pt-6 border-t border-dashed border-white/10 flex flex-col md:flex-row justify-between items-end md:items-center gap-4">
+                    <span className="text-gray-400 text-sm font-medium">Total Trip Value</span>
+                    <div className="text-right">
+                      {booking.originalPrice > booking.totalPrice && (
+                        <span className="block text-xs text-gray-500 line-through mb-1">₹{booking.originalPrice.toLocaleString()}</span>
+                      )}
+                      <span className="text-4xl font-black text-white tracking-tighter flex items-center gap-1">
+                        <span className="text-2xl text-gray-500 font-medium">₹</span> {booking.totalPrice.toLocaleString()}
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 hover:bg-white/5 rounded-lg transition">
-                    <span className="text-gray-400 text-sm">Customer Name</span>
-                    <span className="font-medium">{booking.name}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 hover:bg-white/5 rounded-lg transition">
-                    <span className="text-gray-400 text-sm">Transport Mode</span>
-                    <span className="font-medium capitalize">{booking.transport === 'personal' ? 'Private Cab' : 'Shared'}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 hover:bg-white/5 rounded-lg transition">
-                    <span className="text-gray-400 text-sm">Payment Status</span>
-                    <span className="font-medium">
-                        {booking.paymentType === 'Partial' && booking.paidAmount < booking.totalPrice 
-                            ? <span className="text-yellow-400">Partial (Due: ₹{(booking.totalPrice - booking.paidAmount).toLocaleString()})</span> 
-                            : <span className="text-green-400">Full Paid</span>
-                        }
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mt-4 pt-6 border-t border-dashed border-white/10 flex justify-between items-end">
-                  <span className="text-gray-400 text-sm font-medium">Total Booking Value</span>
-                  <div className="text-right">
-                    {booking.originalPrice > booking.totalPrice && (
-                      <span className="block text-xs text-gray-500 line-through mb-0.5">₹{booking.originalPrice.toLocaleString()}</span>
-                    )}
-                    <span className="text-3xl font-black text-[#D9A441] tracking-tight flex items-center gap-1">
-                      <FaMoneyBillWave className="text-xl" /> ₹{booking.totalPrice.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-
+                {/* 4. ADMIN NOTE */}
                 {booking.adminNotes && (
-                  <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl mt-4">
-                    <p className="text-xs text-blue-300 font-bold uppercase mb-1">Note from Admin</p>
-                    <p className="text-sm text-blue-100 italic">"{booking.adminNotes}"</p>
+                  <div className="bg-blue-500/10 border border-blue-500/20 p-5 rounded-2xl flex items-start gap-4">
+                    <div className="mt-1 text-blue-400 text-xl"><FaLink /></div>
+                    <div>
+                      <p className="text-xs text-blue-300 font-bold uppercase mb-1">Update from Team</p>
+                      <p className="text-sm text-blue-100 leading-relaxed">"{booking.adminNotes}"</p>
+                    </div>
                   </div>
                 )}
+
+                {/* 5. SHARE BUTTON */}
+                <button
+                  onClick={handleCopyLink}
+                  className="w-full py-4 bg-white/5 hover:bg-white/10 text-gray-300 font-bold rounded-2xl transition flex items-center justify-center gap-2 border border-white/10 active:scale-95"
+                >
+                  {linkCopied ? <FaCheckCircle className="text-green-400" /> : <FaShareAlt />}
+                  {linkCopied ? "Link Copied!" : "Share Booking Status"}
+                </button>
+
               </div>
             </motion.div>
           )}
