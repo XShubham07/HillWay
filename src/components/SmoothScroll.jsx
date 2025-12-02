@@ -1,32 +1,33 @@
 // src/components/SmoothScroll.jsx
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
+import { useLocation } from 'react-router-dom';
 
 export default function SmoothScroll({ children }) {
-  useEffect(() => {
+  const lenisRef = useRef(null);
+  const location = useLocation();
+
+  // 1. Initialize Lenis (Singleton)
+  useLayoutEffect(() => {
+    // Prevent multiple instances
+    if (lenisRef.current) return;
 
     const isMobile = window.innerWidth < 768;
 
     const lenis = new Lenis({
-      // ⚡ PC vs Mobile different durations
-      duration: isMobile ? 0.55 : 1.0,
-
-      // ⚡ Mobile responsiveness boost
-      smoothTouch: true,                 // <-- KEY FIX
-      touchMultiplier: isMobile ? 2.4 : 1.5,
-
-      // ⚡ PC smoothness
+      duration: isMobile ? 1.5 : 1.2, // Longer duration = smoother feel
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Apple-like easing
+      direction: 'vertical',
+      gestureDirection: 'vertical',
       smooth: true,
-
-      // ⚡ Scroll sensitivity
-      wheelMultiplier: isMobile ? 1.2 : 1,
-
-      // ⚡ Mobile natural feel = simple linear ease
-      easing: isMobile
-        ? (t) => t                          // SUPER RESPONSIVE
-        : (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothTouch: true, // Force smooth on touch for "butter" feel
+      touchMultiplier: isMobile ? 1.5 : 2, // Sensitivity
+      infinite: false,
     });
+
+    lenisRef.current = lenis;
+    window.lenis = lenis; // Expose to window for other components to use
 
     function raf(time) {
       lenis.raf(time);
@@ -34,12 +35,21 @@ export default function SmoothScroll({ children }) {
     }
     requestAnimationFrame(raf);
 
-    window.lenis = lenis; // expose for scroll-driven components
-
     return () => {
       lenis.destroy();
+      lenisRef.current = null;
+      window.lenis = null;
     };
   }, []);
+
+  // 2. Reset Scroll on Route Change (Immediate)
+  useLayoutEffect(() => {
+    if (lenisRef.current) {
+      lenisRef.current.scrollTo(0, { immediate: true });
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [location.pathname]);
 
   return <>{children}</>;
 }

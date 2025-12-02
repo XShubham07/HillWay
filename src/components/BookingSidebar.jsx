@@ -283,7 +283,7 @@ export default function BookingSidebar({ tour = {} }) {
 
   const [form, setForm] = useState({
     name: "", phone: "", email: "", travelDate: null,
-    adults: 2, children: 0,
+    adults: 3, children: 0,
     roomType: "standard", transport: "sharing",
     bonfire: false, meal: false, tea: false, comfortSeat: false, tourGuide: false,
     rooms: 1
