@@ -11,6 +11,9 @@ const TourSchema = new mongoose.Schema({
   nights: { type: Number, default: 3 },
   featured: { type: Boolean, default: false },
 
+  // NEW: TAGS SUPPORT
+  tags: { type: [String], default: [] }, 
+
   images: { type: [String], default: [] },
   img: { type: String },
 
@@ -46,12 +49,11 @@ const TourSchema = new mongoose.Schema({
   ],
   faqs: [{ q: String, a: String }],
 
-  // UPDATED REVIEWS SCHEMA
   reviews: [{
-    title: String,   // Review Title
+    title: String,
     name: String,
-    email: String,   // Private (Stored but not shown)
-    mobile: String,  // Private (Stored but not shown)
+    email: String,
+    mobile: String,
     rating: Number,
     text: String,
     date: String

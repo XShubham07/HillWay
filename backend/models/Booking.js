@@ -4,7 +4,11 @@ const BookingSchema = new mongoose.Schema({
   name: { type: String, required: true },
   phone: { type: String, required: true },
   email: String,
+  
+  // Link to Tour
   tourTitle: String,
+  tourId: { type: String }, // Stores ID for reliable redirect
+  
   travelDate: Date,
   adults: { type: Number, default: 1 },
   children: { type: Number, default: 0 },
@@ -22,6 +26,14 @@ const BookingSchema = new mongoose.Schema({
   paymentType: { type: String, enum: ['Full', 'Partial'], default: 'Full' },
   paidAmount: { type: Number, default: 0 },
   adminNotes: { type: String, default: '' },
+
+  // NEW: HOTEL DETAILS SECTION
+  hotelDetails: {
+    name: { type: String, default: '' },
+    address: { type: String, default: '' },
+    phone: { type: String, default: '' },
+    notes: { type: String, default: '' }
+  },
 
   // AGENT TRACKING
   agentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Agent', default: null },

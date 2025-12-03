@@ -1,5 +1,6 @@
 import dbConnect from '@/lib/db';
 import Booking from '@/models/Booking';
+import Tour from '@/models/Tour';
 import { NextResponse } from 'next/server';
 
 export async function GET(request) {
@@ -18,7 +19,7 @@ export async function GET(request) {
     let match = null;
 
     if (phone) {
-      // 1. If phone is provided, search by phone first (More efficient)
+      // 1. If phone is provided, search by phone first
       const userBookings = await Booking.find({
         phone: { $regex: phone.trim(), $options: 'i' }
       });
@@ -27,8 +28,6 @@ export async function GET(request) {
       );
     } else {
       // 2. If NO phone, search by ID suffix alone.
-      // Note: In a production app with millions of records, you should store the 'shortId' 
-      // as a separate indexed field. For this scale, scanning is acceptable.
       const allBookings = await Booking.find({});
       match = allBookings.find(b =>
         b._id.toString().slice(-6).toUpperCase() === cleanRef
@@ -39,7 +38,16 @@ export async function GET(request) {
       return NextResponse.json({ success: false, error: "Booking not found." }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, data: match });
+    // PATCH: Ensure TourID exists for redirect
+    let bookingData = match.toObject();
+    if (!bookingData.tourId && bookingData.tourTitle) {
+        const tour = await Tour.findOne({ title: bookingData.tourTitle });
+        if (tour) {
+            bookingData.tourId = tour._id;
+        }
+    }
+
+    return NextResponse.json({ success: true, data: bookingData });
 
   } catch (error) {
     console.error("Booking Status Error:", error);

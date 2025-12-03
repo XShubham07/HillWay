@@ -7,7 +7,7 @@ import {
   FaBook, FaEye, FaTimes, FaPhone, FaUser, FaCalendarDay,
   FaSearch, FaCheckCircle, FaTicketAlt, FaImages, FaMoneyBillWave,
   FaChartPie, FaUserSecret, FaSignOutAlt, FaPaperPlane, FaBars, FaList, FaUtensils, FaQuestionCircle, FaInfoCircle,
-  FaCommentDots, FaStar, FaEnvelope, FaMobileAlt, FaHashtag, FaCalendarAlt
+  FaCommentDots, FaStar, FaEnvelope, FaMobileAlt, FaHashtag, FaCalendarAlt, FaHotel, FaExternalLinkAlt
 } from 'react-icons/fa';
 
 export default function AdminDashboard({ onLogout }) {
@@ -37,7 +37,12 @@ export default function AdminDashboard({ onLogout }) {
   const [confirmData, setConfirmData] = useState({
     paymentType: 'Full',
     paidAmount: 0,
-    adminNotes: ''
+    adminNotes: '',
+    // NEW: Hotel Details
+    hotelName: '',
+    hotelAddress: '',
+    hotelPhone: '',
+    hotelNotes: ''
   });
 
   // Forms
@@ -48,11 +53,16 @@ export default function AdminDashboard({ onLogout }) {
     title: '', subtitle: '', location: '', description: '',
     basePrice: 0, nights: 3, rating: 4.5, featured: false,
     images: [], img: '', mapEmbedUrl: '',
-    // Default structure, values will be overwritten by globalPrices in handleCreateNew
+    // Default structure
     pricing: { mealPerPerson: 0, teaPerPerson: 0, bonfire: 0, tourGuide: 0, comfortSeat: 0, room: { standard: 0, panoramic: 0 }, personalCab: { rate: 0, capacity: 4 }, tourManagerFee: 5000 },
-    inclusions: [], itinerary: [], faqs: [], reviews: []
+    inclusions: [], itinerary: [], faqs: [], reviews: [],
+    // NEW: Tags
+    tags: []
   });
   const [form, setForm] = useState(getInitialForm());
+
+  // Available Tags for Selection
+  const AVAILABLE_TAGS = ["GROUP", "COUPLE", "HONEYMOON", "ADVENTURE", "ROMANTIC", "FAMILY", "SOLO"];
 
   // --- FETCH DATA ---
   const fetchData = async () => {
@@ -117,7 +127,12 @@ export default function AdminDashboard({ onLogout }) {
     setConfirmData({
       paymentType: selectedBooking.paymentType || 'Full',
       paidAmount: selectedBooking.paidAmount || selectedBooking.totalPrice,
-      adminNotes: selectedBooking.adminNotes || ''
+      adminNotes: selectedBooking.adminNotes || '',
+      // Pre-fill Hotel Details if they exist
+      hotelName: selectedBooking.hotelDetails?.name || '',
+      hotelAddress: selectedBooking.hotelDetails?.address || '',
+      hotelPhone: selectedBooking.hotelDetails?.phone || '',
+      hotelNotes: selectedBooking.hotelDetails?.notes || ''
     });
     setShowConfirmModal(true);
   };
@@ -131,7 +146,14 @@ export default function AdminDashboard({ onLogout }) {
         status: 'Confirmed',
         paymentType: confirmData.paymentType,
         paidAmount: confirmData.paymentType === 'Full' ? selectedBooking.totalPrice : confirmData.paidAmount,
-        adminNotes: confirmData.adminNotes
+        adminNotes: confirmData.adminNotes,
+        // Send Hotel Details
+        hotelDetails: {
+          name: confirmData.hotelName,
+          address: confirmData.hotelAddress,
+          phone: confirmData.hotelPhone,
+          notes: confirmData.hotelNotes
+        }
       };
 
       const res = await fetch('/api/bookings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -141,12 +163,18 @@ export default function AdminDashboard({ onLogout }) {
         setBookings(prev => prev.map(b => b._id === updatedBooking._id ? updatedBooking : b));
         setSelectedBooking(updatedBooking);
         setShowConfirmModal(false);
-        alert(`Booking Confirmed!`);
+        alert(`Booking Updated Successfully!`);
       } else {
         alert("Update failed: " + data.error);
       }
     } catch (e) { alert("Network error updating booking"); }
     setUpdatingStatus(false);
+  };
+
+  // --- HELPER: Find Tour ID for Linking ---
+  const getTourLink = (tourTitle) => {
+    const tour = tours.find(t => t.title === tourTitle);
+    return tour ? `/tours/${tour._id}` : null;
   };
 
   // --- REVIEW ACTIONS ---
@@ -173,13 +201,12 @@ export default function AdminDashboard({ onLogout }) {
     }
   };
 
-  // --- HELPER: GET UNIT RATES (For Unit Rates Box) ---
+  // --- HELPER: GET UNIT RATES ---
   const getUnitRates = (b) => {
     const tour = tours.find(t => t.title === b.tourTitle);
-    const p = tour?.pricing || globalPrices || {}; // Fallback hierarchy
+    const p = tour?.pricing || globalPrices || {}; 
     const rates = [];
 
-    // Room Rate (FIXED: Case Insensitive Check)
     const isPanoramic = b.roomType?.toLowerCase() === 'panoramic';
     const roomRate = isPanoramic
       ? (p.room?.panoramic ?? globalPrices?.panoRoomPrice)
@@ -187,16 +214,13 @@ export default function AdminDashboard({ onLogout }) {
 
     rates.push({ label: `${b.roomType} Room`, value: `₹${roomRate} / night` });
 
-    // Transport Rate
     if (b.transport === 'personal') {
       const cabRate = p.personalCab?.rate ?? globalPrices?.personalCabPrice;
       rates.push({ label: 'Private Cab', value: `₹${cabRate}` });
     }
 
-    // Addons
     if (b.addons?.meal) rates.push({ label: 'Meal Plan', value: `₹${p.mealPerPerson ?? globalPrices?.mealPrice} / pax/day` });
 
-    // Tea: Only show rate if Meal is NOT selected (otherwise it's free)
     if (b.addons?.tea && !b.addons?.meal) {
       rates.push({ label: 'Tea/Snacks', value: `₹${p.teaPerPerson ?? globalPrices?.teaPrice} / pax/day` });
     } else if (b.addons?.tea && b.addons?.meal) {
@@ -206,13 +230,12 @@ export default function AdminDashboard({ onLogout }) {
     if (b.addons?.bonfire) rates.push({ label: 'Bonfire', value: `₹${p.bonfire ?? globalPrices?.bonfirePrice}` });
     if (b.addons?.tourGuide) rates.push({ label: 'Guide', value: `₹${p.tourGuide ?? globalPrices?.tourGuidePrice}` });
 
-    // Comfort Seat (Flat rate)
     if (b.addons?.comfortSeat) rates.push({ label: 'Comfort Seat', value: `₹${p.comfortSeat ?? globalPrices?.comfortSeatPrice} (Flat)` });
 
     return rates;
   };
 
-  // --- HELPER: PRICE BREAKDOWN (For Totals Box) ---
+  // --- HELPER: PRICE BREAKDOWN ---
   const getPriceBreakdown = (b) => {
     const tour = tours.find(t => t.title === b.tourTitle);
 
@@ -231,14 +254,12 @@ export default function AdminDashboard({ onLogout }) {
     const nights = b.rooms > 0 ? (tour?.nights || 1) : 0;
     const days = nights + 1;
 
-    // 1. BASE TOUR PRICE (Top of the list)
     items.push({
       name: `Base Tour Cost (₹${p.basePrice} x ${totalPax} pax)`,
       cost: `₹${(p.basePrice * totalPax).toLocaleString()}`,
       highlight: true
     });
 
-    // 2. Room Cost (FIXED: Case Insensitive Check)
     const isPanoramic = b.roomType?.toLowerCase() === 'panoramic';
     const roomRate = isPanoramic
       ? (tour?.pricing?.room?.panoramic || globalPrices?.panoRoomPrice)
@@ -247,26 +268,20 @@ export default function AdminDashboard({ onLogout }) {
     const roomCost = roomRate * b.rooms * nights;
     items.push({ name: `${b.roomType} Room (${b.rooms} x ${nights}N)`, cost: `₹${roomCost.toLocaleString()}` });
 
-    // 3. Transport
     items.push({
       name: b.transport === 'personal' ? "Private Cab" : "Shared Transport",
       cost: b.transport === 'personal' ? `₹${p.personalCabPrice.toLocaleString()}` : 'Included'
     });
 
-    // 4. Addons
     if (b.addons?.meal) {
       items.push({ name: `Meal Plan (${totalPax} pax)`, cost: `₹${(p.mealPrice * totalPax * days).toLocaleString()}` });
-      // Tea is strictly 0 if Meal is selected
       if (b.addons?.tea) items.push({ name: "Tea/Snacks", cost: <span className="text-green-400 text-xs font-bold">FREE</span> });
     } else {
-      // Tea is chargeable if Meal is NOT selected
       if (b.addons?.tea) items.push({ name: `Tea/Snacks (${totalPax} pax)`, cost: `₹${(p.teaPrice * totalPax * days).toLocaleString()}` });
     }
 
     if (b.addons?.bonfire) items.push({ name: "Bonfire", cost: `₹${p.bonfirePrice.toLocaleString()}` });
     if (b.addons?.tourGuide) items.push({ name: "Tour Guide", cost: `₹${p.tourGuidePrice.toLocaleString()}` });
-
-    // Comfort Seat is NOT multiplied by pax (Flat fee)
     if (b.addons?.comfortSeat) items.push({ name: `Comfort Seat`, cost: `₹${p.comfortSeatPrice.toLocaleString()}` });
 
     return items;
@@ -334,10 +349,8 @@ export default function AdminDashboard({ onLogout }) {
     });
   };
 
-  // --- UPDATED: HANDLE CREATE NEW (Fetches Global Prices) ---
   const handleCreateNew = () => {
     const initial = getInitialForm();
-    // Pre-fill with global prices if available
     if (globalPrices) {
       initial.pricing = {
         mealPerPerson: globalPrices.mealPrice || 0,
@@ -365,10 +378,19 @@ export default function AdminDashboard({ onLogout }) {
   const handleEdit = (tour) => {
     const defaults = getInitialForm();
     const images = (tour.images && tour.images.length > 0) ? tour.images : (tour.img ? [tour.img] : []);
-    setForm({ ...defaults, ...tour, images, img: tour.img || (images.length > 0 ? images[0] : ''), pricing: { ...defaults.pricing, ...(tour.pricing || {}) } });
+    setForm({ 
+        ...defaults, 
+        ...tour, 
+        images, 
+        img: tour.img || (images.length > 0 ? images[0] : ''), 
+        pricing: { ...defaults.pricing, ...(tour.pricing || {}) },
+        tags: tour.tags || [] // Load existing tags
+    });
     setEditingId(tour._id); setView('editor'); setShowImagePreview(images.length > 0);
   };
+  
   const handleDeleteTour = async (id) => { if (confirm("Delete?")) { await fetch(`/api/tours/${id}`, { method: 'DELETE' }); fetchData(); } };
+  
   const handleSaveTour = async (e) => {
     e.preventDefault(); setLoading(true);
     const payload = { ...form, img: form.images.length > 0 ? form.images[0] : form.img };
@@ -397,6 +419,18 @@ export default function AdminDashboard({ onLogout }) {
   const addFaq = () => setForm(p => ({ ...p, faqs: [...(p.faqs || []), { q: '', a: '' }] }));
   const updateFaq = (idx, f, v) => { const newFaqs = [...form.faqs]; newFaqs[idx][f] = v; setForm({ ...form, faqs: newFaqs }); };
 
+  // Toggle Tags Logic
+  const toggleTag = (tag) => {
+    setForm(prev => {
+      const currentTags = prev.tags || [];
+      if (currentTags.includes(tag)) {
+        return { ...prev, tags: currentTags.filter(t => t !== tag) };
+      } else {
+        return { ...prev, tags: [...currentTags, tag] };
+      }
+    });
+  };
+
 
   return (
     <div className="flex h-screen bg-[#0f172a] text-gray-100 font-sans overflow-hidden relative">
@@ -404,11 +438,13 @@ export default function AdminDashboard({ onLogout }) {
       {/* === UPDATE/CONFIRM DIALOG (MODAL) === */}
       {showConfirmModal && selectedBooking && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-[#1e293b] w-full max-w-md rounded-2xl border border-white/10 shadow-2xl p-6 relative">
-            <h3 className="text-xl font-bold text-white mb-4">Update Booking</h3>
+          <div className="bg-[#1e293b] w-full max-w-md rounded-2xl border border-white/10 shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto custom-scroll">
+            <h3 className="text-xl font-bold text-white mb-4">Update Booking Status</h3>
 
             <div className="space-y-4">
-              <div>
+              
+              {/* Payment Section */}
+              <div className="bg-black/20 p-3 rounded-xl border border-white/5">
                 <label className="block text-xs text-gray-400 mb-1 uppercase font-bold">Payment Type</label>
                 <div className="flex bg-black/30 rounded-lg p-1">
                   <button
@@ -424,25 +460,56 @@ export default function AdminDashboard({ onLogout }) {
                     Partial
                   </button>
                 </div>
+                {confirmData.paymentType === 'Partial' && (
+                    <div className="mt-2">
+                    <label className="block text-xs text-gray-400 mb-1 uppercase font-bold">Amount Paid (₹)</label>
+                    <input
+                        type="number"
+                        className="w-full bg-black/30 border border-gray-600 rounded-lg p-2 text-white focus:border-yellow-500 outline-none font-mono font-bold"
+                        value={confirmData.paidAmount}
+                        onChange={e => setConfirmData({ ...confirmData, paidAmount: e.target.value })}
+                    />
+                    <p className="text-xs text-red-400 mt-1 font-bold text-right">Due: ₹{(selectedBooking.totalPrice - confirmData.paidAmount).toLocaleString()}</p>
+                    </div>
+                )}
               </div>
 
-              {confirmData.paymentType === 'Partial' && (
-                <div className="bg-black/20 p-3 rounded-xl border border-white/5">
-                  <label className="block text-xs text-gray-400 mb-1 uppercase font-bold">Amount Paid (₹)</label>
-                  <input
-                    type="number"
-                    className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white focus:border-yellow-500 outline-none font-mono font-bold text-lg"
-                    value={confirmData.paidAmount}
-                    onChange={e => setConfirmData({ ...confirmData, paidAmount: e.target.value })}
-                  />
-                  <p className="text-xs text-red-400 mt-2 font-bold text-right">Due: ₹{(selectedBooking.totalPrice - confirmData.paidAmount).toLocaleString()}</p>
+              {/* HOTEL DETAILS SECTION (Shows always in Edit mode now) */}
+              <div className="bg-blue-900/10 p-4 rounded-xl border border-blue-500/20">
+                <h4 className="text-blue-400 font-bold text-xs uppercase mb-3 flex items-center gap-2"><FaHotel/> Assign Hotel Details</h4>
+                <div className="space-y-2">
+                    <input 
+                        className="w-full bg-black/30 border border-gray-600 rounded-lg p-2 text-white text-sm placeholder-gray-500" 
+                        placeholder="Hotel Name (e.g. Hotel Tashi)" 
+                        value={confirmData.hotelName} 
+                        onChange={e => setConfirmData({...confirmData, hotelName: e.target.value})} 
+                    />
+                    <input 
+                        className="w-full bg-black/30 border border-gray-600 rounded-lg p-2 text-white text-sm placeholder-gray-500" 
+                        placeholder="Address (e.g. MG Marg)" 
+                        value={confirmData.hotelAddress} 
+                        onChange={e => setConfirmData({...confirmData, hotelAddress: e.target.value})} 
+                    />
+                    <input 
+                        className="w-full bg-black/30 border border-gray-600 rounded-lg p-2 text-white text-sm placeholder-gray-500" 
+                        placeholder="Hotel Phone Contact" 
+                        value={confirmData.hotelPhone} 
+                        onChange={e => setConfirmData({...confirmData, hotelPhone: e.target.value})} 
+                    />
+                    <textarea 
+                        className="w-full bg-black/30 border border-gray-600 rounded-lg p-2 text-white text-sm placeholder-gray-500" 
+                        rows={2} 
+                        placeholder="Room details or notes..." 
+                        value={confirmData.hotelNotes} 
+                        onChange={e => setConfirmData({...confirmData, hotelNotes: e.target.value})} 
+                    />
                 </div>
-              )}
+              </div>
 
               <div>
                 <label className="block text-xs text-gray-400 mb-1 uppercase font-bold">Admin Note</label>
                 <textarea
-                  rows={3}
+                  rows={2}
                   className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white focus:border-cyan-500 outline-none text-sm placeholder-gray-600"
                   placeholder="Transaction ID, payment method, special remarks..."
                   value={confirmData.adminNotes}
@@ -451,7 +518,7 @@ export default function AdminDashboard({ onLogout }) {
               </div>
             </div>
 
-            <div className="flex gap-3 mt-8">
+            <div className="flex gap-3 mt-6">
               <button onClick={() => setShowConfirmModal(false)} className="flex-1 py-3 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-xl font-bold transition">Cancel</button>
               <button
                 onClick={handleConfirmBooking}
@@ -466,7 +533,6 @@ export default function AdminDashboard({ onLogout }) {
       )}
 
       {/* === BIG BOOKING DETAILS MODAL === */}
-      {/* UPDATED: Removed lg:pl-72 to shift dialog to the left (center) */}
       {selectedBooking && !showConfirmModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fade-in">
           <div className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] w-full max-w-7xl h-[90vh] rounded-3xl border border-white/10 shadow-2xl overflow-hidden flex flex-col relative">
@@ -481,7 +547,7 @@ export default function AdminDashboard({ onLogout }) {
                   </span>
                 </div>
                 <p className="text-gray-400 text-xs md:text-sm flex items-center gap-2">
-                  <FaClock className="text-gray-500" /> Managing booking #{selectedBooking._id.slice(-4).toUpperCase()}
+                  <FaClock className="text-gray-500" /> Managing booking #{selectedBooking._id.slice(-6).toUpperCase()}
                 </p>
               </div>
               <button onClick={() => setSelectedBooking(null)} className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition text-gray-300 hover:text-white border border-white/5">
@@ -497,7 +563,6 @@ export default function AdminDashboard({ onLogout }) {
                 <div className="md:col-span-2 space-y-6 md:space-y-8">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
-                    {/* NEW: Booking Information Box */}
                     <div className="bg-white/5 p-6 rounded-2xl border border-white/5 hover:border-white/10 transition col-span-1 sm:col-span-2">
                       <h3 className="text-cyan-400 font-bold mb-4 flex items-center gap-2 text-xs uppercase tracking-widest"><FaHashtag /> Booking Information</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -507,12 +572,23 @@ export default function AdminDashboard({ onLogout }) {
                         </div>
                         <div>
                           <span className="block text-xs text-gray-500 uppercase font-bold mb-1">Placed On</span>
-                          <span className="text-white flex items-center gap-2"><FaClock size={12} /> {new Date(selectedBooking.createdAt).toLocaleDateString()} {new Date(selectedBooking.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+<span className="text-white flex items-center gap-2">
+  <FaClock size={12} />
+  {new Date(selectedBooking.createdAt).toLocaleString('en-IN', {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+})}
+
+</span>
+
                         </div>
                         <div>
                           <span className="block text-xs text-gray-500 uppercase font-bold mb-1">Journey Date</span>
                           {selectedBooking.travelDate ? (
-                            <span className="text-yellow-400 font-bold text-base flex items-center gap-2"><FaCalendarAlt size={12} /> {new Date(selectedBooking.travelDate).toLocaleDateString()}</span>
+                            <span className="text-yellow-400 font-bold text-base flex items-center gap-2"><FaCalendarAlt size={12} /> {new Date(selectedBooking.travelDate).toLocaleDateString('en-IN')}</span>
                           ) : (
                             <span className="text-gray-500 italic text-sm">Not Selected</span>
                           )}
@@ -531,7 +607,23 @@ export default function AdminDashboard({ onLogout }) {
 
                     <div className="bg-white/5 p-6 rounded-2xl border border-white/5 hover:border-white/10 transition">
                       <h3 className="text-green-400 font-bold mb-4 flex items-center gap-2 text-xs uppercase tracking-widest"><FaMapMarkerAlt /> Tour Details</h3>
-                      <p className="text-lg text-white leading-tight font-bold">{selectedBooking.tourTitle}</p>
+                      
+                      {/* CLICKABLE TOUR TITLE */}
+                      <p className="text-lg text-white leading-tight font-bold flex items-center gap-2 group">
+                        {selectedBooking.tourTitle}
+                        {getTourLink(selectedBooking.tourTitle) && (
+                          <a 
+                            href={getTourLink(selectedBooking.tourTitle)} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-gray-500 hover:text-cyan-400 transition text-sm"
+                            title="View Tour Page"
+                          >
+                            <FaExternalLinkAlt />
+                          </a>
+                        )}
+                      </p>
+
                       <div className="mt-4 space-y-1 text-gray-400 text-sm">
                         <p>{selectedBooking.adults} Adults, {selectedBooking.children} Children</p>
                         <p>Rooms: {selectedBooking.rooms} <span className="text-xs bg-white/10 px-2 py-0.5 rounded ml-1">{selectedBooking.roomType}</span></p>
@@ -540,7 +632,23 @@ export default function AdminDashboard({ onLogout }) {
                     </div>
                   </div>
 
-                  {/* NEW: Unit Rates Box */}
+                  {/* NEW: DISPLAY HOTEL DETAILS IF AVAILABLE */}
+                  {selectedBooking.hotelDetails && selectedBooking.hotelDetails.name && (
+                    <div className="bg-blue-900/10 p-6 rounded-2xl border border-blue-500/20">
+                         <div className="flex justify-between items-start mb-4">
+                            <h3 className="text-blue-400 font-bold text-xs uppercase tracking-widest flex items-center gap-2"><FaHotel /> Assigned Hotel</h3>
+                            {/* Edit button allows updating hotel details along with status */}
+                            <button onClick={initiateConfirmation} className="text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 px-3 py-1.5 rounded-lg transition flex items-center gap-1"><FaEdit /> Edit</button>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                            <div className="bg-black/20 p-3 rounded-lg border border-white/5"><span className="text-gray-400 block text-xs uppercase font-bold mb-1">Hotel Name</span><span className="text-white font-bold">{selectedBooking.hotelDetails.name}</span></div>
+                            <div className="bg-black/20 p-3 rounded-lg border border-white/5"><span className="text-gray-400 block text-xs uppercase font-bold mb-1">Phone</span><span className="text-white">{selectedBooking.hotelDetails.phone || "-"}</span></div>
+                            <div className="bg-black/20 p-3 rounded-lg border border-white/5 col-span-1 sm:col-span-2"><span className="text-gray-400 block text-xs uppercase font-bold mb-1">Address</span><span className="text-white">{selectedBooking.hotelDetails.address || "-"}</span></div>
+                            {selectedBooking.hotelDetails.notes && <div className="bg-black/20 p-3 rounded-lg border border-white/5 col-span-1 sm:col-span-2"><span className="text-gray-400 block text-xs uppercase font-bold mb-1">Notes</span><span className="text-yellow-400">{selectedBooking.hotelDetails.notes}</span></div>}
+                        </div>
+                    </div>
+                  )}
+
                   <div className="bg-white/5 p-6 rounded-2xl border border-white/5 hover:border-white/10 transition">
                     <h3 className="text-pink-400 font-bold mb-4 flex items-center gap-2 text-xs uppercase tracking-widest"><FaTag /> Applied Unit Rates</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -553,18 +661,15 @@ export default function AdminDashboard({ onLogout }) {
                     </div>
                   </div>
 
-                  {/* REMOVED: Calculated Cost Breakdown Box */}
-
-                  {/* PAYMENT STATUS SECTION (Visible if confirmed or has notes) */}
                   {(selectedBooking.status === 'Confirmed' || selectedBooking.adminNotes) && (
-                    <div className="bg-blue-900/10 p-6 rounded-2xl border border-blue-500/20 relative hover:border-blue-500/40 transition">
+                    <div className="bg-white/5 p-6 rounded-2xl border border-white/5 relative hover:border-white/10 transition">
                       <div className="flex justify-between items-start mb-4">
-                        <h3 className="text-blue-400 font-bold text-xs uppercase tracking-widest flex items-center gap-2"><FaMoneyBillWave /> Payment & Notes</h3>
+                        <h3 className="text-gray-400 font-bold text-xs uppercase tracking-widest flex items-center gap-2"><FaMoneyBillWave /> Payment & Notes</h3>
                         <button
                           onClick={initiateConfirmation}
-                          className="text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 px-3 py-1.5 rounded-lg transition flex items-center gap-1"
+                          className="text-xs bg-white/10 hover:bg-white/20 text-gray-300 px-3 py-1.5 rounded-lg transition flex items-center gap-1"
                         >
-                          <FaEdit /> Edit Details
+                          <FaEdit /> Edit
                         </button>
                       </div>
 
@@ -598,7 +703,6 @@ export default function AdminDashboard({ onLogout }) {
                   <div className="bg-gradient-to-b from-white/10 to-white/5 p-6 rounded-2xl border border-white/10 sticky top-4">
                     <h3 className="text-white font-bold mb-4 text-sm uppercase tracking-widest">Price Breakdown</h3>
 
-                    {/* Detailed Line Items */}
                     <div className="space-y-3 mb-6 border-b border-white/10 pb-4">
                       {getPriceBreakdown(selectedBooking).map((item, idx) => (
                         <div key={idx} className={`flex justify-between text-sm ${item.highlight ? 'text-cyan-300 font-bold pb-2 border-b border-white/5' : 'text-gray-400'}`}>
@@ -608,9 +712,7 @@ export default function AdminDashboard({ onLogout }) {
                       ))}
                     </div>
 
-                    {/* Totals Section */}
                     <div className="space-y-2">
-                      {/* Original Price (Before Coupon) */}
                       {selectedBooking.couponCode && (selectedBooking.originalPrice > selectedBooking.totalPrice) && (
                         <div className="flex justify-between items-center">
                           <span className="text-gray-400 text-sm">Subtotal</span>
@@ -618,7 +720,6 @@ export default function AdminDashboard({ onLogout }) {
                         </div>
                       )}
 
-                      {/* Coupon Discount */}
                       {selectedBooking.couponCode && (selectedBooking.originalPrice > selectedBooking.totalPrice) && (
                         <div className="flex justify-between items-center text-green-400">
                           <span className="flex items-center gap-2 text-sm"><FaTicketAlt /> Coupon ({selectedBooking.couponCode})</span>
@@ -626,23 +727,19 @@ export default function AdminDashboard({ onLogout }) {
                         </div>
                       )}
 
-                      {/* Final Total */}
                       <div className="flex justify-between items-end pt-4 border-t border-white/10">
                         <span className="text-gray-300 font-bold">Grand Total</span>
                         <span className="text-3xl font-black text-white tracking-tight">₹{selectedBooking.totalPrice.toLocaleString()}</span>
                       </div>
                     </div>
 
-                    {/* Actions */}
                     <div className="space-y-3 mt-6">
-                      {selectedBooking.status !== 'Confirmed' && (
                         <button
                           onClick={initiateConfirmation}
                           className="w-full py-4 bg-green-600 hover:bg-green-500 text-white rounded-xl font-bold shadow-lg shadow-green-900/20 transition flex items-center justify-center gap-2"
                         >
-                          <FaCheckCircle /> Confirm Booking
+                          <FaCheckCircle /> Update / Confirm
                         </button>
-                      )}
                       <button onClick={() => handleDeleteBooking(selectedBooking._id)} className="w-full py-4 bg-red-900/20 hover:bg-red-900/40 text-red-400 border border-red-900/30 rounded-xl font-bold transition flex items-center justify-center gap-2">
                         <FaTrash /> Delete Booking
                       </button>
@@ -657,7 +754,6 @@ export default function AdminDashboard({ onLogout }) {
       )}
 
       {/* === SIDEBAR (RESPONSIVE) === */}
-      {/* ... [Mobile Header, Overlay, Sidebar code remains exactly the same] ... */}
       <div className="lg:hidden fixed top-0 left-0 right-0 bg-[#1e293b] p-4 z-40 flex justify-between items-center border-b border-gray-700 shadow-lg">
         <span className="font-bold text-white text-lg tracking-wide">HillWay Admin</span>
         <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-white p-2 hover:bg-white/10 rounded-lg"><FaBars size={24} /></button>
@@ -692,7 +788,6 @@ export default function AdminDashboard({ onLogout }) {
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 p-4 lg:p-8 overflow-y-auto pt-20 lg:pt-8 bg-[#0f172a]">
 
-        {/* === BOOKINGS TAB === */}
         {activeTab === 'bookings' && (
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -710,7 +805,7 @@ export default function AdminDashboard({ onLogout }) {
                       <th className="p-4">ID</th>
                       <th className="p-4">Customer</th>
                       <th className="p-4">Tour</th>
-                      <th className="p-4">Date</th>
+                      <th className="p-4">Journey Date</th>
                       <th className="p-4">Amount</th>
                       <th className="p-4">Status</th>
                       <th className="p-4 text-right">Actions</th>
@@ -725,7 +820,16 @@ export default function AdminDashboard({ onLogout }) {
                           <div className="text-xs text-gray-500">{b.phone}</div>
                         </td>
                         <td className="p-4 text-gray-300 max-w-[180px] truncate">{b.tourTitle}</td>
-                        <td className="p-4 text-yellow-500 font-medium">{b.travelDate ? new Date(b.travelDate).toLocaleDateString() : '-'}</td>
+                        <td className="p-4 text-yellow-500 font-medium">
+  {b.travelDate 
+    ? new Date(b.travelDate).toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short', // <-- yahi month ko Dec banata hai
+        year: 'numeric',
+      })
+    : '-'}
+</td>
+
                         <td className="p-4 font-bold text-green-400">₹{b.totalPrice?.toLocaleString()}</td>
                         <td className="p-4">
                           <span className={`px-2 py-1 rounded text-xs font-bold border ${b.status === 'Confirmed' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'}`}>
@@ -746,7 +850,6 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         )}
 
-        {/* ... [OTHER TABS: AGENTS, COUPONS, REVIEWS, TOURS, PRICING ARE UNCHANGED AND WORKING] ... */}
         {activeTab === 'reviews' && (
           <div className="max-w-6xl mx-auto">
             <h1 className="text-3xl font-bold text-white mb-6">User Reviews</h1>
@@ -795,7 +898,6 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         )}
 
-        {/* ... [Rest of tabs are preserved] ... */}
         {activeTab === 'agents' && (
           <div className="max-w-6xl mx-auto">
             <h1 className="text-3xl font-bold text-white mb-6">Manage Agents</h1>
@@ -936,6 +1038,14 @@ export default function AdminDashboard({ onLogout }) {
                   </div>
                   <div className="p-5">
                     <h3 className="font-bold text-lg text-white group-hover:text-cyan-400 transition">{tour.title}</h3>
+                    
+                    {/* DISPLAY TAGS */}
+                    <div className="flex flex-wrap gap-2 mt-2">
+                        {tour.tags?.map(tag => (
+                            <span key={tag} className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/10 text-gray-300 border border-white/5">{tag}</span>
+                        ))}
+                    </div>
+
                     <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-700">
                       <button onClick={() => handleEdit(tour)} className="text-cyan-400 hover:text-cyan-300 text-sm font-bold flex items-center gap-1"><FaEdit /> Edit</button>
                       <button onClick={() => handleDeleteTour(tour._id)} className="text-red-400 hover:text-red-300 text-sm font-bold flex items-center gap-1"><FaTrash /> Delete</button>
@@ -947,7 +1057,6 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         )}
 
-        {/* ... [TOURS EDITOR same as before] ... */}
         {activeTab === 'tours' && view === 'editor' && (
           <div className="max-w-5xl mx-auto bg-[#1e293b] rounded-2xl border border-gray-700 shadow-2xl overflow-hidden">
             <div className="bg-gray-900 p-6 flex justify-between items-center border-b border-gray-700">
@@ -986,6 +1095,35 @@ export default function AdminDashboard({ onLogout }) {
                     )}
                   </div>
                   <div className="col-span-2"><label className="block text-sm font-medium text-gray-300 mb-1">Description</label><textarea rows={3} className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.description} onChange={e => updateField('description', e.target.value)} /></div>
+                </div>
+              </section>
+
+              {/* NEW: TOUR TAGS SELECTOR */}
+              <section className="bg-black/20 p-6 rounded-xl border border-gray-700">
+                <h3 className="text-sm font-bold text-gray-300 mb-3 uppercase tracking-wide">Tour Tags</h3>
+                <div className="flex flex-wrap gap-3">
+                    {AVAILABLE_TAGS.map(tag => {
+                        const isActive = form.tags?.includes(tag);
+                        return (
+                            <button
+                                key={tag}
+                                type="button"
+                                onClick={() => {
+                                    const newTags = isActive 
+                                        ? form.tags.filter(t => t !== tag) 
+                                        : [...(form.tags || []), tag];
+                                    updateField('tags', newTags);
+                                }}
+                                className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${
+                                    isActive 
+                                        ? 'bg-cyan-600 text-white border-cyan-500 shadow-lg shadow-cyan-900/50' 
+                                        : 'bg-transparent text-gray-400 border-gray-600 hover:border-gray-400 hover:text-gray-200'
+                                }`}
+                            >
+                                {tag} {isActive && '✓'}
+                            </button>
+                        )
+                    })}
                 </div>
               </section>
 

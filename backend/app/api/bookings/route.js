@@ -4,7 +4,13 @@ import Coupon from '@/models/Coupon';
 import Agent from '@/models/Agent';
 import { NextResponse } from 'next/server';
 
+// Email Functions
+import { sendBookingConfirmation, sendStatusUpdate } from '@/lib/email';
+
+
+// ---------------------------------------------------------
 // POST: Create Booking
+// ---------------------------------------------------------
 export async function POST(request) {
   await dbConnect();
   try {
@@ -20,18 +26,26 @@ export async function POST(request) {
       return NextResponse.json({
         success: false,
         error: "Booking already exists",
-        existingBooking: existingBooking
+        existingBooking
       }, { status: 409 });
     }
 
     const booking = await Booking.create(body);
+
+    // send email (non-blocking)
+    sendBookingConfirmation(booking);
+
     return NextResponse.json({ success: true, data: booking }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 400 });
   }
 }
 
-// GET: Fetch All
+
+
+// ---------------------------------------------------------
+// GET: Fetch All Bookings
+// ---------------------------------------------------------
 export async function GET() {
   await dbConnect();
   try {
@@ -42,33 +56,49 @@ export async function GET() {
   }
 }
 
-// DELETE
+
+
+// ---------------------------------------------------------
+// DELETE: Delete Booking
+// ---------------------------------------------------------
 export async function DELETE(request) {
   await dbConnect();
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
+
   try {
-    if (!id) return NextResponse.json({ success: false, error: "ID required" }, { status: 400 });
+    if (!id)
+      return NextResponse.json({ success: false, error: "ID required" }, { status: 400 });
+
     await Booking.findByIdAndDelete(id);
+
     return NextResponse.json({ success: true, data: {} });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
 
-// PUT: Update Status & Payment Info
+
+
+// ---------------------------------------------------------
+// PUT: Update Status, Payment, Notes, Hotel Details
+// ---------------------------------------------------------
 export async function PUT(request) {
   await dbConnect();
   try {
     const body = await request.json();
-    const { id, status, paymentType, paidAmount, adminNotes } = body;
+    const { id, status, paymentType, paidAmount, adminNotes, hotelDetails } = body;
 
-    if (!id || !status) return NextResponse.json({ success: false, error: "ID/Status missing" }, { status: 400 });
+    if (!id || !status)
+      return NextResponse.json({ success: false, error: "ID/Status missing" }, { status: 400 });
 
     const oldBooking = await Booking.findById(id);
-    if (!oldBooking) return NextResponse.json({ success: false, error: "Booking not found" }, { status: 404 });
+    if (!oldBooking)
+      return NextResponse.json({ success: false, error: "Booking not found" }, { status: 404 });
 
-    // Handle Coupons & Commission on Confirmation
+    // ---------------------------------------------------------
+    // Handle Coupon + Agent Commission
+    // ---------------------------------------------------------
     if (status === 'Confirmed' && oldBooking.status !== 'Confirmed') {
       if (oldBooking.couponCode) {
         const coupon = await Coupon.findOneAndUpdate(
@@ -78,23 +108,45 @@ export async function PUT(request) {
 
         if (coupon && coupon.agentId) {
           const agent = await Agent.findById(coupon.agentId);
+
           if (agent) {
             const commission = Math.round(oldBooking.totalPrice * (agent.commissionRate / 100));
-            await Agent.findByIdAndUpdate(coupon.agentId, { $inc: { totalCommission: commission } });
-            await Booking.findByIdAndUpdate(id, { agentId: coupon.agentId, commissionAmount: commission });
+
+            await Agent.findByIdAndUpdate(coupon.agentId, {
+              $inc: { totalCommission: commission }
+            });
+
+            await Booking.findByIdAndUpdate(id, {
+              agentId: coupon.agentId,
+              commissionAmount: commission
+            });
           }
         }
       }
     }
 
-    // Construct Update Object
+    // ---------------------------------------------------------
+    // Build Update Object
+    // ---------------------------------------------------------
     const updateData = { status };
+
     if (paymentType) updateData.paymentType = paymentType;
     if (paidAmount !== undefined) updateData.paidAmount = Number(paidAmount);
     if (adminNotes !== undefined) updateData.adminNotes = adminNotes;
 
-    const booking = await Booking.findByIdAndUpdate(id, updateData, { new: true });
-    return NextResponse.json({ success: true, data: booking });
+    if (hotelDetails) updateData.hotelDetails = hotelDetails; // added hotel details
+
+    const updatedBooking = await Booking.findByIdAndUpdate(id, updateData, { new: true });
+
+    // ---------------------------------------------------------
+    // Send Status Update Email when status changes
+    // ---------------------------------------------------------
+    if (oldBooking.status !== status) {
+      sendStatusUpdate(updatedBooking);
+    }
+
+    return NextResponse.json({ success: true, data: updatedBooking });
+
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }

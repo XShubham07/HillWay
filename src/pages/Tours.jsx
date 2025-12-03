@@ -1,14 +1,13 @@
-import React, { useState, useEffect, useRef, memo, useLayoutEffect } from "react";
+import React, { useState, useEffect, useRef, memo, useLayoutEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 // -----------------------------------------
-// 1. OPTIMIZED BACKGROUND (FIX FOR LAG)
+// 1. OPTIMIZED BACKGROUND
 // -----------------------------------------
 const SunriseDepthBackground = memo(() => {
   return (
     <div className="fixed inset-0 z-[-1] w-full h-full bg-[#022c22] pointer-events-none transform-gpu">
-      {/* Static Gradients - Zero Animation Cost */}
       <div
         className="absolute inset-0"
         style={{
@@ -19,16 +18,7 @@ const SunriseDepthBackground = memo(() => {
           `
         }}
       />
-
-      {/* Noise Texture */}
-      <div
-        className="absolute inset-0 opacity-[0.04] mix-blend-overlay"
-        style={{
-          backgroundImage: "url('https://grainy-gradients.vercel.app/noise.svg')",
-        }}
-      />
-
-      {/* Bottom Fade */}
+      <div className="absolute inset-0 opacity-[0.04] mix-blend-overlay" style={{ backgroundImage: "url('https://grainy-gradients.vercel.app/noise.svg')" }} />
       <div className="absolute inset-0 bg-gradient-to-t from-[#022c22] via-[#022c22]/20 to-transparent" />
     </div>
   );
@@ -36,7 +26,7 @@ const SunriseDepthBackground = memo(() => {
 SunriseDepthBackground.displayName = "SunriseDepthBackground";
 
 // -----------------------------------------
-// 2. OPTIMIZED SKELETON
+// 2. SKELETON LOADER
 // -----------------------------------------
 const TourCardSkeleton = memo(({ style = {} }) => (
   <div
@@ -64,20 +54,23 @@ const TourCardSkeleton = memo(({ style = {} }) => (
 TourCardSkeleton.displayName = "TourCardSkeleton";
 
 // -----------------------------------------
-// 3. OPTIMIZED TOUR CARD WITH SMOOTH HOVER
+// 3. TOUR CARD (ANIMATED)
 // -----------------------------------------
 const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false }) => {
   return (
     <motion.div
-      initial={!isCarousel ? { opacity: 0, y: 40, scale: 0.95 } : {}}
-      animate={!isCarousel ? { opacity: 1, y: 0, scale: 1 } : {}}
-      viewport={{ once: true, amount: 0.2 }}
+      layout={!isCarousel}
+      // Animation: Slide up slightly + Fade in, staggered by index
+      initial={!isCarousel ? { opacity: 0, y: 30 } : {}}
+      animate={!isCarousel ? { opacity: 1, y: 0 } : {}}
+      exit={!isCarousel ? { opacity: 0, scale: 0.95 } : {}}
       transition={{
-        duration: 0.6,
-        delay: index * 0.1,
-        ease: [0.22, 0.61, 0.36, 1]
+        // "One by one" timing
+        delay: isCarousel ? 0 : index * 0.15, 
+        duration: 0.5,
+        ease: [0.25, 0.46, 0.45, 0.94] // Smooth ease-out
       }}
-
+      
       role="button"
       tabIndex={0}
       className="tour-card-smooth group relative"
@@ -91,43 +84,45 @@ const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false
         overflow: "hidden",
         cursor: "pointer",
         flexShrink: 0,
-        transform: "translateZ(0)",
-        backfaceVisibility: "hidden",
-        willChange: "transform, box-shadow",
-        transition: "all 0.5s cubic-bezier(0.22, 0.61, 0.36, 1)",
         position: "relative",
         zIndex: 1,
-        outline: "none",
-        WebkitMaskImage: "-webkit-radial-gradient(white, black)",
-        isolation: "isolate",
         ...style,
       }}
     >
       <div style={{ position: "relative", height: "320px", backgroundColor: "#f3f4f6" }}>
-        {/* Image with smooth scale */}
+        
+        {/* Image with Lazy Loading */}
         <img
           src={tour.img}
           alt={tour.title}
           loading="lazy"
-          decoding="async"
+          decoding="async" // Helps performance
           style={{
             width: "100%",
             height: "100%",
             objectFit: "cover",
-            transition: "transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1)",
-            willChange: "transform"
+            transition: "transform 0.7s cubic-bezier(0.25, 1, 0.5, 1)", // Very smooth zoom
+            willChange: "transform",
           }}
           className="group-hover:scale-110"
         />
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent pointer-events-none" />
 
+        {/* Tags */}
+        <div className="absolute top-4 left-4 flex gap-2 z-10 flex-wrap">
+            {tour.tags && tour.tags.slice(0, 2).map((tag, i) => (
+                <span key={i} className="bg-black/60 backdrop-blur-md px-2 py-1 rounded-md text-[10px] font-bold text-white border border-white/10 uppercase tracking-wide">
+                    {tag}
+                </span>
+            ))}
+        </div>
+
         {/* Days Badge */}
-        <div className="absolute top-4 right-4 bg-white/95 px-3 py-1.5 rounded-full text-xs font-extrabold text-gray-900 shadow-sm z-10 transition-all duration-500 group-hover:bg-amber-400 group-hover:scale-110">
+        <div className="absolute top-4 right-4 bg-white/95 px-3 py-1.5 rounded-full text-xs font-extrabold text-gray-900 shadow-sm z-10 transition-all duration-500 group-hover:bg-[#D9A441] group-hover:scale-105">
           {tour.days}
         </div>
 
-        {/* Content */}
         <div className="absolute bottom-6 left-5 right-5 z-10">
           <h3 className="text-2xl font-black text-white mb-1 leading-none drop-shadow-md transition-all duration-500 group-hover:translate-y-[-2px]">
             {tour.title}
@@ -137,9 +132,9 @@ const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false
             <p className="text-gray-200 text-xs font-medium line-clamp-2 max-w-[65%] leading-snug transition-all duration-500 group-hover:text-white">
               {tour.summary}
             </p>
-            <div className="text-right shrink-0 transition-all duration-500 group-hover:scale-110">
+            <div className="text-right shrink-0 transition-all duration-500 group-hover:scale-105">
               <span className="block text-[10px] text-gray-400 font-bold uppercase tracking-wider">Starting</span>
-              <span className="block text-xl font-extrabold text-amber-400 drop-shadow-md transition-colors duration-500 group-hover:text-amber-300">
+              <span className="block text-xl font-extrabold text-[#D9A441] drop-shadow-md">
                 {tour.price}
               </span>
             </div>
@@ -152,7 +147,7 @@ const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false
 TourCard.displayName = "TourCard";
 
 // -----------------------------------------
-// 4. MOBILE 3D CAROUSEL
+// 4. CAROUSEL
 // -----------------------------------------
 const Mobile3DCarousel = ({ items, onView, isMobile }) => {
   const scrollRef = useRef(null);
@@ -160,37 +155,26 @@ const Mobile3DCarousel = ({ items, onView, isMobile }) => {
 
   const updateCards = () => {
     const container = scrollRef.current;
-    if (!container) {
-      ticking.current = false;
-      return;
-    }
+    if (!container) { ticking.current = false; return; }
 
     const containerRect = container.getBoundingClientRect();
     const viewportCenter = containerRect.left + containerRect.width / 2;
     const maxDistance = containerRect.width / 1.35;
-
     const nodes = Array.from(container.querySelectorAll('.carousel-item'));
 
-    const updates = nodes.map(child => {
+    nodes.forEach(child => {
       const rect = child.getBoundingClientRect();
       const childCenter = rect.left + rect.width / 2;
-      const rawDistance = Math.abs(viewportCenter - childCenter);
-      return { child, rawDistance };
-    });
-
-    updates.forEach(({ child, rawDistance }) => {
-      const distance = Math.max(0, rawDistance - 4);
+      const distance = Math.max(0, Math.abs(viewportCenter - childCenter) - 4);
       let progress = distance / maxDistance;
       if (progress > 1) progress = 1;
-      progress = progress * progress * (3 - 2 * progress);
-
-      const scale = 1.12 - progress * 0.26;
-      const zIndex = 20 - Math.round(progress * 10);
-      const opacity = 1 - progress * 0.3;
+      
+      const scale = 1.12 - (progress * 0.26);
+      const opacity = 1 - (progress * 0.3);
 
       if (isMobile) {
         child.style.transform = `translate3d(-36px, 0, 0) scale(${scale})`;
-        child.style.zIndex = zIndex;
+        child.style.zIndex = 20 - Math.round(progress * 10);
         child.style.opacity = opacity;
       } else {
         child.style.transform = '';
@@ -198,7 +182,6 @@ const Mobile3DCarousel = ({ items, onView, isMobile }) => {
         child.style.opacity = '';
       }
     });
-
     ticking.current = false;
   };
 
@@ -209,56 +192,24 @@ const Mobile3DCarousel = ({ items, onView, isMobile }) => {
     }
   };
 
-  useLayoutEffect(() => {
-    const container = scrollRef.current;
-    if (!container) return;
-    const children = container.querySelectorAll('.carousel-item');
-    if (children.length > 0) {
-      const first = children[0];
-      const scrollOffset = first.offsetLeft - (container.offsetWidth / 2 - first.offsetWidth / 2);
-      container.scrollLeft = Math.max(0, scrollOffset);
-    }
-    updateCards();
-  }, [items, isMobile]);
+  useLayoutEffect(() => { updateCards(); });
 
   useEffect(() => {
     const container = scrollRef.current;
     if (!container) return;
     container.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll, { passive: true });
-    return () => {
-      container.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
-    };
+    return () => container.removeEventListener('scroll', handleScroll);
   }, [isMobile]);
 
   return (
     <div
       ref={scrollRef}
       className="mobile-3d-scroll"
-      style={{
-        display: 'flex',
-        overflowX: 'auto',
-        scrollSnapType: 'x proximity',
-        padding: '30px 0px',
-        touchAction: 'pan-x',
-        WebkitOverflowScrolling: 'touch',
-        perspective: '1000px',
-      }}
+      style={{ display: 'flex', overflowX: 'auto', scrollSnapType: 'x proximity', padding: '30px 0px', touchAction: 'pan-x', perspective: '1000px' }}
     >
       <div style={{ minWidth: 'calc(50% - 94px)', flexShrink: 0 }} />
       {items.map((tour, idx) => (
-        <div
-          key={tour.id}
-          className="carousel-item"
-          style={{
-            scrollSnapAlign: 'center',
-            flexShrink: 0,
-            position: 'relative',
-            willChange: isMobile ? 'transform, opacity' : 'auto',
-            transformStyle: isMobile ? 'preserve-3d' : 'flat',
-          }}
-        >
+        <div key={tour.id} className="carousel-item" style={{ scrollSnapAlign: 'center', flexShrink: 0, willChange: isMobile ? 'transform' : 'auto', transformStyle: isMobile ? 'preserve-3d' : 'flat' }}>
           <TourCard tour={tour} onView={onView} index={idx} isCarousel={true} />
         </div>
       ))}
@@ -268,6 +219,30 @@ const Mobile3DCarousel = ({ items, onView, isMobile }) => {
 };
 
 // -----------------------------------------
+// 5. FILTER BAR
+// -----------------------------------------
+const AVAILABLE_TAGS = ["All", "Group", "Couple", "Honeymoon", "Adventure", "Romantic", "Family", "Solo"];
+
+const FilterBar = ({ activeTag, setActiveTag }) => (
+  <div className="flex gap-3 overflow-x-auto pb-6 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap">
+    {AVAILABLE_TAGS.map((tag) => (
+      <button
+        key={tag}
+        onClick={() => setActiveTag(tag)}
+        className={`
+          whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 border
+          ${activeTag === tag 
+            ? "bg-[#D9A441] text-black border-[#D9A441] shadow-[0_0_20px_rgba(217,164,65,0.3)] scale-105" 
+            : "bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20"}
+        `}
+      >
+        {tag}
+      </button>
+    ))}
+  </div>
+);
+
+// -----------------------------------------
 // MAIN PAGE
 // -----------------------------------------
 export default function Tours() {
@@ -275,6 +250,7 @@ export default function Tours() {
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTag, setActiveTag] = useState("All");
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -290,10 +266,11 @@ export default function Tours() {
             price: `₹${t.basePrice.toLocaleString('en-IN')}`,
             img: t.img,
             summary: t.subtitle,
+            tags: t.tags || []
           }));
           setList(formatted);
         }
-        requestAnimationFrame(() => setLoading(false));
+        setLoading(false);
       })
       .catch((err) => {
         console.error(err);
@@ -308,14 +285,18 @@ export default function Tours() {
       timeoutId = setTimeout(() => setWindowWidth(window.innerWidth), 100);
     };
     window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      clearTimeout(timeoutId);
-    }
+    return () => { window.removeEventListener('resize', handleResize); clearTimeout(timeoutId); }
   }, []);
 
   const isMobile = windowWidth < 1024;
   const onView = (p) => navigate(`/tours/${p.id}`);
+
+  const filteredList = useMemo(() => {
+    if (activeTag === "All") return list;
+    return list.filter(tour => 
+      tour.tags.some(t => t.toUpperCase() === activeTag.toUpperCase())
+    );
+  }, [list, activeTag]);
 
   return (
     <div className="relative min-h-screen" style={{ isolation: 'isolate' }}>
@@ -328,10 +309,12 @@ export default function Tours() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="mb-8 text-center md:text-left"
+            className="mb-8"
           >
             <h1 className="text-4xl md:text-5xl font-black text-white drop-shadow-lg tracking-tight font-montserrat">Explore Packages</h1>
-            <p className="text-emerald-100/80 mt-2 text-sm md:text-base font-medium">Handpicked adventures designed for you</p>
+            <p className="text-emerald-100/80 mt-2 text-sm md:text-base font-medium mb-8">Handpicked adventures designed for you</p>
+            
+            <FilterBar activeTag={activeTag} setActiveTag={setActiveTag} />
           </motion.div>
 
           <div style={{ marginTop: '24px' }}>
@@ -345,24 +328,29 @@ export default function Tours() {
                   {[1, 2, 3, 4, 5, 6].map((i) => <TourCardSkeleton key={i} style={{ width: '100%' }} />)}
                 </div>
               )
-            ) : list.length === 0 ? (
-              <div className="text-center py-20 text-white/60 font-bold text-lg border border-white/10 rounded-3xl bg-white/5 backdrop-blur-sm">No Tours Found</div>
+            ) : filteredList.length === 0 ? (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-white/60 font-bold text-lg border border-white/10 rounded-3xl bg-white/5 backdrop-blur-sm">
+                No tours found for "{activeTag}"
+              </motion.div>
             ) : isMobile ? (
               <div style={{ margin: '0 -16px' }}>
-                <Mobile3DCarousel items={list} onView={onView} isMobile={isMobile} />
+                <Mobile3DCarousel items={filteredList} onView={onView} isMobile={isMobile} />
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
-                {list.map((tour, idx) => (
-                  <TourCard key={tour.id} tour={tour} onView={onView} index={idx} style={{ width: '100%', minWidth: 0 }} />
-                ))}
-              </div>
+              // DESKTOP GRID - ONE BY ONE LOADING
+              <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <AnimatePresence mode="popLayout">
+                  {filteredList.map((tour, idx) => (
+                    <TourCard key={tour.id} tour={tour} onView={onView} index={idx} style={{ width: '100%', minWidth: 0 }} />
+                  ))}
+                </AnimatePresence>
+              </motion.div>
             )}
           </div>
 
           {!loading && (
             <div style={{ marginTop: '32px', textAlign: 'center', color: '#9ca3af', fontSize: '13px', fontWeight: 500 }}>
-              Showing {list.length} tours
+              Showing {filteredList.length} tours
             </div>
           )}
         </div>
@@ -370,42 +358,38 @@ export default function Tours() {
         <style>{`
           .mobile-3d-scroll::-webkit-scrollbar { display: none; }
           .mobile-3d-scroll { -ms-overflow-style: none; scrollbar-width: none; scroll-snap-type: x proximity; }
+          .scrollbar-hide::-webkit-scrollbar { display: none; }
+          .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
           
-          /* Smooth Desktop Hover - OVERRIDE with 3D Glow */
+          /* SMOOTHER PC HOVER CSS */
           @media (min-width: 1025px) {
             .tour-card-smooth {
-              filter: drop-shadow(0 0 0 transparent);
+              transform: translateZ(0); /* Force GPU */
+              will-change: transform, box-shadow;
+              transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.6s cubic-bezier(0.25, 1, 0.5, 1);
             }
             
             .tour-card-smooth:hover { 
-              transform: translateY(-16px) scale(1.08) translateZ(0) !important; 
+              /* Subtle lift and zoom */
+              transform: translateY(-10px) scale(1.02) translateZ(0); 
               box-shadow: 
-                0 25px 60px rgba(0,0,0,0.35), 
-                0 15px 30px rgba(0,0,0,0.25),
-                0 0 40px rgba(250, 204, 21, 0.4),
-                0 0 80px rgba(250, 204, 21, 0.2) !important; 
-              z-index: 100 !important;
-              filter: drop-shadow(0 10px 30px rgba(250, 204, 21, 0.3)) !important;
+                0 20px 40px rgba(0,0,0,0.4),
+                0 0 30px rgba(217, 164, 65, 0.15);
+              z-index: 10;
             }
             
-            .tour-card-smooth::before {
+            /* Border Glow */
+            .tour-card-smooth::after {
               content: '';
               position: absolute;
-              inset: -2px;
-              border-radius: 26px;
-              padding: 2px;
-              background: linear-gradient(135deg, rgba(250, 204, 21, 0.3), transparent);
-              -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-              -webkit-mask-composite: xor;
-              mask-composite: exclude;
-              opacity: 0;
-              transition: opacity 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+              inset: 0;
+              border-radius: 24px;
+              border: 1px solid rgba(217, 164, 65, 0);
+              transition: border-color 0.4s ease;
               pointer-events: none;
-              z-index: -1;
             }
-            
-            .tour-card-smooth:hover::before {
-              opacity: 1;
+            .tour-card-smooth:hover::after {
+              border-color: rgba(217, 164, 65, 0.5);
             }
           }
           

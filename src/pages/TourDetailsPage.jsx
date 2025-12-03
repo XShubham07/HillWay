@@ -1,3 +1,4 @@
+// src/pages/TourDetailsPage.jsx
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -6,9 +7,8 @@ import {
   FaMountain, FaUtensils, FaUsers, FaChevronDown, FaShareAlt,
   FaPenNib, FaEnvelope, FaMobileAlt, FaExclamationTriangle, FaPlus, FaMinus
 } from "react-icons/fa";
-import { useState, useEffect, memo, useMemo } from "react";
+import { useState, useEffect, memo, useMemo, useRef } from "react";
 import BookingSidebar from "../components/BookingSidebar";
-import Lenis from 'lenis';
 
 // --- GLOBAL STYLES & SCROLL OPTIMIZATION ---
 const fontStyles = `
@@ -20,19 +20,19 @@ const fontStyles = `
   .scrollbar-hide::-webkit-scrollbar { display: none; }
   .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-  /* Smooth Scroll Fixes */
-  html.lenis { height: auto; } 
-  .lenis.lenis-smooth { scroll-behavior: auto; } 
-  .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; } 
-  .lenis.lenis-stopped { overflow: hidden; } 
-  .lenis.lenis-scrolling iframe { pointer-events: none; }
+  /* Mobile Performance Fixes */
+  .gpu-layer {
+    transform: translate3d(0,0,0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
 `;
 
-// --- MEMOIZED BACKGROUND (Lightweight) ---
+// --- MEMOIZED BACKGROUND (Optimized for Mobile) ---
 const Background = memo(() => (
-  <div className="fixed inset-0 z-[-1] bg-[#022c22] pointer-events-none transform-gpu will-change-transform">
+  <div className="fixed top-0 left-0 w-full h-[120vh] z-[-1] bg-[#022c22] pointer-events-none gpu-layer">
     <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay"></div>
-    <div className="absolute -top-[10%] left-1/2 -translate-x-1/2 w-[90%] h-[40%] bg-[#D9A441] opacity-10 blur-[100px] rounded-full mix-blend-screen"></div>
+    <div className="absolute -top-[10%] left-1/2 -translate-x-1/2 w-[90%] h-[40%] bg-[#D9A441] opacity-10 blur-[60px] md:blur-[100px] rounded-full mix-blend-screen"></div>
     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#022c22]/60 to-[#022c22]"></div>
   </div>
 ));
@@ -88,6 +88,10 @@ export default function TourDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  // References for Smooth Scrolling
+  const contentRef = useRef(null);
+  const tabsContainerRef = useRef(null);
+
   const [tour, setTour] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
@@ -97,7 +101,7 @@ export default function TourDetailsPage() {
   const [globalNotes, setGlobalNotes] = useState({ stayNote: '', foodNote: '' });
 
   // Itinerary Accordion State (Mobile)
-  const [openDay, setOpenDay] = useState(0); // Default open day 1
+  const [openDay, setOpenDay] = useState(0);
 
   // Review System State
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -109,61 +113,53 @@ export default function TourDetailsPage() {
   const [duplicateReviewData, setDuplicateReviewData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  // --- 1. SMOOTH SCROLL SETUP (LENIS) ---
+  // --- 1. SCROLL TO TOP ---
   useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      direction: 'vertical',
-      smooth: true,
-      smoothTouch: false, // Better native feel on mobile, but smooth on momentum
-      touchMultiplier: 2,
-    });
-
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
+    if (window.lenis) {
+      window.lenis.scrollTo(0, { immediate: true });
+    } else {
+      window.scrollTo(0, 0);
     }
-    requestAnimationFrame(raf);
-
-    return () => lenis.destroy();
-  }, []);
-
-  // --- 2. SCROLL TO TOP ---
-  useEffect(() => {
-    window.scrollTo(0, 0);
   }, [id]);
 
-  // --- 3. FETCH DATA ---
+  // --- 2. OPTIMIZED DATA FETCHING (Parallel & Non-blocking) ---
   useEffect(() => {
     if (!id) return;
     setLoading(true);
     const controller = new AbortController();
 
-    Promise.all([
-      fetch(`/api/tours/${id}`, { signal: controller.signal }).then(res => res.json()),
-      fetch('/api/pricing', { signal: controller.signal }).then(res => res.json())
-    ]).then(([tourData, pricingData]) => {
-      if (tourData.success) {
-        const t = tourData.data;
-        if (!t.images || t.images.length === 0) t.images = t.img ? [t.img] : ['/placeholder.jpg'];
-        setTour(t);
-      }
-      if (pricingData.success && pricingData.data) {
-        setGlobalNotes({
-          stayNote: pricingData.data.stayNote || '',
-          foodNote: pricingData.data.foodNote || ''
-        });
-      }
-      setLoading(false);
-    }).catch(err => {
-      if (err.name !== 'AbortError') setLoading(false);
-    });
+    // Fetch Tour (Critical - sets loading to false immediately when done)
+    fetch(`/api/tours/${id}`, { signal: controller.signal })
+      .then(res => res.json())
+      .then(tourData => {
+        if (tourData.success) {
+          const t = tourData.data;
+          if (!t.images || t.images.length === 0) t.images = t.img ? [t.img] : ['/placeholder.jpg'];
+          setTour(t);
+          setLoading(false); // Stop loading immediately
+        }
+      })
+      .catch(err => {
+        if (err.name !== 'AbortError') setLoading(false);
+      });
+
+    // Fetch Pricing (Background - updates state silently)
+    fetch('/api/pricing', { signal: controller.signal })
+      .then(res => res.json())
+      .then(pricingData => {
+        if (pricingData.success && pricingData.data) {
+          setGlobalNotes({
+            stayNote: pricingData.data.stayNote || '',
+            foodNote: pricingData.data.foodNote || ''
+          });
+        }
+      })
+      .catch(() => {});
 
     return () => controller.abort();
   }, [id]);
 
-  // --- 4. SLIDESHOW (SLIDE ANIMATION) ---
+  // --- 3. SLIDESHOW (SLIDE ANIMATION) ---
   useEffect(() => {
     if (!tour || !tour.images || tour.images.length <= 1) return;
     const interval = setInterval(() => {
@@ -171,6 +167,30 @@ export default function TourDetailsPage() {
     }, 5000);
     return () => clearInterval(interval);
   }, [tour]);
+
+  // --- 4. SMART TAB HANDLER ---
+  const handleTabChange = (tId, e) => {
+    setActiveTab(tId);
+
+    // 1. Smoothly center the clicked tab in the horizontal list
+    e.target.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'nearest', 
+        inline: 'center' 
+    });
+
+    // 2. On Mobile: Scroll page slightly to focus content
+    if (window.innerWidth < 1024 && contentRef.current) {
+        const yOffset = -140; // Adjust for sticky header
+        const y = contentRef.current.getBoundingClientRect().top + window.scrollY + yOffset;
+        
+        if (window.lenis) {
+            window.lenis.scrollTo(y, { duration: 1.2 });
+        } else {
+            window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+    }
+  };
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -214,7 +234,6 @@ export default function TourDetailsPage() {
   // --- 6. HELPER: PARSE NOTES TO BULLETS ---
   const renderNotesWithBullets = (note) => {
     if (!note) return null;
-    // Split by new lines and filter empty
     const lines = note.split('\n').filter(line => line.trim() !== '');
     return (
       <ul className="space-y-2 mt-2">
@@ -245,7 +264,7 @@ export default function TourDetailsPage() {
   if (!loading && !tour) return <div className="min-h-screen flex flex-col items-center justify-center bg-[#022c22] text-white"><h1 className="text-6xl font-bold text-[#D9A441]">404</h1><button onClick={() => window.history.back()} className="mt-8 px-8 py-3 border border-[#D9A441] text-[#D9A441] rounded-full">Return Home</button></div>;
 
   return (
-    <div className="relative min-h-screen w-full overflow-x-hidden text-white bg-[#022c22] selection:bg-[#D9A441] selection:text-black">
+    <div className="relative min-h-[100dvh] w-full overflow-x-hidden text-white bg-[#022c22] selection:bg-[#D9A441] selection:text-black">
       <style>{fontStyles}</style>
       <Background />
 
@@ -319,15 +338,22 @@ export default function TourDetailsPage() {
                   ))}
                 </div>
 
-                {/* TABS */}
+                {/* TABS CONTAINER */}
                 <div className="mt-16 w-full relative z-20">
-                  <div className="flex overflow-x-auto pb-4 gap-3 scrollbar-hide snap-x">
+                  <div ref={tabsContainerRef} className="flex overflow-x-auto pb-4 gap-3 scrollbar-hide snap-x">
                     {[{ id: "overview", label: "Overview" }, { id: "itinerary", label: "Itinerary" }, { id: "food", label: "Food & Stay" }, { id: "reviews", label: "Reviews" }, { id: "faq", label: "FAQ" }].map((t) => (
-                      <button key={t.id} onClick={() => setActiveTab(t.id)} className={`whitespace-nowrap flex-shrink-0 px-8 py-3.5 rounded-full font-montserrat text-sm transition-all duration-300 ease-out border snap-start ${activeTab === t.id ? "bg-[#D9A441] text-black border-[#D9A441] shadow-[0_5px_15px_rgba(217,164,65,0.2)] font-semibold" : "bg-white/5 text-emerald-100/60 border-white/5 hover:bg-white/10 hover:text-white font-medium"}`}>{t.label}</button>
+                      <button 
+                        key={t.id} 
+                        onClick={(e) => handleTabChange(t.id, e)} 
+                        className={`whitespace-nowrap flex-shrink-0 px-8 py-3.5 rounded-full font-montserrat text-sm transition-all duration-300 ease-out border snap-start ${activeTab === t.id ? "bg-[#D9A441] text-black border-[#D9A441] shadow-[0_5px_15px_rgba(217,164,65,0.2)] font-semibold" : "bg-white/5 text-emerald-100/60 border-white/5 hover:bg-white/10 hover:text-white font-medium"}`}
+                      >
+                        {t.label}
+                      </button>
                     ))}
                   </div>
 
-                  <div className="mt-4 p-6 md:p-12 bg-black/20 border border-white/5 rounded-[2.5rem] backdrop-blur-md min-h-[300px]">
+                  {/* TAB CONTENT AREA */}
+                  <div ref={contentRef} className="mt-4 p-6 md:p-12 bg-black/20 border border-white/5 rounded-[2.5rem] backdrop-blur-md min-h-[300px]">
                     <AnimatePresence mode="wait">
                       {activeTab === "overview" && (
                         <motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.4 }}>
@@ -339,11 +365,10 @@ export default function TourDetailsPage() {
                         </motion.div>
                       )}
 
-                      {/* ITINERARY TAB (ACCORDION ON MOBILE, LIST ON DESKTOP) */}
+                      {/* ITINERARY TAB */}
                       {activeTab === "itinerary" && (
                         <motion.div key="itinerary" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pl-1">
-
-                          {/* MOBILE VIEW: ACCORDION */}
+                          {/* MOBILE VIEW */}
                           <div className="block md:hidden space-y-2">
                             {tour.itinerary?.map((item, i) => (
                               <ItineraryItem
@@ -354,8 +379,7 @@ export default function TourDetailsPage() {
                               />
                             ))}
                           </div>
-
-                          {/* DESKTOP VIEW: TIMELINE */}
+                          {/* DESKTOP VIEW */}
                           <div className="hidden md:block relative border-l border-white/10 ml-2 md:ml-4 space-y-10 pb-4">
                             {tour.itinerary?.map((item, i) => (
                               <div key={i} className="relative pl-8 md:pl-12">
@@ -372,7 +396,7 @@ export default function TourDetailsPage() {
                         </motion.div>
                       )}
 
-                      {/* FOOD & STAY (WITH BULLET NOTES) */}
+                      {/* FOOD & STAY */}
                       {activeTab === "food" && (
                         <motion.div key="food" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-12">
                           <div>
@@ -404,7 +428,7 @@ export default function TourDetailsPage() {
                         </motion.div>
                       )}
 
-                      {/* REVIEWS & FAQ TABS REMAIN UNCHANGED FOR BREVITY */}
+                      {/* REVIEWS */}
                       {activeTab === "reviews" && (
                         <motion.div key="reviews" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
                           <div className="flex justify-between items-center mb-6">
