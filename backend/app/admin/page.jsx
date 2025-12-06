@@ -824,7 +824,7 @@ export default function AdminDashboard({ onLogout }) {
   {b.travelDate 
     ? new Date(b.travelDate).toLocaleDateString('en-IN', {
         day: '2-digit',
-        month: 'short', // <-- yahi month ko Dec banata hai
+        month: 'short',
         year: 'numeric',
       })
     : '-'}
