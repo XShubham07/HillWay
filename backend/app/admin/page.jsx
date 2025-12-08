@@ -7,7 +7,7 @@ import {
   FaBook, FaEye, FaTimes, FaPhone, FaUser, FaCalendarDay,
   FaSearch, FaCheckCircle, FaTicketAlt, FaImages, FaMoneyBillWave,
   FaChartPie, FaUserSecret, FaSignOutAlt, FaPaperPlane, FaBars, FaList, FaUtensils, FaQuestionCircle, FaInfoCircle,
-  FaCommentDots, FaStar, FaEnvelope, FaMobileAlt, FaHashtag, FaCalendarAlt, FaHotel, FaExternalLinkAlt
+  FaCommentDots, FaStar, FaEnvelope, FaMobileAlt, FaHashtag, FaCalendarAlt, FaHotel, FaExternalLinkAlt, FaCopy
 } from 'react-icons/fa';
 
 export default function AdminDashboard({ onLogout }) {
@@ -204,7 +204,7 @@ export default function AdminDashboard({ onLogout }) {
   // --- HELPER: GET UNIT RATES ---
   const getUnitRates = (b) => {
     const tour = tours.find(t => t.title === b.tourTitle);
-    const p = tour?.pricing || globalPrices || {}; 
+    const p = tour?.pricing || globalPrices || {};
     const rates = [];
 
     const isPanoramic = b.roomType?.toLowerCase() === 'panoramic';
@@ -378,19 +378,49 @@ export default function AdminDashboard({ onLogout }) {
   const handleEdit = (tour) => {
     const defaults = getInitialForm();
     const images = (tour.images && tour.images.length > 0) ? tour.images : (tour.img ? [tour.img] : []);
-    setForm({ 
-        ...defaults, 
-        ...tour, 
-        images, 
-        img: tour.img || (images.length > 0 ? images[0] : ''), 
-        pricing: { ...defaults.pricing, ...(tour.pricing || {}) },
-        tags: tour.tags || [] // Load existing tags
+    setForm({
+      ...defaults,
+      ...tour,
+      images,
+      img: tour.img || (images.length > 0 ? images[0] : ''),
+      pricing: { ...defaults.pricing, ...(tour.pricing || {}) },
+      tags: tour.tags || [] // Load existing tags
     });
     setEditingId(tour._id); setView('editor'); setShowImagePreview(images.length > 0);
   };
-  
+
+  const handleCloneTour = async (tourToClone) => {
+    if (!confirm(`Duplicate "${tourToClone.title}"?`)) return;
+    setLoading(true);
+
+    // Prepare payload: remove _id, append (Copy) to title
+    const { _id, ...rest } = tourToClone;
+    const payload = {
+      ...rest,
+      title: `${rest.title} (Copy)`,
+    };
+
+    try {
+      const res = await fetch('/api/tours', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Tour Cloned Successfully!");
+        fetchData(); // Refresh list to show new tour
+      } else {
+        alert("Failed to clone: " + data.error);
+      }
+    } catch (err) {
+      alert("Error cloning tour");
+    }
+    setLoading(false);
+  };
+
   const handleDeleteTour = async (id) => { if (confirm("Delete?")) { await fetch(`/api/tours/${id}`, { method: 'DELETE' }); fetchData(); } };
-  
+
   const handleSaveTour = async (e) => {
     e.preventDefault(); setLoading(true);
     const payload = { ...form, img: form.images.length > 0 ? form.images[0] : form.img };
@@ -442,7 +472,7 @@ export default function AdminDashboard({ onLogout }) {
             <h3 className="text-xl font-bold text-white mb-4">Update Booking Status</h3>
 
             <div className="space-y-4">
-              
+
               {/* Payment Section */}
               <div className="bg-black/20 p-3 rounded-xl border border-white/5">
                 <label className="block text-xs text-gray-400 mb-1 uppercase font-bold">Payment Type</label>
@@ -461,48 +491,48 @@ export default function AdminDashboard({ onLogout }) {
                   </button>
                 </div>
                 {confirmData.paymentType === 'Partial' && (
-                    <div className="mt-2">
+                  <div className="mt-2">
                     <label className="block text-xs text-gray-400 mb-1 uppercase font-bold">Amount Paid (₹)</label>
                     <input
-                        type="number"
-                        className="w-full bg-black/30 border border-gray-600 rounded-lg p-2 text-white focus:border-yellow-500 outline-none font-mono font-bold"
-                        value={confirmData.paidAmount}
-                        onChange={e => setConfirmData({ ...confirmData, paidAmount: e.target.value })}
+                      type="number"
+                      className="w-full bg-black/30 border border-gray-600 rounded-lg p-2 text-white focus:border-yellow-500 outline-none font-mono font-bold"
+                      value={confirmData.paidAmount}
+                      onChange={e => setConfirmData({ ...confirmData, paidAmount: e.target.value })}
                     />
                     <p className="text-xs text-red-400 mt-1 font-bold text-right">Due: ₹{(selectedBooking.totalPrice - confirmData.paidAmount).toLocaleString()}</p>
-                    </div>
+                  </div>
                 )}
               </div>
 
               {/* HOTEL DETAILS SECTION (Shows always in Edit mode now) */}
               <div className="bg-blue-900/10 p-4 rounded-xl border border-blue-500/20">
-                <h4 className="text-blue-400 font-bold text-xs uppercase mb-3 flex items-center gap-2"><FaHotel/> Assign Hotel Details</h4>
+                <h4 className="text-blue-400 font-bold text-xs uppercase mb-3 flex items-center gap-2"><FaHotel /> Assign Hotel Details</h4>
                 <div className="space-y-2">
-                    <input 
-                        className="w-full bg-black/30 border border-gray-600 rounded-lg p-2 text-white text-sm placeholder-gray-500" 
-                        placeholder="Hotel Name (e.g. Hotel Tashi)" 
-                        value={confirmData.hotelName} 
-                        onChange={e => setConfirmData({...confirmData, hotelName: e.target.value})} 
-                    />
-                    <input 
-                        className="w-full bg-black/30 border border-gray-600 rounded-lg p-2 text-white text-sm placeholder-gray-500" 
-                        placeholder="Address (e.g. MG Marg)" 
-                        value={confirmData.hotelAddress} 
-                        onChange={e => setConfirmData({...confirmData, hotelAddress: e.target.value})} 
-                    />
-                    <input 
-                        className="w-full bg-black/30 border border-gray-600 rounded-lg p-2 text-white text-sm placeholder-gray-500" 
-                        placeholder="Hotel Phone Contact" 
-                        value={confirmData.hotelPhone} 
-                        onChange={e => setConfirmData({...confirmData, hotelPhone: e.target.value})} 
-                    />
-                    <textarea 
-                        className="w-full bg-black/30 border border-gray-600 rounded-lg p-2 text-white text-sm placeholder-gray-500" 
-                        rows={2} 
-                        placeholder="Room details or notes..." 
-                        value={confirmData.hotelNotes} 
-                        onChange={e => setConfirmData({...confirmData, hotelNotes: e.target.value})} 
-                    />
+                  <input
+                    className="w-full bg-black/30 border border-gray-600 rounded-lg p-2 text-white text-sm placeholder-gray-500"
+                    placeholder="Hotel Name (e.g. Hotel Tashi)"
+                    value={confirmData.hotelName}
+                    onChange={e => setConfirmData({ ...confirmData, hotelName: e.target.value })}
+                  />
+                  <input
+                    className="w-full bg-black/30 border border-gray-600 rounded-lg p-2 text-white text-sm placeholder-gray-500"
+                    placeholder="Address (e.g. MG Marg)"
+                    value={confirmData.hotelAddress}
+                    onChange={e => setConfirmData({ ...confirmData, hotelAddress: e.target.value })}
+                  />
+                  <input
+                    className="w-full bg-black/30 border border-gray-600 rounded-lg p-2 text-white text-sm placeholder-gray-500"
+                    placeholder="Hotel Phone Contact"
+                    value={confirmData.hotelPhone}
+                    onChange={e => setConfirmData({ ...confirmData, hotelPhone: e.target.value })}
+                  />
+                  <textarea
+                    className="w-full bg-black/30 border border-gray-600 rounded-lg p-2 text-white text-sm placeholder-gray-500"
+                    rows={2}
+                    placeholder="Room details or notes..."
+                    value={confirmData.hotelNotes}
+                    onChange={e => setConfirmData({ ...confirmData, hotelNotes: e.target.value })}
+                  />
                 </div>
               </div>
 
@@ -572,17 +602,17 @@ export default function AdminDashboard({ onLogout }) {
                         </div>
                         <div>
                           <span className="block text-xs text-gray-500 uppercase font-bold mb-1">Placed On</span>
-<span className="text-white flex items-center gap-2">
-  <FaClock size={12} />
-  {new Date(selectedBooking.createdAt).toLocaleString('en-IN', {
-  day: '2-digit',
-  month: 'short',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-})}
+                          <span className="text-white flex items-center gap-2">
+                            <FaClock size={12} />
+                            {new Date(selectedBooking.createdAt).toLocaleString('en-IN', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
 
-</span>
+                          </span>
 
                         </div>
                         <div>
@@ -607,14 +637,14 @@ export default function AdminDashboard({ onLogout }) {
 
                     <div className="bg-white/5 p-6 rounded-2xl border border-white/5 hover:border-white/10 transition">
                       <h3 className="text-green-400 font-bold mb-4 flex items-center gap-2 text-xs uppercase tracking-widest"><FaMapMarkerAlt /> Tour Details</h3>
-                      
+
                       {/* CLICKABLE TOUR TITLE */}
                       <p className="text-lg text-white leading-tight font-bold flex items-center gap-2 group">
                         {selectedBooking.tourTitle}
                         {getTourLink(selectedBooking.tourTitle) && (
-                          <a 
-                            href={getTourLink(selectedBooking.tourTitle)} 
-                            target="_blank" 
+                          <a
+                            href={getTourLink(selectedBooking.tourTitle)}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="text-gray-500 hover:text-cyan-400 transition text-sm"
                             title="View Tour Page"
@@ -635,17 +665,17 @@ export default function AdminDashboard({ onLogout }) {
                   {/* NEW: DISPLAY HOTEL DETAILS IF AVAILABLE */}
                   {selectedBooking.hotelDetails && selectedBooking.hotelDetails.name && (
                     <div className="bg-blue-900/10 p-6 rounded-2xl border border-blue-500/20">
-                         <div className="flex justify-between items-start mb-4">
-                            <h3 className="text-blue-400 font-bold text-xs uppercase tracking-widest flex items-center gap-2"><FaHotel /> Assigned Hotel</h3>
-                            {/* Edit button allows updating hotel details along with status */}
-                            <button onClick={initiateConfirmation} className="text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 px-3 py-1.5 rounded-lg transition flex items-center gap-1"><FaEdit /> Edit</button>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                            <div className="bg-black/20 p-3 rounded-lg border border-white/5"><span className="text-gray-400 block text-xs uppercase font-bold mb-1">Hotel Name</span><span className="text-white font-bold">{selectedBooking.hotelDetails.name}</span></div>
-                            <div className="bg-black/20 p-3 rounded-lg border border-white/5"><span className="text-gray-400 block text-xs uppercase font-bold mb-1">Phone</span><span className="text-white">{selectedBooking.hotelDetails.phone || "-"}</span></div>
-                            <div className="bg-black/20 p-3 rounded-lg border border-white/5 col-span-1 sm:col-span-2"><span className="text-gray-400 block text-xs uppercase font-bold mb-1">Address</span><span className="text-white">{selectedBooking.hotelDetails.address || "-"}</span></div>
-                            {selectedBooking.hotelDetails.notes && <div className="bg-black/20 p-3 rounded-lg border border-white/5 col-span-1 sm:col-span-2"><span className="text-gray-400 block text-xs uppercase font-bold mb-1">Notes</span><span className="text-yellow-400">{selectedBooking.hotelDetails.notes}</span></div>}
-                        </div>
+                      <div className="flex justify-between items-start mb-4">
+                        <h3 className="text-blue-400 font-bold text-xs uppercase tracking-widest flex items-center gap-2"><FaHotel /> Assigned Hotel</h3>
+                        {/* Edit button allows updating hotel details along with status */}
+                        <button onClick={initiateConfirmation} className="text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 px-3 py-1.5 rounded-lg transition flex items-center gap-1"><FaEdit /> Edit</button>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                        <div className="bg-black/20 p-3 rounded-lg border border-white/5"><span className="text-gray-400 block text-xs uppercase font-bold mb-1">Hotel Name</span><span className="text-white font-bold">{selectedBooking.hotelDetails.name}</span></div>
+                        <div className="bg-black/20 p-3 rounded-lg border border-white/5"><span className="text-gray-400 block text-xs uppercase font-bold mb-1">Phone</span><span className="text-white">{selectedBooking.hotelDetails.phone || "-"}</span></div>
+                        <div className="bg-black/20 p-3 rounded-lg border border-white/5 col-span-1 sm:col-span-2"><span className="text-gray-400 block text-xs uppercase font-bold mb-1">Address</span><span className="text-white">{selectedBooking.hotelDetails.address || "-"}</span></div>
+                        {selectedBooking.hotelDetails.notes && <div className="bg-black/20 p-3 rounded-lg border border-white/5 col-span-1 sm:col-span-2"><span className="text-gray-400 block text-xs uppercase font-bold mb-1">Notes</span><span className="text-yellow-400">{selectedBooking.hotelDetails.notes}</span></div>}
+                      </div>
                     </div>
                   )}
 
@@ -734,12 +764,12 @@ export default function AdminDashboard({ onLogout }) {
                     </div>
 
                     <div className="space-y-3 mt-6">
-                        <button
-                          onClick={initiateConfirmation}
-                          className="w-full py-4 bg-green-600 hover:bg-green-500 text-white rounded-xl font-bold shadow-lg shadow-green-900/20 transition flex items-center justify-center gap-2"
-                        >
-                          <FaCheckCircle /> Update / Confirm
-                        </button>
+                      <button
+                        onClick={initiateConfirmation}
+                        className="w-full py-4 bg-green-600 hover:bg-green-500 text-white rounded-xl font-bold shadow-lg shadow-green-900/20 transition flex items-center justify-center gap-2"
+                      >
+                        <FaCheckCircle /> Update / Confirm
+                      </button>
                       <button onClick={() => handleDeleteBooking(selectedBooking._id)} className="w-full py-4 bg-red-900/20 hover:bg-red-900/40 text-red-400 border border-red-900/30 rounded-xl font-bold transition flex items-center justify-center gap-2">
                         <FaTrash /> Delete Booking
                       </button>
@@ -821,14 +851,14 @@ export default function AdminDashboard({ onLogout }) {
                         </td>
                         <td className="p-4 text-gray-300 max-w-[180px] truncate">{b.tourTitle}</td>
                         <td className="p-4 text-yellow-500 font-medium">
-  {b.travelDate 
-    ? new Date(b.travelDate).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      })
-    : '-'}
-</td>
+                          {b.travelDate
+                            ? new Date(b.travelDate).toLocaleDateString('en-IN', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric',
+                            })
+                            : '-'}
+                        </td>
 
                         <td className="p-4 font-bold text-green-400">₹{b.totalPrice?.toLocaleString()}</td>
                         <td className="p-4">
@@ -1038,16 +1068,17 @@ export default function AdminDashboard({ onLogout }) {
                   </div>
                   <div className="p-5">
                     <h3 className="font-bold text-lg text-white group-hover:text-cyan-400 transition">{tour.title}</h3>
-                    
+
                     {/* DISPLAY TAGS */}
                     <div className="flex flex-wrap gap-2 mt-2">
-                        {tour.tags?.map(tag => (
-                            <span key={tag} className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/10 text-gray-300 border border-white/5">{tag}</span>
-                        ))}
+                      {tour.tags?.map(tag => (
+                        <span key={tag} className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/10 text-gray-300 border border-white/5">{tag}</span>
+                      ))}
                     </div>
 
                     <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-700">
                       <button onClick={() => handleEdit(tour)} className="text-cyan-400 hover:text-cyan-300 text-sm font-bold flex items-center gap-1"><FaEdit /> Edit</button>
+                      <button onClick={() => handleCloneTour(tour)} className="text-yellow-400 hover:text-yellow-300 text-sm font-bold flex items-center gap-1"><FaCopy /> Clone</button>
                       <button onClick={() => handleDeleteTour(tour._id)} className="text-red-400 hover:text-red-300 text-sm font-bold flex items-center gap-1"><FaTrash /> Delete</button>
                     </div>
                   </div>
@@ -1102,28 +1133,27 @@ export default function AdminDashboard({ onLogout }) {
               <section className="bg-black/20 p-6 rounded-xl border border-gray-700">
                 <h3 className="text-sm font-bold text-gray-300 mb-3 uppercase tracking-wide">Tour Tags</h3>
                 <div className="flex flex-wrap gap-3">
-                    {AVAILABLE_TAGS.map(tag => {
-                        const isActive = form.tags?.includes(tag);
-                        return (
-                            <button
-                                key={tag}
-                                type="button"
-                                onClick={() => {
-                                    const newTags = isActive 
-                                        ? form.tags.filter(t => t !== tag) 
-                                        : [...(form.tags || []), tag];
-                                    updateField('tags', newTags);
-                                }}
-                                className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${
-                                    isActive 
-                                        ? 'bg-cyan-600 text-white border-cyan-500 shadow-lg shadow-cyan-900/50' 
-                                        : 'bg-transparent text-gray-400 border-gray-600 hover:border-gray-400 hover:text-gray-200'
-                                }`}
-                            >
-                                {tag} {isActive && '✓'}
-                            </button>
-                        )
-                    })}
+                  {AVAILABLE_TAGS.map(tag => {
+                    const isActive = form.tags?.includes(tag);
+                    return (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => {
+                          const newTags = isActive
+                            ? form.tags.filter(t => t !== tag)
+                            : [...(form.tags || []), tag];
+                          updateField('tags', newTags);
+                        }}
+                        className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${isActive
+                            ? 'bg-cyan-600 text-white border-cyan-500 shadow-lg shadow-cyan-900/50'
+                            : 'bg-transparent text-gray-400 border-gray-600 hover:border-gray-400 hover:text-gray-200'
+                          }`}
+                      >
+                        {tag} {isActive && '✓'}
+                      </button>
+                    )
+                  })}
                 </div>
               </section>
 
