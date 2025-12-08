@@ -340,7 +340,7 @@ export default function BookingSidebar({ tour = {} }) {
     setCouponMessage("");
   };
 
-  const minRoomsRequired = Math.max(1, Math.ceil(Number(form.adults || 0) / 3));
+  const minRoomsRequired = Math.max(1, Math.ceil(Number(form.adults || 0) / 4));
   useEffect(() => {
     if (form.rooms !== minRoomsRequired) handle("rooms", minRoomsRequired);
   }, [form.adults, minRoomsRequired]);

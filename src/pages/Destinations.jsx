@@ -48,8 +48,9 @@ const styles = `
   .shimmer-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
     animation: shimmer 1.5s infinite;
+    will-change: transform;
   }
   @keyframes shimmer {
     0% { transform: translateX(-100%); }
@@ -67,14 +68,13 @@ const styles = `
     will-change: transform;
   }
   
-  /* Ensure hardware acceleration to prevent jank */
   .gpu-accelerate {
       transform: translateZ(0);
       backface-visibility: hidden;
       will-change: transform;
   }
 
-  /* Optimize Blurs for Mobile */
+  /* Reduce blur quality on mobile to save frames */
   @media (max-width: 768px) {
     .heavy-blur { filter: blur(30px) !important; opacity: 0.12 !important; }
   }
@@ -96,7 +96,6 @@ const ProgressiveImage = memo(({ src, alt, className }) => {
                 loading="lazy"
                 decoding="async"
                 onLoad={() => setLoaded(true)}
-                // Added gpu-accelerate here to ensure the image layer is promoted
                 className={`${className} gpu-accelerate transition-opacity duration-700 ease-in-out ${loaded ? 'opacity-100' : 'opacity-0'}`}
             />
         </div>
@@ -104,13 +103,46 @@ const ProgressiveImage = memo(({ src, alt, className }) => {
 });
 ProgressiveImage.displayName = "ProgressiveImage";
 
+// UPDATED SKELETON: Matches Mobile Geometry Exactly
 const DestinationSkeleton = () => (
-    <div className="space-y-32 lg:space-y-48 pt-20 w-full overflow-hidden">
+    <div className="space-y-24 lg:space-y-48 pt-0 w-full overflow-hidden">
         {[1, 2].map((i) => (
-            <div key={i} className={`flex flex-col ${i % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-center w-full gap-10`}>
-                {/* Added rounding to skeleton on mobile too */}
-                <div className={`w-full lg:w-[55vw] h-[50vh] lg:h-[65vh] bg-white/5 relative overflow-hidden border-y border-white/5 shadow-2xl rounded-[2.5rem] ${i % 2 === 0 ? 'lg:rounded-r-[15rem] lg:rounded-l-none border-r' : 'lg:rounded-l-[15rem] lg:rounded-r-none border-l'}`}>
-                    <div className="shimmer-overlay" />
+            <div key={i} className={`flex flex-col ${i % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'} items-center w-full gap-0 lg:gap-0`}>
+
+                {/* Image Skeleton */}
+                <div className={`
+                    w-full lg:w-[55vw] 
+                    h-[50vh] lg:h-[85vh] 
+                    bg-[#1e293b] 
+                    relative overflow-hidden 
+                    border-y border-white/5 shadow-2xl 
+                    /* EXACT MATCHING BORDER RADIUS */
+                    rounded-[2.5rem] 
+                    ${i % 2 === 0 ? 'lg:rounded-r-[40vh] lg:rounded-l-none border-r' : 'lg:rounded-l-[40vh] lg:rounded-r-none border-l'}
+                `}>
+                    <div className="shimmer-overlay gpu-accelerate" />
+                    {/* Location Badge Skeleton */}
+                    <div className={`absolute bottom-6 flex items-center gap-4 bg-white/5 px-6 py-4 rounded-2xl w-48 h-16 ${i % 2 === 0 ? 'left-6 lg:left-16' : 'right-6 lg:right-16'}`}>
+                        <div className="shimmer-overlay" />
+                    </div>
+                </div>
+
+                {/* Text Skeleton */}
+                <div className={`w-full lg:w-[45vw] px-6 lg:px-24 mt-12 lg:mt-0 space-y-8 ${i % 2 === 0 ? 'lg:pl-24' : 'lg:pr-24 items-end flex flex-col'}`}>
+                    {/* Title */}
+                    <div className="h-16 lg:h-24 w-3/4 bg-white/5 rounded-3xl relative overflow-hidden">
+                        <div className="shimmer-overlay" />
+                    </div>
+                    {/* Description */}
+                    <div className="space-y-3 w-full">
+                        <div className="h-4 w-full bg-white/5 rounded-full relative overflow-hidden"><div className="shimmer-overlay" /></div>
+                        <div className="h-4 w-5/6 bg-white/5 rounded-full relative overflow-hidden"><div className="shimmer-overlay" /></div>
+                        <div className="h-4 w-4/6 bg-white/5 rounded-full relative overflow-hidden"><div className="shimmer-overlay" /></div>
+                    </div>
+                    {/* Buttons */}
+                    <div className="h-14 w-48 bg-white/5 rounded-full relative overflow-hidden mt-4">
+                        <div className="shimmer-overlay" />
+                    </div>
                 </div>
             </div>
         ))}
@@ -185,10 +217,9 @@ const DestinationItem = memo(({ dest, index, tourCount, navigate }) => {
                 transition={{ duration: 0.8, type: "spring", bounce: 0.2 }}
                 className={`w-full lg:w-[55vw] h-[50vh] lg:h-[85vh] relative group flex-shrink-0 ${isEven ? 'mr-auto' : 'ml-auto'}`}
             >
-                {/* ROUNDED CORNER FIX ON MOBILE:
-                    1. Added rounded-[2.5rem] for default mobile view.
-                    2. Added lg:rounded-l-none (or r-none) to ensure the flat side on desktop isn't rounded.
-                    3. Added gpu-accelerate class.
+                {/* KEY FIX: rounded-[2.5rem] applies to mobile.
+                   lg:rounded-r-[40vh] etc applies to desktop.
+                   This matches the Skeleton structure exactly.
                 */}
                 <div className={`relative w-full h-full overflow-hidden bg-[#1e293b] shadow-[0_15px_40px_rgba(0,0,0,0.6)] z-20 border-y border-white/10 gpu-accelerate rounded-[2.5rem] ${isEven ? 'lg:rounded-r-[40vh] lg:rounded-l-none lg:border-r' : 'lg:rounded-l-[40vh] lg:rounded-r-none lg:border-l'}`}>
                     <motion.div style={{ y: imgY, scale: imgScale }} className="absolute inset-0 w-full h-full gpu-accelerate">
@@ -248,13 +279,12 @@ export default function Destinations() {
     const navigate = useNavigate();
     const [tours, setTours] = useState([]);
     const [loading, setLoading] = useState(true);
-    // New state to defer heavy background rendering
     const [showBackground, setShowBackground] = useState(false);
     const listRef = useRef(null);
 
     useEffect(() => {
         window.scrollTo(0, 0);
-        // Defer background rendering by 500ms to allow initial paint
+        // Wait 500ms before showing heavy background effects to prioritize DOM paint
         const timer = setTimeout(() => setShowBackground(true), 500);
         return () => clearTimeout(timer);
     }, []);
@@ -262,7 +292,8 @@ export default function Destinations() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                await new Promise(r => setTimeout(r, 300));
+                // Reduced simulated delay to 100ms for faster perceived loading
+                await new Promise(r => setTimeout(r, 100));
                 const res = await fetch('/api/tours');
                 const data = await res.json();
                 if (data.success) setTours(data.data);
@@ -283,7 +314,6 @@ export default function Destinations() {
         <div className="min-h-screen bg-[#0f172a] text-white font-inter selection:bg-[#D9A441] selection:text-black relative overflow-x-hidden">
             <style>{styles}</style>
 
-            {/* DEFERRED BACKGROUND RENDERING to stop initial lag */}
             <AnimatePresence>
                 {showBackground && <BackgroundOrbs />}
             </AnimatePresence>
