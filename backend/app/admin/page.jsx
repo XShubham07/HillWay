@@ -156,8 +156,9 @@ export default function AdminDashboard({ onLogout }) {
           <div className="max-w-6xl mx-auto">
             <h1 className="text-3xl font-bold text-white mb-6">User Reviews</h1>
             <div className="grid gap-4">
-              {allReviews.map(review => (
-                <div key={review._id} className="bg-[#1e293b] p-5 rounded-2xl border border-gray-700 shadow-md hover:border-gray-500 transition">
+              {allReviews.map((review, index) => (
+                // FIX: Used index in key to ensure uniqueness if API returns duplicate _ids
+                <div key={`${review._id}-${index}`} className="bg-[#1e293b] p-5 rounded-2xl border border-gray-700 shadow-md hover:border-gray-500 transition">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
                     <div className="flex items-center gap-2"><span className="bg-cyan-900/30 text-cyan-400 px-3 py-1 rounded-lg text-xs font-bold border border-cyan-500/30 uppercase tracking-wider">{review.tourTitle}</span><span className="text-gray-500 text-xs flex items-center gap-1"><FaClock size={10} /> {review.date}</span></div>
                     <button onClick={() => handleDeleteReview(review._id, review.tourId)} className="px-4 py-2 bg-red-900/10 hover:bg-red-900/30 text-red-400 border border-red-900/20 rounded-lg text-xs font-bold transition flex items-center gap-2 whitespace-nowrap"><FaTrash size={12} /> Delete</button>
