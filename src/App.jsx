@@ -15,6 +15,7 @@ import AgentDashboard from "./pages/AgentDashboard";
 import BookingStatus from "./pages/BookingStatus";
 import AllReviews from "./pages/AllReviews";
 import Destinations from "./pages/Destinations";
+import About from "./pages/About"; // <--- 1. Import the component
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
         <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} /> {/* <--- 2. Add the Route */}
           <Route path="/tours" element={<Tours />} />
           <Route path="/tours/:id" element={<TourDetailsPage />} />
           <Route path="/packages" element={<Packages />} />

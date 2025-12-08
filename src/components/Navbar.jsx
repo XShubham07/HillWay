@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 // ICONS
 import {
   FaHome, FaMountain, FaBlog, FaPhone, FaWhatsapp,
-  FaBars, FaTimes, FaSearch, FaStar, FaUsers, FaChevronDown, FaMapMarkedAlt
+  FaBars, FaTimes, FaSearch, FaStar, FaUsers, FaChevronDown, FaMapMarkedAlt, FaInfo
 } from "react-icons/fa";
 
 // ... (COLORS object remains the same)
@@ -51,6 +51,7 @@ export default function Navbar() {
       ]
     },
     { path: "/status", label: "Status", icon: <FaSearch /> },
+    { path: "/about", label: "About", icon: <FaInfo /> },
     { path: "/contact", label: "Contact", icon: <FaPhone style={{ transform: 'scaleX(-1)' }} /> },
   ];
 
