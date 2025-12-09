@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom"; // <--- Import Link
 import {
   FaUsers,
   FaChild,
@@ -23,9 +24,7 @@ import confetti from "canvas-confetti";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-/* -------------------------------------------
-   🎉 SUCCESS / DUPLICATE POPUP
-------------------------------------------- */
+// ... [Keep StatusPopup component exactly as is] ...
 const StatusPopup = ({ isOpen, onClose, data, type }) => {
   const [copied, setCopied] = useState(false);
 
@@ -56,7 +55,6 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
   const isSuccess = type === 'success';
   const refId = data?._id ? `#HW-${data._id.slice(-6).toUpperCase()}` : 'N/A';
 
-  // Construct Tracking Link
   const trackingLink = data ? `${window.location.origin}/status?refId=${data._id.slice(-6).toUpperCase()}` : '';
 
   const handleCopyLink = () => {
@@ -98,7 +96,6 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
                 <FaTimes size={14} />
               </button>
 
-              {/* Glowing Tick Container */}
               <div className="relative mb-6">
                 {isSuccess && <div className="absolute inset-0 bg-[#D9A441] blur-2xl opacity-40 animate-pulse rounded-full"></div>}
                 <motion.div
@@ -127,7 +124,6 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
                 </p>
               </div>
 
-              {/* Copy Tracking Link Section */}
               {isSuccess && (
                 <div className="w-full mb-6">
                   <div className="bg-white/5 rounded-lg p-3 border border-white/5 flex items-center justify-between gap-3">
@@ -178,7 +174,7 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
   );
 };
 
-// ... QuantityControl & TickButton components remain same ...
+// ... [Keep QuantityControl and TickButton exactly as is] ...
 const QuantityControl = ({ label, subLabel, icon: Icon, value, onChange, min = 0 }) => (
   <div className="space-y-1.5">
     <label className="text-xs text-gray-300 flex justify-between items-center font-medium px-1">
@@ -247,14 +243,15 @@ export default function BookingSidebar({ tour = {} }) {
   const [open, setOpen] = useState(false);
   const [popupData, setPopupData] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [agreed, setAgreed] = useState(false); // <--- New State for Terms Checkbox
 
-  // Lock background scroll
   useEffect(() => {
     if (open) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "unset";
     return () => { document.body.style.overflow = "unset"; };
   }, [open]);
 
+  // ... [Keep globalRates state and fetch effect] ...
   const [globalRates, setGlobalRates] = useState({
     meal: 500, tea: 60, bonfire: 500, cab: 3200,
     stdRoom: 1500, panoRoom: 2500, tourGuide: 1000, comfortSeat: 800
@@ -402,6 +399,7 @@ export default function BookingSidebar({ tour = {} }) {
     if (!form.travelDate) return alert("Please select a Journey Date");
     if (!form.name.trim()) return alert("Please enter your Name");
     if (!form.phone || form.phone.length !== 10) return alert("Please enter a valid 10-digit Phone Number");
+    if (!agreed) return alert("Please agree to the Terms & Conditions"); // <--- Added Validation
 
     setSubmitting(true);
 
@@ -454,8 +452,7 @@ export default function BookingSidebar({ tour = {} }) {
       </div>
 
       <div className="space-y-3">
-
-        {/* PREMIUM PERSONAL CALENDAR */}
+        {/* ... [Keep form inputs (datepicker, name, phone, email) exactly as is] ... */}
         <div className="relative group">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
             <FaCalendarAlt className="text-[#D9A441] text-lg" />
@@ -473,7 +470,6 @@ export default function BookingSidebar({ tour = {} }) {
             weekDayClassName={() => "!text-gray-500"}
             popperClassName="!z-[9999]"
           />
-          {/* Custom Styles for Datepicker Override */}
           <style>{`
                 .custom-datepicker .react-datepicker__header { background: transparent; border-bottom: 1px solid rgba(255,255,255,0.1); }
                 .custom-datepicker .react-datepicker__current-month { color: white; margin-bottom: 10px; }
@@ -514,12 +510,13 @@ export default function BookingSidebar({ tour = {} }) {
         </div>
       </div>
 
+      {/* ... [Keep Adults/Kids quantity controls] ... */}
       <div className="grid grid-cols-2 gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
         <QuantityControl label="Adults" subLabel="5+" icon={FaUsers} value={form.adults} onChange={(v) => handle('adults', v)} min={1} />
         <QuantityControl label="Kids" subLabel="Upto 5" icon={FaChild} value={form.children} onChange={(v) => handle('children', v)} min={0} />
       </div>
 
-      {/* Rest of the form remains same... */}
+      {/* ... [Keep Transport/RoomType/Rooms controls] ... */}
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-white/5 p-2 rounded-xl border border-white/5 flex flex-col justify-center">
@@ -578,6 +575,7 @@ export default function BookingSidebar({ tour = {} }) {
         </div>
       </div>
 
+      {/* ... [Keep Enhancements controls] ... */}
       <div className="pt-2">
         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">Enhancements</p>
         <div className="grid grid-cols-2 gap-2">
@@ -591,7 +589,7 @@ export default function BookingSidebar({ tour = {} }) {
         </div>
       </div>
 
-      {/* COUPON INPUT WITH INTERNAL STATUS */}
+      {/* ... [Keep Coupon Input] ... */}
       <div className="bg-black/20 border border-white/5 rounded-xl p-2.5 flex items-center gap-3 relative">
         <div className="p-1.5 bg-[#D9A441]/10 rounded text-[#D9A441]"><FaTicketAlt size={12} /></div>
         <div className="flex-1 flex gap-2 items-center">
@@ -604,7 +602,6 @@ export default function BookingSidebar({ tour = {} }) {
           />
           {appliedCoupon ? (
             <>
-              {/* Internal Status Text */}
               <motion.span
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -619,7 +616,6 @@ export default function BookingSidebar({ tour = {} }) {
           )}
         </div>
       </div>
-      {/* Fallback error message only */}
       {!appliedCoupon && couponMessage && <p className="text-[10px] text-center -mt-4 text-red-400">{couponMessage}</p>}
 
       <motion.div
@@ -627,10 +623,10 @@ export default function BookingSidebar({ tour = {} }) {
         transition={{ duration: 0.4 }}
         className="p-5 rounded-3xl bg-gradient-to-br from-[#D9A441]/10 via-black/20 to-transparent border border-[#D9A441]/20 shadow-lg backdrop-blur-md"
       >
+        {/* ... [Keep Price Display] ... */}
         <div className="flex justify-between items-start mb-6">
           <div className="flex flex-col">
             <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1">Estimated / Person</p>
-            {/* ANIMATED PER PERSON PRICE */}
             <motion.div
               key={perHeadPrice}
               initial={{ y: 5, opacity: 0, scale: 0.9 }}
@@ -644,15 +640,11 @@ export default function BookingSidebar({ tour = {} }) {
           <div className="text-right flex flex-col items-end">
             <p className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-1">Grand Total</p>
 
-            {/* UPDATED PRICE LOGIC */}
             {appliedCoupon ? (
               <div className="flex flex-col items-end">
-                {/* 1. Original Strikethrough Price */}
                 <span className="text-gray-500 text-xs font-semibold line-through decoration-red-500/80 mb-0.5">
                   ₹{finalPrice.toLocaleString()}
                 </span>
-
-                {/* 2. Green Animated Discount Value */}
                 <motion.div
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -661,8 +653,6 @@ export default function BookingSidebar({ tour = {} }) {
                   <span>Saved ₹{(finalPrice - discountedPrice).toLocaleString()}</span>
                   <span className="animate-bounce">🎉</span>
                 </motion.div>
-
-                {/* 3. Final Price (White, text-2xl) */}
                 <motion.span
                   key={discountedPrice}
                   initial={{ scale: 0.9 }}
@@ -673,7 +663,6 @@ export default function BookingSidebar({ tour = {} }) {
                 </motion.span>
               </div>
             ) : (
-              // Standard Display
               <span className="text-2xl font-bold text-white tracking-wide">
                 ₹{finalPrice.toLocaleString("en-IN")}
               </span>
@@ -681,10 +670,24 @@ export default function BookingSidebar({ tour = {} }) {
           </div>
         </div>
 
+        {/* ----------------- TERMS CHECKBOX ----------------- */}
+        <div className="flex items-start gap-3 mb-4 px-1">
+          <input
+            type="checkbox"
+            id="terms"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-1 w-4 h-4 rounded border-gray-600 bg-black/40 text-[#D9A441] focus:ring-[#D9A441] cursor-pointer accent-[#D9A441]"
+          />
+          <label htmlFor="terms" className="text-xs text-gray-400 leading-tight select-none cursor-pointer">
+            I agree to the <Link to="/terms" target="_blank" className="text-[#D9A441] font-bold hover:underline hover:text-white transition">Terms & Conditions</Link> and Cancellation Policy.
+          </label>
+        </div>
+
         <button
           onClick={handleBook}
-          disabled={submitting}
-          className="w-full bg-[#D9A441] hover:bg-[#fbbf24] text-black py-3.5 rounded-xl font-bold text-base shadow-[0_0_20px_rgba(217,164,65,0.15)] transition active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2"
+          disabled={submitting || !agreed} // <--- Added Disable Logic
+          className="w-full bg-[#D9A441] hover:bg-[#fbbf24] text-black py-3.5 rounded-xl font-bold text-base shadow-[0_0_20px_rgba(217,164,65,0.15)] transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {submitting ? <><FaSpinner className="animate-spin" /> Processing...</> : "Confirm Booking"}
         </button>

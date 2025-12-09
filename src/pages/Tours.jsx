@@ -66,11 +66,11 @@ const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false
       exit={!isCarousel ? { opacity: 0, scale: 0.95 } : {}}
       transition={{
         // "One by one" timing
-        delay: isCarousel ? 0 : index * 0.15, 
+        delay: isCarousel ? 0 : index * 0.15,
         duration: 0.5,
         ease: [0.25, 0.46, 0.45, 0.94] // Smooth ease-out
       }}
-      
+
       role="button"
       tabIndex={0}
       className="tour-card-smooth group relative"
@@ -90,7 +90,7 @@ const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false
       }}
     >
       <div style={{ position: "relative", height: "320px", backgroundColor: "#f3f4f6" }}>
-        
+
         {/* Image with Lazy Loading */}
         <img
           src={tour.img}
@@ -111,11 +111,11 @@ const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false
 
         {/* Tags */}
         <div className="absolute top-4 left-4 flex gap-2 z-10 flex-wrap">
-            {tour.tags && tour.tags.slice(0, 2).map((tag, i) => (
-                <span key={i} className="bg-black/60 backdrop-blur-md px-2 py-1 rounded-md text-[10px] font-bold text-white border border-white/10 uppercase tracking-wide">
-                    {tag}
-                </span>
-            ))}
+          {tour.tags && tour.tags.slice(0, 2).map((tag, i) => (
+            <span key={i} className="bg-black/60 backdrop-blur-md px-2 py-1 rounded-md text-[10px] font-bold text-white border border-white/10 uppercase tracking-wide">
+              {tag}
+            </span>
+          ))}
         </div>
 
         {/* Days Badge */}
@@ -168,7 +168,7 @@ const Mobile3DCarousel = ({ items, onView, isMobile }) => {
       const distance = Math.max(0, Math.abs(viewportCenter - childCenter) - 4);
       let progress = distance / maxDistance;
       if (progress > 1) progress = 1;
-      
+
       const scale = 1.12 - (progress * 0.26);
       const opacity = 1 - (progress * 0.3);
 
@@ -231,8 +231,8 @@ const FilterBar = ({ activeTag, setActiveTag }) => (
         onClick={() => setActiveTag(tag)}
         className={`
           whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 border
-          ${activeTag === tag 
-            ? "bg-[#D9A441] text-black border-[#D9A441] shadow-[0_0_20px_rgba(217,164,65,0.3)] scale-105" 
+          ${activeTag === tag
+            ? "bg-[#D9A441] text-black border-[#D9A441] shadow-[0_0_20px_rgba(217,164,65,0.3)] scale-105"
             : "bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20"}
         `}
       >
@@ -293,7 +293,7 @@ export default function Tours() {
 
   const filteredList = useMemo(() => {
     if (activeTag === "All") return list;
-    return list.filter(tour => 
+    return list.filter(tour =>
       tour.tags.some(t => t.toUpperCase() === activeTag.toUpperCase())
     );
   }, [list, activeTag]);
@@ -313,7 +313,7 @@ export default function Tours() {
           >
             <h1 className="text-4xl md:text-5xl font-black text-white drop-shadow-lg tracking-tight font-montserrat">Explore Packages</h1>
             <p className="text-emerald-100/80 mt-2 text-sm md:text-base font-medium mb-8">Handpicked adventures designed for you</p>
-            
+
             <FilterBar activeTag={activeTag} setActiveTag={setActiveTag} />
           </motion.div>
 

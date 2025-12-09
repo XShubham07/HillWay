@@ -1,6 +1,16 @@
 import { IoLogoInstagram, IoLogoYoutube, IoLogoFacebook } from "react-icons/io5";
 
 export default function Footer() {
+  const footerLinks = [
+    { name: "About Us", path: "/about" },
+    { name: "Contact", path: "/contact" },
+    { name: "Tours", path: "/tours" },
+    { name: "Blog", path: "/blog" },
+    { name: "Packages", path: "/packages" },
+    { name: "Privacy Policy", path: "/privacy-policy" },
+    { name: "Terms & Conditions", path: "/terms" }, // <--- Added link
+  ];
+
   return (
     <footer
       className="
@@ -50,23 +60,16 @@ export default function Footer() {
 
           {/* LINKS */}
           <div className="flex flex-col gap-3 text-[15px] font-medium">
-            {[
-              "About Us",
-              "Contact",
-              "Tours",
-              "Blog",
-              "Packages",
-              "Privacy Policy",
-            ].map((item, idx) => (
+            {footerLinks.map((item, idx) => (
               <a
                 key={idx}
-                href={"/" + item.toLowerCase().replace(/ /g, "")}
+                href={item.path}
                 className="
                   text-gray-300 hover:text-white transition
                   hover:drop-shadow-[0_0_6px_rgba(255,255,255,0.45)]
                 "
               >
-                {item}
+                {item.name}
               </a>
             ))}
           </div>
@@ -120,11 +123,7 @@ export default function Footer() {
       </p>
 
       <p className="text-center text-gray-500 text-xs mt-2">
-        Crafted by XShubham 🗿✨
-      </p>
-
-      <p className="text-center text-gray-500 text-xs mt-1">
-        Credits — Xanand 🫠💀
+        Crafted by XShubham✨
       </p>
     </footer>
   );
