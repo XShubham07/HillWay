@@ -36,11 +36,11 @@ const TourCardSkeleton = memo(({ style = {} }) => (
       width: style.width || "260px",
       height: "320px",
       backgroundColor: "rgba(255,255,255,0.05)",
-      borderRadius: "24px",
+      borderRadius: "26px", // Increased radius
       flexShrink: 0,
       position: "relative",
       overflow: "hidden",
-      border: "1px solid rgba(255,255,255,0.1)",
+      boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.1)",
       ...style,
     }}
   >
@@ -59,18 +59,20 @@ TourCardSkeleton.displayName = "TourCardSkeleton";
 const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false }) => {
   return (
     <motion.div
-      layout={!isCarousel}
-      // Animation: Slide up slightly + Fade in, staggered by index
+      transition={{ duration: 0.5, ease: "easeOut" }}
       initial={!isCarousel ? { opacity: 0, y: 30 } : {}}
-      animate={!isCarousel ? { opacity: 1, y: 0 } : {}}
-      exit={!isCarousel ? { opacity: 0, scale: 0.95 } : {}}
-      transition={{
-        // "One by one" timing
-        delay: isCarousel ? 0 : index * 0.15,
-        duration: 0.5,
-        ease: [0.25, 0.46, 0.45, 0.94] // Smooth ease-out
-      }}
-
+      animate={!isCarousel ? {
+        opacity: 1,
+        y: 0,
+        transition: {
+          opacity: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94], delay: isCarousel ? 0 : index * 0.15 },
+          y: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94], delay: isCarousel ? 0 : index * 0.15 },
+        }
+      } : {}}
+      whileHover={!isCarousel ? {
+        scale: 1.1,
+        zIndex: 50,
+      } : {}}
       role="button"
       tabIndex={0}
       className="tour-card-smooth group relative"
@@ -80,12 +82,21 @@ const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false
         minWidth: isCarousel ? "260px" : 0,
         width: isCarousel ? (style.width || "260px") : "100%",
         backgroundColor: "white",
-        borderRadius: "24px",
+        borderRadius: "26px", // Increased by ~5%
         overflow: "hidden",
         cursor: "pointer",
         flexShrink: 0,
         position: "relative",
         zIndex: 1,
+        // Anti-flicker & Bleeding Fixes
+        backfaceVisibility: "hidden",
+        WebkitBackfaceVisibility: "hidden",
+        transform: "translate3d(0,0,0)",
+        WebkitTransform: "translate3d(0,0,0)",
+        isolation: "isolate", // Creates a new stacking context to prevent bleed
+        // Masking to strictly enforce border radius on images in WebKit
+        maskImage: "radial-gradient(white, black)",
+        WebkitMaskImage: "-webkit-radial-gradient(white, black)",
         ...style,
       }}
     >
@@ -96,13 +107,16 @@ const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false
           src={tour.img}
           alt={tour.title}
           loading="lazy"
-          decoding="async" // Helps performance
+          decoding="async"
           style={{
             width: "100%",
             height: "100%",
             objectFit: "cover",
-            transition: "transform 0.7s cubic-bezier(0.25, 1, 0.5, 1)", // Very smooth zoom
+            transition: "transform 0.8s cubic-bezier(0.25, 1, 0.5, 1)",
             willChange: "transform",
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+            transform: "translate3d(0,0,0)", // Forces hardware acceleration
           }}
           className="group-hover:scale-110"
         />
@@ -169,11 +183,15 @@ const Mobile3DCarousel = ({ items, onView, isMobile }) => {
       let progress = distance / maxDistance;
       if (progress > 1) progress = 1;
 
+      // Subtle calculations for better performance
       const scale = 1.12 - (progress * 0.26);
       const opacity = 1 - (progress * 0.3);
 
       if (isMobile) {
+        // Optimized transform string
         child.style.transform = `translate3d(-36px, 0, 0) scale(${scale})`;
+        // We avoid changing Z-Index frequently if possible to avoid layer repaints, 
+        // but here it's needed for depth. 
         child.style.zIndex = 20 - Math.round(progress * 10);
         child.style.opacity = opacity;
       } else {
@@ -205,11 +223,30 @@ const Mobile3DCarousel = ({ items, onView, isMobile }) => {
     <div
       ref={scrollRef}
       className="mobile-3d-scroll"
-      style={{ display: 'flex', overflowX: 'auto', scrollSnapType: 'x proximity', padding: '30px 0px', touchAction: 'pan-x', perspective: '1000px' }}
+      style={{
+        display: 'flex',
+        overflowX: 'auto',
+        scrollSnapType: 'x proximity',
+        padding: '30px 0px',
+        touchAction: 'pan-x',
+        perspective: '1000px',
+        // Scrolling optimizations
+        WebkitOverflowScrolling: 'touch',
+        scrollBehavior: 'auto' // Crucial: prevents smooth-scroll physics from fighting swipe speed
+      }}
     >
       <div style={{ minWidth: 'calc(50% - 94px)', flexShrink: 0 }} />
       {items.map((tour, idx) => (
-        <div key={tour.id} className="carousel-item" style={{ scrollSnapAlign: 'center', flexShrink: 0, willChange: isMobile ? 'transform' : 'auto', transformStyle: isMobile ? 'preserve-3d' : 'flat' }}>
+        <div
+          key={tour.id}
+          className="carousel-item"
+          style={{
+            scrollSnapAlign: 'center',
+            flexShrink: 0,
+            willChange: isMobile ? 'transform, opacity' : 'auto', // Explicit optimization
+            transformStyle: isMobile ? 'preserve-3d' : 'flat'
+          }}
+        >
           <TourCard tour={tour} onView={onView} index={idx} isCarousel={true} />
         </div>
       ))}
@@ -338,7 +375,7 @@ export default function Tours() {
               </div>
             ) : (
               // DESKTOP GRID - ONE BY ONE LOADING
-              <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <AnimatePresence mode="popLayout">
                   {filteredList.map((tour, idx) => (
                     <TourCard key={tour.id} tour={tour} onView={onView} index={idx} style={{ width: '100%', minWidth: 0 }} />
@@ -364,32 +401,16 @@ export default function Tours() {
           /* SMOOTHER PC HOVER CSS */
           @media (min-width: 1025px) {
             .tour-card-smooth {
-              transform: translateZ(0); /* Force GPU */
+              /* Ensure overflow works with transforms */
+              -webkit-mask-image: -webkit-radial-gradient(white, black);
+              mask-image: radial-gradient(white, black);
               will-change: transform, box-shadow;
-              transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.6s cubic-bezier(0.25, 1, 0.5, 1);
             }
             
             .tour-card-smooth:hover { 
-              /* Subtle lift and zoom */
-              transform: translateY(-10px) scale(1.02) translateZ(0); 
               box-shadow: 
                 0 20px 40px rgba(0,0,0,0.4),
                 0 0 30px rgba(217, 164, 65, 0.15);
-              z-index: 10;
-            }
-            
-            /* Border Glow */
-            .tour-card-smooth::after {
-              content: '';
-              position: absolute;
-              inset: 0;
-              border-radius: 24px;
-              border: 1px solid rgba(217, 164, 65, 0);
-              transition: border-color 0.4s ease;
-              pointer-events: none;
-            }
-            .tour-card-smooth:hover::after {
-              border-color: rgba(217, 164, 65, 0.5);
             }
           }
           
