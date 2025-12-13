@@ -33,8 +33,8 @@ export default function AllReviews() {
         const fetchData = async () => {
             try {
                 const [resReviews, resTours] = await Promise.all([
-                    fetch("https://hillway7.vercel.app/api/reviews"),
-                    fetch("https://hillway7.vercel.app/api/tours")
+                    fetch("https://admin.hillway.in/api/reviews"),
+                    fetch("https://admin.hillway.in/api/tours")
                 ]);
 
                 const reviewsData = await resReviews.json();
@@ -115,12 +115,12 @@ export default function AllReviews() {
         try {
             // If Editing: Delete old review first
             if (isEditing && duplicateReviewData?._id) {
-                await fetch(`https://hillway7.vercel.app/api/reviews?tourId=${duplicateReviewData.tourId}&reviewId=${duplicateReviewData._id}`, {
+                await fetch(`https://admin.hillway.in/api/reviews?tourId=${duplicateReviewData.tourId}&reviewId=${duplicateReviewData._id}`, {
                     method: 'DELETE'
                 });
             }
 
-            const res = await fetch("https://hillway7.vercel.app/api/reviews", {
+            const res = await fetch("https://admin.hillway.in/api/reviews", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData)

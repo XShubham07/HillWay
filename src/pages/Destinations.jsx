@@ -285,7 +285,7 @@ export default function Destinations() {
         const fetchData = async () => {
             try {
                 await new Promise(r => setTimeout(r, 100));
-                const res = await fetch('https://hillway7.vercel.app/api/tours');
+                const res = await fetch('https://admin.hillway.in/api/tours');
                 const data = await res.json();
                 if (data.success) setTours(data.data);
             } catch (err) {

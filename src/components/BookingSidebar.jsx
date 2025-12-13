@@ -258,7 +258,7 @@ export default function BookingSidebar({ tour = {} }) {
   });
 
   useEffect(() => {
-    fetch("https://hillway7.vercel.app/api/pricing")
+    fetch("https://admin.hillway.in/api/pricing")
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.data) {
@@ -316,7 +316,7 @@ export default function BookingSidebar({ tour = {} }) {
     setIsApplyingCoupon(true);
     setCouponMessage("");
     try {
-      const res = await fetch(`https://hillway7.vercel.app/api/coupons?code=${couponCode}`);
+      const res = await fetch(`https://admin.hillway.in/api/coupons?code=${couponCode}`);
       const data = await res.json();
       if (data.success) {
         setAppliedCoupon(data.data);
@@ -420,7 +420,7 @@ export default function BookingSidebar({ tour = {} }) {
     };
 
     try {
-      const res = await fetch('https://hillway7.vercel.app/api/bookings', {
+      const res = await fetch('https://admin.hillway.in/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(bookingData)

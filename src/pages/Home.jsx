@@ -183,7 +183,7 @@ export default function Home() {
   const [featuredTours, setFeaturedTours] = useState([]);
 
   useEffect(() => {
-    fetch("https://hillway7.vercel.app/api/tours")
+    fetch("https://admin.hillway.in/api/tours")
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {

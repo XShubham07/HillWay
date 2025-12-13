@@ -17,6 +17,7 @@ export default function BookingStatus() {
   const [error, setError] = useState("");
   const [linkCopied, setLinkCopied] = useState(false);
 
+  // UPDATED: Fetch from Live Backend
   const fetchBookingStatus = async (refVal) => {
     if (!refVal) {
       setError("Please provide a Reference ID.");
@@ -27,7 +28,7 @@ export default function BookingStatus() {
     setBooking(null);
 
     try {
-      let url = `https://hillway7.vercel.app/api/bookings/status?refId=${encodeURIComponent(refVal)}`;
+      let url = `https://admin.hillway.in/api/bookings/status?refId=${encodeURIComponent(refVal)}`;
       const res = await fetch(url);
       const data = await res.json();
 
@@ -90,14 +91,12 @@ export default function BookingStatus() {
     }
   };
 
-  // FIXED: Use tourId from booking object for redirection
   const handleTourClick = () => {
-    if (booking?.tourId) {
-      navigate(`/tours/${booking.tourId}`);
-    } else {
-      // Fallback or alert if tourId is missing
-      alert("Tour link not available for this booking.");
-    }
+      if (booking?.tourId) {
+          navigate(`/tours/${booking.tourId}`);
+      } else {
+          alert("Tour link not available for this booking.");
+      }
   };
 
   return (
@@ -157,16 +156,16 @@ export default function BookingStatus() {
 
                 {/* HOTEL DETAILS */}
                 {booking.status === 'Confirmed' && booking.hotelDetails && booking.hotelDetails.name && (
-                  <div className="bg-blue-900/10 border border-blue-500/20 rounded-3xl p-6 md:p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-6 opacity-10 text-blue-400 text-6xl"><FaHotel /></div>
-                    <h3 className="text-blue-400 font-bold mb-6 flex items-center gap-2 relative z-10"><FaHotel /> Assigned Hotel</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-                      <div><p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Hotel Name</p><p className="text-white font-bold text-lg">{booking.hotelDetails.name}</p></div>
-                      <div><p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Contact Phone</p><p className="text-white font-medium flex items-center gap-2"><FaPhone className="text-xs" /> {booking.hotelDetails.phone || "N/A"}</p></div>
-                      <div className="md:col-span-2"><p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Address</p><p className="text-gray-300 text-sm flex items-start gap-2"><FaMapPin className="text-blue-400 mt-1 shrink-0" /> {booking.hotelDetails.address || "N/A"}</p></div>
-                      {booking.hotelDetails.notes && (<div className="md:col-span-2 bg-black/20 p-4 rounded-xl border border-white/5"><p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Stay Note</p><p className="text-yellow-400 text-sm italic">"{booking.hotelDetails.notes}"</p></div>)}
+                    <div className="bg-blue-900/10 border border-blue-500/20 rounded-3xl p-6 md:p-8 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-6 opacity-10 text-blue-400 text-6xl"><FaHotel /></div>
+                        <h3 className="text-blue-400 font-bold mb-6 flex items-center gap-2 relative z-10"><FaHotel /> Assigned Hotel</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                            <div><p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Hotel Name</p><p className="text-white font-bold text-lg">{booking.hotelDetails.name}</p></div>
+                            <div><p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Contact Phone</p><p className="text-white font-medium flex items-center gap-2"><FaPhone className="text-xs"/> {booking.hotelDetails.phone || "N/A"}</p></div>
+                            <div className="md:col-span-2"><p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Address</p><p className="text-gray-300 text-sm flex items-start gap-2"><FaMapPin className="text-blue-400 mt-1 shrink-0"/> {booking.hotelDetails.address || "N/A"}</p></div>
+                            {booking.hotelDetails.notes && (<div className="md:col-span-2 bg-black/20 p-4 rounded-xl border border-white/5"><p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Stay Note</p><p className="text-yellow-400 text-sm italic">"{booking.hotelDetails.notes}"</p></div>)}
+                        </div>
                     </div>
-                  </div>
                 )}
 
                 <div className="bg-white/5 rounded-3xl p-6 md:p-8 border border-white/5">
@@ -174,7 +173,22 @@ export default function BookingStatus() {
                   <div className="space-y-4">
                     <div className="flex justify-between items-center border-b border-white/5 pb-3"><span className="text-gray-400 text-sm">Primary Guest</span><span className="text-white font-medium">{booking.name}</span></div>
                     <div className="flex justify-between items-center border-b border-white/5 pb-3"><span className="text-gray-400 text-sm">Room Plan</span><span className="text-white font-medium capitalize">{booking.rooms}x {booking.roomType} Room</span></div>
-                    <div className="flex justify-between items-center border-b border-white/5 pb-3"><span className="text-gray-400 text-sm">Payment Status</span><span className={`font-bold ${(booking.paymentType === 'Partial' && booking.paidAmount < booking.totalPrice) ? 'text-amber-400' : 'text-emerald-400'}`}>{booking.paymentType === 'Partial' && booking.paidAmount < booking.totalPrice ? `Partial (Due: ₹${(booking.totalPrice - booking.paidAmount).toLocaleString()})` : 'Fully Paid'}</span></div>
+                    
+                    {/* UPDATED: Payment Status Logic */}
+                    <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                      <span className="text-gray-400 text-sm">Payment Status</span>
+                      <span className={`font-bold ${
+                        booking.paymentType === 'Unpaid' ? 'text-red-400' : 
+                        (booking.paymentType === 'Partial' && booking.paidAmount < booking.totalPrice) ? 'text-amber-400' : 'text-emerald-400'
+                      }`}>
+                        {(() => {
+                          if (booking.paymentType === 'Unpaid') return `Unpaid (Due: ₹${booking.totalPrice.toLocaleString()})`;
+                          if (booking.paymentType === 'Partial' && booking.paidAmount < booking.totalPrice) return `Partial (Due: ₹${(booking.totalPrice - booking.paidAmount).toLocaleString()})`;
+                          return 'Fully Paid';
+                        })()}
+                      </span>
+                    </div>
+
                   </div>
                   <div className="mt-6 pt-6 border-t border-dashed border-white/10 flex flex-col md:flex-row justify-between items-end md:items-center gap-4">
                     <span className="text-gray-400 text-sm font-medium">Total Trip Value</span>

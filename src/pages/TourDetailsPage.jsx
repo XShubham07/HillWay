@@ -129,7 +129,7 @@ export default function TourDetailsPage() {
     const controller = new AbortController();
 
     // Fetch Tour (Critical - sets loading to false immediately when done)
-    fetch(`https://hillway7.vercel.app/api/tours/${id}`, { signal: controller.signal })
+    fetch(`https://admin.hillway.in/api/tours/${id}`, { signal: controller.signal })
       .then(res => res.json())
       .then(tourData => {
         if (tourData.success) {
@@ -144,7 +144,7 @@ export default function TourDetailsPage() {
       });
 
     // Fetch Pricing (Background - updates state silently)
-    fetch('https://hillway7.vercel.app/api/pricing', { signal: controller.signal })
+    fetch('https://admin.hillway.in/api/pricing', { signal: controller.signal })
       .then(res => res.json())
       .then(pricingData => {
         if (pricingData.success && pricingData.data) {
@@ -218,8 +218,8 @@ export default function TourDetailsPage() {
     }
 
     try {
-      if (isEditing && duplicateReviewData?._id) await fetch(`https://hillway7.vercel.app/api/reviews?tourId=${tour._id}&reviewId=${duplicateReviewData._id}`, { method: 'DELETE' });
-      const res = await fetch('https://hillway7.vercel.app/api/reviews', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tourId: tour._id, ...reviewInput }) });
+      if (isEditing && duplicateReviewData?._id) await fetch(`https://admin.hillway.in/api/reviews?tourId=${tour._id}&reviewId=${duplicateReviewData._id}`, { method: 'DELETE' });
+      const res = await fetch('https://admin.hillway.in/api/reviews', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tourId: tour._id, ...reviewInput }) });
       const data = await res.json();
       if (data.success) {
         setTour(prev => ({ ...prev, reviews: data.data })); setShowReviewForm(false); setReviewInput({ title: '', name: '', email: '', mobile: '', rating: 5, text: '' }); setIsEditing(false); setDuplicateReviewData(null); alert(isEditing ? "Review updated!" : "Review submitted!");
