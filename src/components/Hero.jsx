@@ -1,148 +1,225 @@
-// src/components/Hero.jsx
-import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef, useState, useEffect } from "react";
+import { motion, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useRef } from "react";
+import { FaArrowRight, FaPlay, FaStar, FaCompass } from "react-icons/fa"; // Fixed Import
+
+// --- INTERNAL COMPONENT: MAGNETIC BUTTON ---
+const MagneticButton = ({ children, onClick, className }) => {
+  const ref = useRef(null);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+
+  const handleMouse = (e) => {
+    const { clientX, clientY } = e;
+    const { height, width, left, top } = ref.current.getBoundingClientRect();
+    const middleX = clientX - (left + width / 2);
+    const middleY = clientY - (top + height / 2);
+    setPosition({ x: middleX * 0.3, y: middleY * 0.3 }); // Sensitivity
+  };
+
+  const reset = () => {
+    setPosition({ x: 0, y: 0 });
+  };
+
+  const { x, y } = position;
+  return (
+    <motion.button
+      ref={ref}
+      animate={{ x, y }}
+      transition={{ type: "spring", stiffness: 150, damping: 15, mass: 0.1 }}
+      onMouseMove={handleMouse}
+      onMouseLeave={reset}
+      onClick={onClick}
+      className={className}
+    >
+      {children}
+    </motion.button>
+  );
+};
 
 export default function Hero() {
   const navigate = useNavigate();
-  const sectionRef = useRef(null);
+  const ref = useRef(null);
 
-  // ⚙️ SCROLL PHYSICS
+  // --- SCROLL PARALLAX ---
   const { scrollYProgress } = useScroll({
-    target: sectionRef,
+    target: ref,
     offset: ["start start", "end start"],
   });
 
-  // Parallax & Zoom Logic
-  // Background zooms IN slightly (creates depth)
-  const bgScale = useTransform(scrollYProgress, [0, 1], [1.1, 1.4]);
-  // Text zooms OUT (recedes away) and fades
-  const textScale = useTransform(scrollYProgress, [0, 0.6], [1, 0.8]);
-  const textOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-  const textY = useTransform(scrollYProgress, [0, 1], [0, 100]);
+  const yBg = useTransform(scrollYProgress, [0, 1], ["0%", "40%"]);
+  const yText = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
-  // 🎨 CUTOUT STYLE
-  const mountainCutout = {
-    backgroundImage: `url('/mountain.webp')`,
-    backgroundSize: "cover",
-    backgroundPosition: "center 50%",
-    WebkitBackgroundClip: "text",
-    backgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    color: "transparent",
-    // Increased contrast for better visibility on mobile
-    filter: "brightness(1.4) contrast(1.2)",
-  };
+  // --- MOUSE PARALLAX (Desktop Only) ---
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
 
-  // 🎬 PREMIUM ANIMATION VARIANTS
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.2,
-      },
-    },
-  };
+  // Smooth spring physics for mouse movement
+  const springConfig = { damping: 25, stiffness: 150 };
+  const smoothX = useSpring(mouseX, springConfig);
+  const smoothY = useSpring(mouseY, springConfig);
 
-  const itemVariants = {
-    hidden: { y: "100%", opacity: 0, rotateX: 45 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      rotateX: 0,
-      transition: {
-        type: "spring",
-        bounce: 0,
-        duration: 1.8, // Slow, elegant ease
-        ease: [0.22, 1, 0.36, 1],
-      },
-    },
+  const moveBgX = useTransform(smoothX, [-0.5, 0.5], ["1%", "-1%"]);
+  const moveBgY = useTransform(smoothY, [-0.5, 0.5], ["1%", "-1%"]);
+
+  const handleMouseMove = (e) => {
+    // Only apply on desktop to save battery on mobile
+    if (window.innerWidth > 768) {
+      const { clientX, clientY } = e;
+      const { innerWidth, innerHeight } = window;
+      mouseX.set((clientX / innerWidth) - 0.5);
+      mouseY.set((clientY / innerHeight) - 0.5);
+    }
   };
 
   return (
     <section
-      ref={sectionRef}
-      className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-[#0f172a]"
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      className="relative h-screen w-full overflow-hidden bg-[#0f172a] flex items-center justify-center"
     >
-      {/* 1. BACKGROUND LAYER */}
+      {/* 1. BACKGROUND IMAGE LAYER */}
       <motion.div
-        style={{ scale: bgScale }}
+        style={{
+          y: yBg,
+          x: moveBgX,
+          translateY: moveBgY,
+          scale: 1.15, // Zoom in to prevent edges showing on move
+        }}
         className="absolute inset-0 z-0 will-change-transform"
       >
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage: "url('/mountain.webp')",
-            filter: "brightness(0.5) blur(0px)", // Darker for text pop
+            // High contrast cinematic look
+            filter: "brightness(0.7) contrast(1.1) saturate(1.1)"
           }}
         />
-        {/* Vignette for focus */}
-        <div className="absolute inset-0 bg-radial-gradient from-transparent to-black/80" />
+        {/* Gradient Overlay for Text Readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-black/40" />
       </motion.div>
 
-      {/* 2. TEXT CONTENT WRAPPER */}
+      {/* 2. MAIN CONTENT LAYER */}
       <motion.div
-        className="relative z-10 flex flex-col items-center justify-center w-full px-4"
-        style={{
-          scale: textScale,
-          opacity: textOpacity,
-          y: textY,
-          willChange: "transform, opacity"
-        }}
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
+        style={{ y: yText, opacity }}
+        className="relative z-10 px-6 max-w-7xl mx-auto w-full flex flex-col md:flex-row items-center md:items-end justify-between gap-12 pb-20 md:pb-0"
       >
 
-        {/* --- TOP LINE: "Your way to the" --- */}
-        {/* Using a Mask-div to hide the text before it slides up */}
-        <div className="overflow-hidden mb-2 md:mb-4">
-          <motion.h3
-            variants={itemVariants}
-            className="font-serif italic text-white/90 text-xl md:text-3xl lg:text-4xl tracking-widest font-light text-center"
+        {/* Left Side: Text */}
+        <div className="flex-1 text-center md:text-left space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/20 bg-white/10 backdrop-blur-sm text-xs font-bold uppercase tracking-widest text-[#D9A441]"
           >
-            Your way to the
-          </motion.h3>
-        </div>
+            <FaCompass className="animate-spin-slow" /> Discover Sikkim
+          </motion.div>
 
-        {/* --- CENTER: "MOUNTAINS" --- */}
-        <div className="relative flex flex-wrap justify-center gap-x-[2px] md:gap-x-2 leading-none py-2 overflow-visible">
-          {"MOUNTAINS".split("").map((letter, i) => (
-            <motion.span
-              key={i}
-              variants={itemVariants}
-              style={mountainCutout}
-              // Responsive text size: 13vw on mobile ensures it fits, huge rem on desktop
-              className="text-[13vw] md:text-8xl lg:text-[11rem] xl:text-[13rem] font-black tracking-tighter inline-block transform will-change-transform"
+          <div className="overflow-hidden">
+            <motion.h1
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              transition={{ duration: 0.8, ease: [0.33, 1, 0.68, 1] }}
+              className="text-5xl md:text-7xl lg:text-8xl font-black text-white leading-[0.95] tracking-tighter"
+              style={{ fontFamily: "'Montserrat', sans-serif" }}
             >
-              {letter}
-            </motion.span>
-          ))}
+              CHASING <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D9A441] to-yellow-200">
+                HORIZONS
+              </span>
+            </motion.h1>
+          </div>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="text-gray-300 text-lg md:text-xl font-light max-w-md mx-auto md:mx-0 leading-relaxed"
+          >
+            Experience the Himalayas with premium comfort.
+            Curated tours, verified stays, and unforgettable memories.
+          </motion.p>
+
+          {/* Action Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="flex flex-col sm:flex-row items-center gap-4 justify-center md:justify-start pt-4"
+          >
+            <MagneticButton
+              onClick={() => navigate("/tours")}
+              className="group relative px-8 py-4 bg-[#D9A441] text-black font-bold rounded-full overflow-hidden shadow-lg shadow-[#D9A441]/20 flex items-center gap-2"
+            >
+              <span className="relative z-10 flex items-center gap-2">
+                Explore Packages <FaArrowRight className="group-hover:-rotate-45 transition-transform duration-300" />
+              </span>
+              <div className="absolute inset-0 bg-white/30 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+            </MagneticButton>
+
+            <button
+              onClick={() => navigate("/about")}
+              className="px-8 py-4 rounded-full border border-white/20 text-white font-semibold hover:bg-white/10 transition-colors backdrop-blur-sm flex items-center gap-2"
+            >
+              <FaPlay className="text-xs" /> Our Story
+            </button>
+          </motion.div>
         </div>
 
-        {/* --- BOTTOM: DECORATIVE LINE & CTA --- */}
+        {/* Right Side: Floating Glass Stats (Hidden on small mobile) */}
         <motion.div
-          variants={itemVariants}
-          className="flex flex-col items-center mt-6 md:mt-12"
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 1, duration: 0.8 }}
+          className="hidden md:block w-72"
         >
-          {/* Vertical Line */}
-          <div className="h-12 w-[1px] bg-gradient-to-b from-white to-transparent mb-6 opacity-50" />
+          <div className="p-6 rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl relative overflow-hidden group">
+            {/* Shimmer Effect */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
 
-          <button
-            onClick={() => navigate("/tours")}
-            className="group relative px-8 py-3 bg-transparent border border-white/30 rounded-full text-white overflow-hidden transition-all duration-300 hover:border-white hover:bg-white/5"
-          >
-            <span className="relative z-10 text-sm md:text-base font-bold tracking-widest uppercase">
-              Begin Expedition
-            </span>
-            {/* Hover Glare Effect */}
-            <div className="absolute inset-0 -translate-x-full group-hover:animate-[shine_1s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-          </button>
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex -space-x-3">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="w-10 h-10 rounded-full border-2 border-[#1e293b] bg-gray-300 flex items-center justify-center text-black text-xs font-bold overflow-hidden">
+                    <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="User" className="w-full h-full object-cover" />
+                  </div>
+                ))}
+                <div className="w-10 h-10 rounded-full border-2 border-[#1e293b] bg-[#D9A441] flex items-center justify-center text-black text-xs font-bold">
+                  +2k
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="flex text-[#D9A441] text-xs gap-0.5">
+                  <FaStar /><FaStar /><FaStar /><FaStar /><FaStar />
+                </div>
+                <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">Top Rated</p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm text-gray-300 border-b border-white/10 pb-2">
+                <span>Avg. Temp</span>
+                <span className="text-white font-mono">12°C</span>
+              </div>
+              <div className="flex justify-between text-sm text-gray-300 border-b border-white/10 pb-2">
+                <span>Elevation</span>
+                <span className="text-white font-mono">5,410 ft</span>
+              </div>
+              <div className="flex justify-between text-sm text-gray-300">
+                <span>Next Trip</span>
+                <span className="text-[#D9A441] font-bold">Tomorrow</span>
+              </div>
+            </div>
+          </div>
         </motion.div>
 
       </motion.div>
+
+      {/* 3. DECORATIVE ELEMENTS */}
+      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-[#020617] to-transparent z-20 pointer-events-none" />
+
     </section>
   );
 }

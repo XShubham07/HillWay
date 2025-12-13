@@ -22,7 +22,7 @@ export default function AgentDashboard() {
       navigate('/login');
       return;
     }
-    
+
     setAgent(user);
 
     // 2. Fetch Dashboard Data from Backend
@@ -33,9 +33,9 @@ export default function AgentDashboard() {
         if (res.success) setData(res.data);
         setLoading(false);
       })
-      .catch(err => { 
-        console.error("Failed to fetch dashboard data:", err); 
-        setLoading(false); 
+      .catch(err => {
+        console.error("Failed to fetch dashboard data:", err);
+        setLoading(false);
       });
   }, [navigate]);
 
@@ -53,7 +53,7 @@ export default function AgentDashboard() {
   return (
     <div className="min-h-screen bg-[#0f172a] text-gray-100 font-sans p-6 pt-24">
       <div className="max-w-6xl mx-auto">
-        
+
         {/* Header */}
         <header className="flex justify-between items-center mb-10 bg-[#1e293b] p-6 rounded-2xl border border-white/10 shadow-lg">
           <div>
@@ -68,26 +68,26 @@ export default function AgentDashboard() {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <div className="bg-gradient-to-br from-purple-600/20 to-blue-600/20 p-6 rounded-2xl border border-purple-500/30 relative overflow-hidden">
-            <div className="absolute right-0 top-0 p-4 opacity-10"><FaMoneyBillWave size={60}/></div>
+            <div className="absolute right-0 top-0 p-4 opacity-10"><FaMoneyBillWave size={60} /></div>
             <p className="text-purple-300 text-sm font-bold uppercase tracking-wider mb-2">Total Commission</p>
             <p className="text-4xl font-black text-white">₹{(data.stats?.totalCommission || 0).toLocaleString()}</p>
             <p className="text-xs text-gray-400 mt-2">5% on Confirmed Bookings</p>
           </div>
           <div className="bg-[#1e293b] p-6 rounded-2xl border border-white/10">
-             <div className="flex items-center gap-3 mb-2 text-cyan-400"><FaClipboardList/> <span className="font-bold text-sm uppercase">Total Bookings</span></div>
-             <p className="text-3xl font-bold text-white">{data.stats?.totalBookings || 0}</p>
+            <div className="flex items-center gap-3 mb-2 text-cyan-400"><FaClipboardList /> <span className="font-bold text-sm uppercase">Total Bookings</span></div>
+            <p className="text-3xl font-bold text-white">{data.stats?.totalBookings || 0}</p>
           </div>
           <div className="bg-[#1e293b] p-6 rounded-2xl border border-white/10">
-             <div className="flex items-center gap-3 mb-2 text-green-400"><FaCheck/> <span className="font-bold text-sm uppercase">Confirmed</span></div>
-             <p className="text-3xl font-bold text-white">{data.stats?.confirmedBookings || 0}</p>
+            <div className="flex items-center gap-3 mb-2 text-green-400"><FaCheck /> <span className="font-bold text-sm uppercase">Confirmed</span></div>
+            <p className="text-3xl font-bold text-white">{data.stats?.confirmedBookings || 0}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          
+
           {/* My Coupons */}
           <section>
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><FaTicketAlt className="text-yellow-500"/> Active Coupons</h2>
+            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><FaTicketAlt className="text-yellow-500" /> Active Coupons</h2>
             <div className="space-y-3">
               {data.coupons.map(coupon => (
                 <div key={coupon._id} className="bg-[#1e293b] p-5 rounded-xl border border-white/5 flex justify-between items-center hover:border-yellow-500/30 transition">
@@ -107,7 +107,7 @@ export default function AgentDashboard() {
 
           {/* Recent Bookings */}
           <section>
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><FaChartLine className="text-cyan-500"/> Recent Bookings</h2>
+            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><FaChartLine className="text-cyan-500" /> Recent Bookings</h2>
             <div className="bg-[#1e293b] rounded-xl border border-white/5 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm text-gray-400">

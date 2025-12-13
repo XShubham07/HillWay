@@ -9,7 +9,6 @@ import Tours from "./pages/Tours";
 import TourDetailsPage from "./pages/TourDetailsPage";
 import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
-import Packages from "./pages/Packages";
 import Login from "./pages/Login";
 import AgentDashboard from "./pages/AgentDashboard";
 import BookingStatus from "./pages/BookingStatus";
@@ -30,7 +29,6 @@ export default function App() {
           <Route path="/terms" element={<Terms />} /> {/* <--- 2. Add Route */}
           <Route path="/tours" element={<Tours />} />
           <Route path="/tours/:id" element={<TourDetailsPage />} />
-          <Route path="/packages" element={<Packages />} />
           <Route path="/destinations" element={<Destinations />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/contact" element={<Contact />} />

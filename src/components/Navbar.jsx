@@ -5,11 +5,11 @@ import { useState, useEffect } from "react";
 
 // ICONS
 import {
-  FaHome, FaMountain, FaBlog, FaPhone, FaWhatsapp,
-  FaBars, FaTimes, FaSearch, FaStar, FaUsers, FaChevronDown, FaMapMarkedAlt, FaInfo
+  FaHome, FaMountain, FaPhone, FaWhatsapp,
+  FaBars, FaTimes, FaSearch, FaStar, FaChevronDown, FaMapMarkedAlt, FaInfo
 } from "react-icons/fa";
 
-// ... (COLORS object remains the same)
+// COLORS
 const COLORS = {
   navy: "#102A43",       // Deep Navy
   alpine: "#2E6F95",     // Alpine Blue
@@ -24,7 +24,7 @@ export default function Navbar() {
   const [hoveredDropdown, setHoveredDropdown] = useState(null);
   const location = useLocation();
 
-  // ... (Scroll lock effect remains the same)
+  // Scroll lock effect
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
@@ -39,30 +39,21 @@ export default function Navbar() {
   // --- 🧭 NAVIGATION DATA (Updated) ---
   const navLinks = [
     { path: "/", label: "Home", icon: <FaHome /> },
-    { path: "/destinations", label: "Destinations", icon: <FaMapMarkedAlt /> }, // <--- NEW LINK
+    { path: "/destinations", label: "Destinations", icon: <FaMapMarkedAlt /> },
     { path: "/tours", label: "Tours", icon: <FaMountain /> },
-    {
-      id: "community",
-      label: "Community",
-      icon: <FaUsers />,
-      children: [
-        { path: "/blog", label: "Blog", icon: <FaBlog /> },
-        { path: "/reviews", label: "Reviews", icon: <FaStar /> }
-      ]
-    },
+    { path: "/reviews", label: "Reviews", icon: <FaStar /> }, // Direct link, removed Community/Blog
     { path: "/status", label: "Status", icon: <FaSearch /> },
     { path: "/about", label: "About", icon: <FaInfo /> },
     { path: "/contact", label: "Contact", icon: <FaPhone style={{ transform: 'scaleX(-1)' }} /> },
   ];
 
-  // ... (WhatsApp logic and rest of the component remains the same)
+  // WhatsApp Config
   const whatsappNumber = "917004165004";
   const whatsappMessage = "Hi! I'm interested in booking a tour with HillWay.";
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
   return (
     <>
-      {/* ... (Styles remain the same) ... */}
       <style>{`
         .aqua-glass {
           background: rgba(16, 42, 67, 0.65) !important;
@@ -87,7 +78,7 @@ export default function Navbar() {
       `}</style>
 
       {/* =======================
-          🖥️ DESKTOP NAVBAR (FIXED)
+          🖥️ DESKTOP NAVBAR
       ======================== */}
       <motion.nav
         initial={{ y: -100, opacity: 0 }}
@@ -112,7 +103,7 @@ export default function Navbar() {
               <div className="flex items-center gap-1">
                 {navLinks.map((link) => {
 
-                  // --- DROPDOWN LOGIC ---
+                  // --- DROPDOWN LOGIC (Preserved for future use, currently unused) ---
                   if (link.children) {
                     const isAnyChildActive = link.children.some(child => location.pathname === child.path);
                     const isOpen = hoveredDropdown === link.id;
@@ -241,7 +232,7 @@ export default function Navbar() {
       </motion.nav>
 
       {/* =======================
-          📱 MOBILE HEADER (FIXED)
+          📱 MOBILE HEADER
       ======================== */}
       <motion.header
         initial={{ y: -60, opacity: 0 }}
@@ -276,7 +267,7 @@ export default function Navbar() {
       </motion.header>
 
       {/* =======================
-          📱 MOBILE MENU (Glass)
+          📱 MOBILE MENU
       ======================== */}
       <AnimatePresence>
         {open && (
@@ -318,7 +309,7 @@ export default function Navbar() {
                 <div className="w-full space-y-3">
                   {navLinks.map((link, i) => {
 
-                    // Mobile: Flatten Dropdowns for simplicity
+                    // If we add dropdowns back in future, this handles mobile display
                     if (link.children) {
                       return (
                         <div key={link.id} className="space-y-3 p-4 bg-white/5 rounded-3xl border border-white/5">

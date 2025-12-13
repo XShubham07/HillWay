@@ -6,231 +6,464 @@
    1. GLOBAL THEME VARIABLES
    ========================================================= */
 :root {
-  --emerald: #059669;
+  --emerald: #10b981;
+  --emerald-dark: #059669;
+  --emerald-darker: #047857;
   --alpine: #064e3b;
-  --gold: #facc15;
-  --gold-soft: rgba(250, 204, 21, 0.28);
-  --emerald-glow: rgba(5, 150, 105, 0.22);
-  --alpine-glow: rgba(6, 78, 59, 0.25);
+  --gold: #f59e0b;
+  --gold-light: #fbbf24;
+  --gold-soft: rgba(245, 158, 11, 0.3);
+  --emerald-glow: rgba(16, 185, 129, 0.25);
+  --gold-glow: rgba(245, 158, 11, 0.25);
+  --alpine-glow: rgba(6, 78, 59, 0.3);
   --dark: #0f172a;
 }
 
 /* =========================================================
-   2. FULL PAGE 3D BACKGROUND THEME
+   2. PREMIUM EMERALD-GOLD GRADIENT BACKGROUND
    ========================================================= */
-html,
-body,
-#root {
+html {
   width: 100%;
   min-height: 100vh;
-  /* FIX: Removed 'isolation: isolate' to prevent stacking context bugs on mobile */
-  background-color: var(--alpine);
-  /* Fallback */
-  color: var(--dark);
-}
-
-/* FIX: Moved gradient to a fixed pseudo-element.
-   This prevents 'background-attachment: fixed' jitter on mobile.
-*/
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(135deg,
-      var(--alpine) 0%,
-      var(--emerald) 40%,
-      #0d2d23 70%);
-  z-index: -2;
-  /* Hardware acceleration for background */
-  transform: translateZ(0);
-}
-
-/* EMERALD–GOLD RADIANCE LAYERS */
-/* Using a separate div logic approach via pseudo-element */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(circle at top center, var(--gold-soft) 0%, transparent 50%),
-    radial-gradient(circle at 20% 70%, var(--emerald-glow) 0%, transparent 55%),
-    radial-gradient(circle at 85% 80%, var(--alpine-glow) 0%, transparent 60%);
-  z-index: -1;
-  pointer-events: none;
-  /* FIX: Reduced blur slightly for performance */
-  filter: blur(30px);
-  transform: translateZ(0);
-}
-
-/* =========================================================
-   3. RESET + LENIS
-   ========================================================= */
-html.lenis,
-html.lenis body {
-  height: auto;
-}
-
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
-
-.lenis.lenis-smooth [data-lenis-prevent] {
-  overscroll-behavior: contain;
-}
-
-.lenis.lenis-stopped {
-  overflow: hidden;
+  min-height: -webkit-fill-available;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+  background: #0a1410;
 }
 
 body {
+  width: 100%;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
   margin: 0;
   padding: 0;
-  font-family: "Inter", sans-serif;
   overflow-x: hidden;
   overscroll-behavior: none;
+  position: relative;
+
+  /* Rich emerald base gradient */
+  background: linear-gradient(135deg, #0d1f1a 0%, #064e3b 25%, #0a1f18 60%, #0d1f1a 100%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  color: #fff;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  position: relative;
+  z-index: 1;
+}
+
+/* Animated Gold Accent Layer */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(-45deg,
+      rgba(245, 158, 11, 0.15) 0%,
+      rgba(251, 191, 36, 0.2) 25%,
+      rgba(16, 185, 129, 0.12) 50%,
+      rgba(245, 158, 11, 0.18) 75%,
+      rgba(251, 191, 36, 0.15) 100%);
+  background-size: 400% 400%;
+  z-index: 0;
+  pointer-events: none;
+  animation: sunriseFlow 18s ease-in-out infinite;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: background-position;
+}
+
+@keyframes sunriseFlow {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Emerald glow spots - MORE VISIBLE */
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.25) 0%, transparent 55%),
+    radial-gradient(circle at 15% 80%, rgba(245, 158, 11, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 85% 20%, rgba(16, 185, 129, 0.22) 0%, transparent 52%),
+    radial-gradient(circle at 30% 30%, rgba(251, 191, 36, 0.15) 0%, transparent 48%);
+  z-index: 0;
+  pointer-events: none;
+  filter: blur(70px);
+  opacity: 0.7;
+}
+
+/* iOS Safari fix */
+@supports (-webkit-touch-callout: none) {
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    min-height: 100%;
+    min-height: -webkit-fill-available;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  body::before {
+    animation-duration: 22s;
+    background-size: 300% 300%;
+  }
+
+  body::after {
+    filter: blur(60px);
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  body::before {
+    animation: none;
+    background-position: 0% 50%;
+  }
 }
 
 /* =========================================================
-   4. SCROLLBAR
+   3. CUSTOM SCROLLBAR
    ========================================================= */
 html {
   scrollbar-width: thin;
-  scrollbar-color: rgba(5, 150, 105, 0.4) transparent;
+  scrollbar-color: rgba(16, 185, 129, 0.5) rgba(0, 0, 0, 0.3);
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
-::-webkit-scrollbar-thumb {
-  background: rgba(5, 150, 105, 0.4);
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
   border-radius: 10px;
 }
 
-/* =========================================================
-   5. UTILITIES
-   ========================================================= */
-.text-shadow {
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--emerald) 0%, var(--gold) 100%);
+  border-radius: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--gold) 0%, var(--emerald) 100%);
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 /* =========================================================
-   6. NAVBAR CLEAN
+   4. UTILITIES
+   ========================================================= */
+.text-shadow {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+.text-shadow-strong {
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+::selection {
+  background: var(--emerald);
+  color: white;
+}
+
+::-moz-selection {
+  background: var(--emerald);
+  color: white;
+}
+
+/* =========================================================
+   5. NAVBAR
    ========================================================= */
 .navbar-clean {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(12px);
-  /* Slightly reduced for mobile perf */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-  transition: all 0.3s ease;
-  /* FIX: Removed global 'will-change' to let browser decide */
+  background: rgba(13, 31, 26, 0.75);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    0 0 40px rgba(16, 185, 129, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.navbar-clean.scrolled {
+  background: rgba(13, 31, 26, 0.9);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.25);
 }
 
 .nav-link-clean {
-  padding: .5rem 1rem;
-  border-radius: .75rem;
-  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
   color: #e2e8f0;
-  transition: all .3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.nav-link-clean::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, var(--emerald), var(--gold));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.nav-link-clean:hover::before {
+  opacity: 0.2;
 }
 
 .nav-link-clean:hover {
-  background: rgba(250, 204, 21, 0.2);
-  color: var(--gold);
+  color: var(--gold-light);
+  transform: translateY(-2px);
+}
+
+.nav-link-clean.active {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(245, 158, 11, 0.2));
+  color: var(--gold-light);
+  border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 /* =========================================================
-   7. FEATURES GLASS CARDS (CRITICAL FIXES HERE)
+   6. GLASS CARDS
    ========================================================= */
 .glass-card {
-  background: rgba(255, 255, 255, 0.22);
-  /* FIX: -webkit- prefix ensures iOS supports the blur */
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 8px 32px rgba(5, 150, 105, 0.25);
-  border-radius: 32px;
-
-  /* FIX: Removed 'contain: layout paint' as it clips children with Framer Motion sometimes */
-  /* FIX: Removed 'transform: translateZ(0)' to allow Framer Motion to control the layer */
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(16, 185, 129, 0.1) inset,
+    0 20px 60px rgba(16, 185, 129, 0.05);
+  border-radius: 24px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Gradient accent for icons & highlights */
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(245, 158, 11, 0.35);
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(245, 158, 11, 0.2) inset,
+    0 0 60px rgba(245, 158, 11, 0.12);
+}
+
+.glass-card-strong {
+  background: rgba(6, 78, 59, 0.5);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 40px rgba(16, 185, 129, 0.15);
+}
+
 .accent-gradient {
-  background: linear-gradient(135deg, var(--emerald), var(--gold));
+  background: linear-gradient(135deg, var(--emerald) 0%, var(--gold) 100%);
+}
+
+.accent-gradient-reverse {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--emerald) 100%);
 }
 
 /* =========================================================
-   8. MOBILE OPTIMIZATIONS & GPU HANDLING
+   7. MOBILE OPTIMIZATIONS
    ========================================================= */
-
-/* FIX: Only apply hover effects on devices that actually have hover */
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .tour-card-mobile:hover {
-    transform: translateY(-8px) scale(1.05);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
-    z-index: 50;
+    transform: translateY(-8px) scale(1.02);
+    box-shadow:
+      0 20px 40px rgba(0, 0, 0, 0.4),
+      0 0 60px rgba(16, 185, 129, 0.2);
+  }
+
+  .glass-card:hover {
+    transform: translateY(-4px);
   }
 }
 
-/* REDUCED MOTION PREFERENCE */
+@media (hover: none) and (pointer: coarse) {
+  .glass-card {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  button,
+  a {
+    touch-action: manipulation;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
 
-  .tour-card-mobile,
-  .glass-card {
-    animation-duration: 0s !important;
-    transition-duration: 0s !important;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
-/* CRITICAL FIX: 
-   1. Removed .glass-card from "transform: none !important". 
-      Framer Motion MUST control the transform.
-   2. Removed 'will-change' from this block. 
-      Framer Motion handles will-change via inline styles where needed.
-*/
-.btn-ripple {
-  transform: translate3d(0, 0, 0);
-  /* Force GPU only for ripple */
-}
-
-/* Specific fix for touch devices to prevent white flashes */
-@media (max-width: 768px) {
-  .glass-card {
-    /* Slightly reduce complexity on old phones */
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-  }
-}
-
-/* Optimized Frosted Glass */
-.glass-card {
-  /* 1. Base High-Performance Translucency */
-  background: rgba(255, 255, 255, 0.25);
-
-  /* 2. The Frost Effect */
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-
-  /* 3. Border & Shadow for Depth */
-  border: 1px solid rgba(255, 255, 255, 0.5);
+/* =========================================================
+   8. UTILITIES
+   ========================================================= */
+.btn-premium {
+  background: linear-gradient(135deg, var(--emerald) 0%, var(--gold) 100%);
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  border: none;
   box-shadow:
-    0 4px 6px rgba(0, 0, 0, 0.05),
-    0 10px 15px rgba(0, 0, 0, 0.1);
-
-  /* 4. Smooth rendering hints */
-  will-change: transform, opacity;
-  transform: translateZ(0);
-  /* Hardware Acceleration */
+    0 4px 20px rgba(16, 185, 129, 0.4),
+    0 0 40px rgba(245, 158, 11, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
 }
 
-/* Fallback for low-end devices that don't support backdrop-filter */
+.btn-premium:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 30px rgba(16, 185, 129, 0.5),
+    0 0 60px rgba(245, 158, 11, 0.3);
+}
+
+.btn-premium:active {
+  transform: translateY(0);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--emerald) 0%, var(--gold) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.shimmer:hover {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(to right,
+      transparent 0%,
+      rgba(255, 255, 255, 0.25) 50%,
+      transparent 100%);
+  background-size: 1000px 100%;
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
+  }
+
+  50% {
+    box-shadow: 0 0 25px rgba(245, 158, 11, 0.35);
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.skeleton {
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0.04) 25%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0.04) 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 @supports not (backdrop-filter: blur(12px)) {
   .glass-card {
-    background: rgba(255, 255, 255, 0.85);
-    /* More opaque if no blur */
+    background: rgba(6, 78, 59, 0.75);
   }
+
+  .navbar-clean {
+    background: rgba(13, 31, 26, 0.95);
+  }
+}
+
+/* =========================================================
+   9. PERFORMANCE
+   ========================================================= */
+.gpu-accelerate {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.prevent-shift {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
 }

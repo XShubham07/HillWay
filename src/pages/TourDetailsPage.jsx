@@ -154,7 +154,7 @@ export default function TourDetailsPage() {
           });
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     return () => controller.abort();
   }, [id]);
@@ -173,22 +173,22 @@ export default function TourDetailsPage() {
     setActiveTab(tId);
 
     // 1. Smoothly center the clicked tab in the horizontal list
-    e.target.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'nearest', 
-        inline: 'center' 
+    e.target.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'center'
     });
 
     // 2. On Mobile: Scroll page slightly to focus content
     if (window.innerWidth < 1024 && contentRef.current) {
-        const yOffset = -140; // Adjust for sticky header
-        const y = contentRef.current.getBoundingClientRect().top + window.scrollY + yOffset;
-        
-        if (window.lenis) {
-            window.lenis.scrollTo(y, { duration: 1.2 });
-        } else {
-            window.scrollTo({ top: y, behavior: 'smooth' });
-        }
+      const yOffset = -140; // Adjust for sticky header
+      const y = contentRef.current.getBoundingClientRect().top + window.scrollY + yOffset;
+
+      if (window.lenis) {
+        window.lenis.scrollTo(y, { duration: 1.2 });
+      } else {
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
     }
   };
 
@@ -342,9 +342,9 @@ export default function TourDetailsPage() {
                 <div className="mt-16 w-full relative z-20">
                   <div ref={tabsContainerRef} className="flex overflow-x-auto pb-4 gap-3 scrollbar-hide snap-x">
                     {[{ id: "overview", label: "Overview" }, { id: "itinerary", label: "Itinerary" }, { id: "food", label: "Food & Stay" }, { id: "reviews", label: "Reviews" }, { id: "faq", label: "FAQ" }].map((t) => (
-                      <button 
-                        key={t.id} 
-                        onClick={(e) => handleTabChange(t.id, e)} 
+                      <button
+                        key={t.id}
+                        onClick={(e) => handleTabChange(t.id, e)}
                         className={`whitespace-nowrap flex-shrink-0 px-8 py-3.5 rounded-full font-montserrat text-sm transition-all duration-300 ease-out border snap-start ${activeTab === t.id ? "bg-[#D9A441] text-black border-[#D9A441] shadow-[0_5px_15px_rgba(217,164,65,0.2)] font-semibold" : "bg-white/5 text-emerald-100/60 border-white/5 hover:bg-white/10 hover:text-white font-medium"}`}
                       >
                         {t.label}
