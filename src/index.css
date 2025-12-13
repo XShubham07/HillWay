@@ -3,24 +3,25 @@
 @tailwind utilities;
 
 /* =========================================================
-   1. GLOBAL THEME VARIABLES
+   1. GLOBAL THEME VARIABLES - PREMIUM GOLD
    ========================================================= */
 :root {
-  --emerald: #10b981;
-  --emerald-dark: #059669;
-  --emerald-darker: #047857;
-  --alpine: #064e3b;
-  --gold: #f59e0b;
-  --gold-light: #fbbf24;
-  --gold-soft: rgba(245, 158, 11, 0.3);
-  --emerald-glow: rgba(16, 185, 129, 0.25);
-  --gold-glow: rgba(245, 158, 11, 0.25);
-  --alpine-glow: rgba(6, 78, 59, 0.3);
-  --dark: #0f172a;
+  /* Premium Gold Palette */
+  --primary: #D9A441;
+  --primary-dark: #c89535;
+  --primary-darker: #b08629;
+  --primary-light: #e5b558;
+  --primary-glow: rgba(217, 164, 65, 0.3);
+  
+  /* Supporting Colors */
+  --dark: #022c22;
+  --dark-light: #0a3d32;
+  --accent: #FFD700;
+  --accent-soft: rgba(255, 215, 0, 0.2);
 }
 
 /* =========================================================
-   2. PREMIUM EMERALD-GOLD GRADIENT BACKGROUND
+   2. PREMIUM DARK GREEN + GOLD GRADIENT BACKGROUND
    ========================================================= */
 html {
   width: 100%;
@@ -31,7 +32,7 @@ html {
   overflow-x: hidden;
   overscroll-behavior-y: none;
   -webkit-overflow-scrolling: touch;
-  background: #0a1410;
+  background: #022c22;
 }
 
 body {
@@ -44,8 +45,8 @@ body {
   overscroll-behavior: none;
   position: relative;
 
-  /* Rich emerald base gradient */
-  background: linear-gradient(135deg, #0d1f1a 0%, #064e3b 25%, #0a1f18 60%, #0d1f1a 100%);
+  /* Rich dark green base with gold accents */
+  background: linear-gradient(135deg, #022c22 0%, #0a3d32 40%, #022c22 80%, #1a1f1a 100%);
   background-attachment: fixed;
   background-repeat: no-repeat;
   background-size: 100% 100%;
@@ -73,33 +74,31 @@ body::before {
   right: 0;
   bottom: 0;
   background: linear-gradient(-45deg,
-      rgba(245, 158, 11, 0.15) 0%,
-      rgba(251, 191, 36, 0.2) 25%,
-      rgba(16, 185, 129, 0.12) 50%,
-      rgba(245, 158, 11, 0.18) 75%,
-      rgba(251, 191, 36, 0.15) 100%);
+      rgba(217, 164, 65, 0.12) 0%,
+      rgba(255, 215, 0, 0.15) 25%,
+      rgba(217, 164, 65, 0.08) 50%,
+      rgba(255, 215, 0, 0.12) 75%,
+      rgba(217, 164, 65, 0.1) 100%);
   background-size: 400% 400%;
   z-index: 0;
   pointer-events: none;
-  animation: sunriseFlow 18s ease-in-out infinite;
+  animation: goldFlow 20s ease-in-out infinite;
   transform: translateZ(0);
   backface-visibility: hidden;
   will-change: background-position;
 }
 
-@keyframes sunriseFlow {
-
+@keyframes goldFlow {
   0%,
   100% {
     background-position: 0% 50%;
   }
-
   50% {
     background-position: 100% 50%;
   }
 }
 
-/* Emerald glow spots - MORE VISIBLE */
+/* Gold glow spots */
 body::after {
   content: "";
   position: fixed;
@@ -108,19 +107,18 @@ body::after {
   right: 0;
   bottom: 0;
   background:
-    radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.25) 0%, transparent 55%),
-    radial-gradient(circle at 15% 80%, rgba(245, 158, 11, 0.2) 0%, transparent 50%),
-    radial-gradient(circle at 85% 20%, rgba(16, 185, 129, 0.22) 0%, transparent 52%),
-    radial-gradient(circle at 30% 30%, rgba(251, 191, 36, 0.15) 0%, transparent 48%);
+    radial-gradient(circle at 50% 50%, rgba(217, 164, 65, 0.2) 0%, transparent 55%),
+    radial-gradient(circle at 15% 80%, rgba(255, 215, 0, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 85% 20%, rgba(217, 164, 65, 0.18) 0%, transparent 52%),
+    radial-gradient(circle at 30% 30%, rgba(255, 215, 0, 0.12) 0%, transparent 48%);
   z-index: 0;
   pointer-events: none;
   filter: blur(70px);
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 /* iOS Safari fix */
 @supports (-webkit-touch-callout: none) {
-
   html,
   body,
   #root {
@@ -133,7 +131,7 @@ body::after {
 /* Mobile optimizations */
 @media (max-width: 768px) {
   body::before {
-    animation-duration: 22s;
+    animation-duration: 24s;
     background-size: 300% 300%;
   }
 
@@ -151,11 +149,11 @@ body::after {
 }
 
 /* =========================================================
-   3. CUSTOM SCROLLBAR
+   3. CUSTOM SCROLLBAR - GOLD THEME
    ========================================================= */
 html {
   scrollbar-width: thin;
-  scrollbar-color: rgba(16, 185, 129, 0.5) rgba(0, 0, 0, 0.3);
+  scrollbar-color: rgba(217, 164, 65, 0.6) rgba(0, 0, 0, 0.3);
 }
 
 ::-webkit-scrollbar {
@@ -169,13 +167,13 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--emerald) 0%, var(--gold) 100%);
+  background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%);
   border-radius: 10px;
   border: 2px solid rgba(0, 0, 0, 0.3);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, var(--gold) 0%, var(--emerald) 100%);
+  background: linear-gradient(180deg, var(--accent) 0%, var(--primary) 100%);
 }
 
 .scrollbar-hide {
@@ -199,32 +197,32 @@ html {
 }
 
 ::selection {
-  background: var(--emerald);
+  background: var(--primary);
   color: white;
 }
 
 ::-moz-selection {
-  background: var(--emerald);
+  background: var(--primary);
   color: white;
 }
 
 /* =========================================================
-   5. NAVBAR
+   5. NAVBAR - PREMIUM GOLD
    ========================================================= */
 .navbar-clean {
-  background: rgba(13, 31, 26, 0.75);
+  background: rgba(2, 44, 34, 0.85);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+  border-bottom: 1px solid rgba(217, 164, 65, 0.2);
   box-shadow:
     0 4px 20px rgba(0, 0, 0, 0.3),
-    0 0 40px rgba(16, 185, 129, 0.08);
+    0 0 40px rgba(217, 164, 65, 0.1);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .navbar-clean.scrolled {
-  background: rgba(13, 31, 26, 0.9);
-  border-bottom: 1px solid rgba(245, 158, 11, 0.25);
+  background: rgba(2, 44, 34, 0.95);
+  border-bottom: 1px solid rgba(217, 164, 65, 0.3);
 }
 
 .nav-link-clean {
@@ -241,7 +239,7 @@ html {
   position: absolute;
   inset: 0;
   border-radius: 0.75rem;
-  background: linear-gradient(135deg, var(--emerald), var(--gold));
+  background: linear-gradient(135deg, var(--primary), var(--accent));
   opacity: 0;
   transition: opacity 0.3s ease;
   z-index: -1;
@@ -252,18 +250,18 @@ html {
 }
 
 .nav-link-clean:hover {
-  color: var(--gold-light);
+  color: var(--primary-light);
   transform: translateY(-2px);
 }
 
 .nav-link-clean.active {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(245, 158, 11, 0.2));
-  color: var(--gold-light);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: linear-gradient(135deg, rgba(217, 164, 65, 0.25), rgba(255, 215, 0, 0.2));
+  color: var(--accent);
+  border: 1px solid rgba(217, 164, 65, 0.4);
 }
 
 /* =========================================================
-   6. GLASS CARDS
+   6. GLASS CARDS - PREMIUM GOLD
    ========================================================= */
 .glass-card {
   background: rgba(255, 255, 255, 0.06);
@@ -272,37 +270,37 @@ html {
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(16, 185, 129, 0.1) inset,
-    0 20px 60px rgba(16, 185, 129, 0.05);
+    0 0 0 1px rgba(217, 164, 65, 0.1) inset,
+    0 20px 60px rgba(217, 164, 65, 0.08);
   border-radius: 24px;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
   background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(245, 158, 11, 0.35);
+  border-color: rgba(217, 164, 65, 0.4);
   box-shadow:
     0 12px 48px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(245, 158, 11, 0.2) inset,
-    0 0 60px rgba(245, 158, 11, 0.12);
+    0 0 0 1px rgba(217, 164, 65, 0.3) inset,
+    0 0 60px rgba(217, 164, 65, 0.15);
 }
 
 .glass-card-strong {
-  background: rgba(6, 78, 59, 0.5);
+  background: rgba(2, 44, 34, 0.6);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  border: 1px solid rgba(217, 164, 65, 0.25);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.4),
-    0 0 40px rgba(16, 185, 129, 0.15);
+    0 0 40px rgba(217, 164, 65, 0.15);
 }
 
 .accent-gradient {
-  background: linear-gradient(135deg, var(--emerald) 0%, var(--gold) 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
 }
 
 .accent-gradient-reverse {
-  background: linear-gradient(135deg, var(--gold) 0%, var(--emerald) 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
 }
 
 /* =========================================================
@@ -313,7 +311,7 @@ html {
     transform: translateY(-8px) scale(1.02);
     box-shadow:
       0 20px 40px rgba(0, 0, 0, 0.4),
-      0 0 60px rgba(16, 185, 129, 0.2);
+      0 0 60px rgba(217, 164, 65, 0.25);
   }
 
   .glass-card:hover {
@@ -334,7 +332,6 @@ html {
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   *,
   *::before,
   *::after {
@@ -346,27 +343,27 @@ html {
 }
 
 /* =========================================================
-   8. UTILITIES
+   8. PREMIUM BUTTONS & UTILITIES
    ========================================================= */
 .btn-premium {
-  background: linear-gradient(135deg, var(--emerald) 0%, var(--gold) 100%);
-  color: white;
-  font-weight: 600;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  color: black;
+  font-weight: 700;
   padding: 0.75rem 1.5rem;
   border-radius: 9999px;
   border: none;
   box-shadow:
-    0 4px 20px rgba(16, 185, 129, 0.4),
-    0 0 40px rgba(245, 158, 11, 0.2);
+    0 4px 20px rgba(217, 164, 65, 0.4),
+    0 0 40px rgba(255, 215, 0, 0.25);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
 }
 
 .btn-premium:hover {
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.02);
   box-shadow:
-    0 8px 30px rgba(16, 185, 129, 0.5),
-    0 0 60px rgba(245, 158, 11, 0.3);
+    0 8px 30px rgba(217, 164, 65, 0.5),
+    0 0 60px rgba(255, 215, 0, 0.35);
 }
 
 .btn-premium:active {
@@ -374,7 +371,7 @@ html {
 }
 
 .text-gradient {
-  background: linear-gradient(135deg, var(--emerald) 0%, var(--gold) 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -384,7 +381,6 @@ html {
   0% {
     background-position: -1000px 0;
   }
-
   100% {
     background-position: 1000px 0;
   }
@@ -400,14 +396,12 @@ html {
 }
 
 @keyframes pulse-glow {
-
   0%,
   100% {
-    box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
+    box-shadow: 0 0 15px rgba(217, 164, 65, 0.3);
   }
-
   50% {
-    box-shadow: 0 0 25px rgba(245, 158, 11, 0.35);
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
   }
 }
 
@@ -428,7 +422,6 @@ html {
   0% {
     background-position: 200% 0;
   }
-
   100% {
     background-position: -200% 0;
   }
@@ -436,11 +429,11 @@ html {
 
 @supports not (backdrop-filter: blur(12px)) {
   .glass-card {
-    background: rgba(6, 78, 59, 0.75);
+    background: rgba(2, 44, 34, 0.75);
   }
 
   .navbar-clean {
-    background: rgba(13, 31, 26, 0.95);
+    background: rgba(2, 44, 34, 0.95);
   }
 }
 
