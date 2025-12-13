@@ -110,7 +110,7 @@ function SectionHeading({
 
       <motion.div
         variants={underline}
-        className="origin-left h-[3px] w-16 md:w-20 rounded-full bg-gradient-to-r from-emerald-400 to-yellow-400 mb-3"
+        className="origin-left h-[3px] w-16 md:w-20 rounded-full bg-gradient-to-r from-[#D9A441] to-yellow-400 mb-3"
       />
 
       <motion.p variants={subPop} className="text-gray-300 text-base md:text-lg">
@@ -152,13 +152,13 @@ const ParallaxDestinationCard = ({ dest, index }) => {
               <FaStar className="text-yellow-400 text-xs" />
               <span className="text-white text-xs font-bold">{dest.stats.rating}</span>
             </div>
-            <div className="px-2 py-1.5 rounded-lg bg-black/50 backdrop-blur-md border border-emerald-500/50 flex items-center gap-1.5">
-              <FaMapMarkerAlt className="text-emerald-400 text-xs" />
+            <div className="px-2 py-1.5 rounded-lg bg-black/50 backdrop-blur-md border border-[#D9A441]/50 flex items-center gap-1.5">
+              <FaMapMarkerAlt className="text-[#D9A441] text-xs" />
               <span className="text-white text-xs font-bold">{dest.stats.tours}</span>
             </div>
           </div>
 
-          <div className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-yellow-500 text-white text-xs font-bold">
+          <div className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#D9A441] to-yellow-500 text-white text-xs font-bold">
             {dest.tag}
           </div>
 
@@ -167,7 +167,7 @@ const ParallaxDestinationCard = ({ dest, index }) => {
               {dest.name}
             </h3>
             <p className="text-gray-200 text-sm mb-3">{dest.desc}</p>
-            <button className="px-4 py-2 rounded-full bg-gradient-to-r from-emerald-500 to-yellow-500 text-white font-bold text-sm flex items-center gap-2 hover:scale-105 transition-transform">
+            <button className="px-4 py-2 rounded-full bg-gradient-to-r from-[#D9A441] to-yellow-500 text-black font-bold text-sm flex items-center gap-2 hover:scale-105 transition-transform">
               Explore Now
               <FaArrowRight className="text-xs" />
             </button>
@@ -241,7 +241,7 @@ export default function Home() {
               dotClass="bg-yellow-400"
               badgeText="Explore The Unseen"
               title="Iconic Destinations"
-              titleGradientClass="from-yellow-400 to-emerald-400"
+              titleGradientClass="from-yellow-400 to-[#D9A441]"
               subTitle="Discover breathtaking landscapes and hidden gems"
             />
 
@@ -272,17 +272,17 @@ export default function Home() {
         <section className="pt-8 pb-10 md:py-16 px-4 md:px-6">
           <div className="max-w-7xl mx-auto">
             <SectionHeading
-              badgeClass="bg-emerald-500/20 border border-emerald-500/30"
-              dotClass="bg-emerald-400"
+              badgeClass="bg-[#D9A441]/20 border border-[#D9A441]/30"
+              dotClass="bg-[#D9A441]"
               badgeText="Curated Just For You"
               title="Trending Adventures"
-              titleGradientClass="from-emerald-400 to-yellow-400"
+              titleGradientClass="from-[#D9A441] to-yellow-400"
               subTitle="Handpicked experiences for unforgettable memories"
             />
 
             {featuredTours.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 md:py-16">
-                <div className="w-12 h-12 border-4 border-white/20 border-t-emerald-500 rounded-full animate-spin mb-3" />
+                <div className="w-12 h-12 border-4 border-white/20 border-t-[#D9A441] rounded-full animate-spin mb-3" />
                 <p className="text-gray-400">Loading experiences...</p>
               </div>
             ) : (
@@ -305,7 +305,7 @@ export default function Home() {
                 >
                   <button
                     onClick={() => navigate("/tours")}
-                    className="px-10 py-4 rounded-full bg-gradient-to-r from-emerald-500 to-yellow-500 text-white font-bold hover:shadow-lg hover:shadow-emerald-500/30 transition-all duration-500 flex items-center gap-2"
+                    className="px-10 py-4 rounded-full bg-gradient-to-r from-[#D9A441] to-yellow-500 text-black font-bold hover:shadow-lg hover:shadow-[#D9A441]/30 transition-all duration-500 flex items-center gap-2"
                   >
                     Discover All Packages
                     <FaArrowRight />
@@ -320,11 +320,11 @@ export default function Home() {
         <section className="pt-8 pb-10 md:py-16 px-4 md:px-6">
           <div className="max-w-7xl mx-auto">
             <SectionHeading
-              badgeClass="bg-cyan-500/20 border border-cyan-500/30"
-              dotClass="bg-cyan-400"
+              badgeClass="bg-[#D9A441]/20 border border-[#D9A441]/30"
+              dotClass="bg-[#D9A441]"
               badgeText="What Travelers Say"
               title="Guest Experiences"
-              titleGradientClass="from-cyan-400 to-blue-400"
+              titleGradientClass="from-[#D9A441] to-yellow-400"
               subTitle="Real stories from our amazing travelers"
             />
 
