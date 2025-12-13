@@ -1,26 +1,23 @@
-// backend/middleware.js
 import { NextResponse } from 'next/server';
 
 export function middleware(request) {
-  // Check if the user is trying to access any route under /admin
+  // 1. Check if user is trying to access the Dashboard (/admin)
   if (request.nextUrl.pathname.startsWith('/admin')) {
     
-    // Check for the secure session cookie
+    // 2. Check for the secure session cookie
     const sessionCookie = request.cookies.get('admin_session');
 
-    // If the cookie is NOT present, redirect them to the frontend login page
+    // 3. If NO cookie found, redirect to the Login Page (Root URL)
     if (!sessionCookie) {
-      // Redirect to the external (frontend) login page
-      return NextResponse.redirect(new URL('/login', 'https://hillway.in'));
+      return NextResponse.redirect(new URL('/', request.url));
     }
   }
 
-  // Allow access to all other routes (and authenticated admin users)
+  // 4. If cookie exists, let them pass
   return NextResponse.next();
 }
 
-// Specify which paths the middleware should run on
+// Apply this security check only to /admin routes
 export const config = {
-  // This will run the check on /admin and all subpaths like /admin/tours
-  matcher: '/admin/:path*', 
+  matcher: '/admin/:path*',
 };

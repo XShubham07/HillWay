@@ -31,7 +31,8 @@ export default function Home() {
         localStorage.setItem('hillway_user', JSON.stringify({ ...data.user, role: 'admin' }));
 
         // Redirect to Admin Dashboard
-        router.push("/admin");
+      // Force a full reload to ensure the cookie is recognized immediately
+window.location.href = "/admin";
       } else {
         setError(data.error || "Login failed");
       }
