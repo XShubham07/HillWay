@@ -210,96 +210,114 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-[#022c22]">
-      <Hero />
+    <>
+      {/* Fixed Background Layer - Same as Tours.jsx */}
+      <div className="fixed inset-0 z-[-1] w-full h-full bg-[#022c22] pointer-events-none">
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `
+              radial-gradient(circle at 50% 0%, rgba(217, 164, 65, 0.15) 0%, transparent 60%),
+              radial-gradient(circle at 100% 30%, rgba(31, 79, 60, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at 0% 60%, rgba(8, 145, 178, 0.1) 0%, transparent 50%)
+            `
+          }}
+        />
+        <div className="absolute inset-0 opacity-[0.04] mix-blend-overlay" style={{ backgroundImage: "url('https://grainy-gradients.vercel.app/noise.svg')" }} />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#022c22] via-[#022c22]/20 to-transparent" />
+      </div>
 
-      <Features />
+      <div className="min-h-screen relative">
+        <Hero />
 
-      {/* Destinations Section (reduced gaps) */}
-      <section className="pt-10 pb-6 md:py-16 px-4 md:px-6">
-        <div className="max-w-7xl mx-auto">
-          <SectionHeading
-            badgeClass="bg-yellow-500/20 border border-yellow-500/30"
-            dotClass="bg-yellow-400"
-            badgeText="Explore The Unseen"
-            title="Iconic Destinations"
-            titleGradientClass="from-yellow-400 to-emerald-400"
-            subTitle="Discover breathtaking landscapes and hidden gems"
-          />
+        <Features />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-6 md:mb-8">
-            {HIGHLIGHT_DESTINATIONS.map((dest, index) => (
-              <ParallaxDestinationCard key={dest.id} dest={dest} index={index} />
-            ))}
-          </div>
+        {/* Destinations Section (reduced gaps) */}
+        <section className="pt-10 pb-6 md:py-16 px-4 md:px-6">
+          <div className="max-w-7xl mx-auto">
+            <SectionHeading
+              badgeClass="bg-yellow-500/20 border border-yellow-500/30"
+              dotClass="bg-yellow-400"
+              badgeText="Explore The Unseen"
+              title="Iconic Destinations"
+              titleGradientClass="from-yellow-400 to-emerald-400"
+              subTitle="Discover breathtaking landscapes and hidden gems"
+            />
 
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ type: "spring", stiffness: 160, damping: 22 }}
-          >
-            <button
-              onClick={() => navigate("/destinations")}
-              className="px-7 py-3 rounded-full bg-white/10 border border-white/30 hover:border-yellow-500/50 text-white font-semibold hover:bg-white/20 transition-all duration-300 flex items-center gap-2"
-            >
-              View All Destinations
-              <FaArrowRight className="text-xs" />
-            </button>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Trending Packages Section (reduced gaps) */}
-      <section className="pt-8 pb-10 md:py-16 px-4 md:px-6">
-        <div className="max-w-7xl mx-auto">
-          <SectionHeading
-            badgeClass="bg-emerald-500/20 border border-emerald-500/30"
-            dotClass="bg-emerald-400"
-            badgeText="Curated Just For You"
-            title="Trending Adventures"
-            titleGradientClass="from-emerald-400 to-yellow-400"
-            subTitle="Handpicked experiences for unforgettable memories"
-          />
-
-          {featuredTours.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 md:py-16">
-              <div className="w-12 h-12 border-4 border-white/20 border-t-emerald-500 rounded-full animate-spin mb-3" />
-              <p className="text-gray-400">Loading experiences...</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-6 md:mb-8">
+              {HIGHLIGHT_DESTINATIONS.map((dest, index) => (
+                <ParallaxDestinationCard key={dest.id} dest={dest} index={index} />
+              ))}
             </div>
-          ) : (
-            <>
-              <motion.div
-                initial={{ opacity: 0, y: 14 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ type: "spring", stiffness: 140, damping: 20 }}
-              >
-                <PackageGrid list={featuredTours} onView={onView} />
-              </motion.div>
 
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ type: "spring", stiffness: 160, damping: 22, delay: 0.05 }}
-                className="mt-6 md:mt-10"
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ type: "spring", stiffness: 160, damping: 22 }}
+            >
+              <button
+                onClick={() => navigate("/destinations")}
+                className="px-7 py-3 rounded-full bg-white/10 border border-white/30 hover:border-yellow-500/50 text-white font-semibold hover:bg-white/20 transition-all duration-300 flex items-center gap-2"
               >
-                <button
-                  onClick={() => navigate("/tours")}
-                  className="px-10 py-4 rounded-full bg-gradient-to-r from-emerald-500 to-yellow-500 text-white font-bold hover:shadow-lg hover:shadow-emerald-500/30 transition-all duration-500 flex items-center gap-2"
+                View All Destinations
+                <FaArrowRight className="text-xs" />
+              </button>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Trending Packages Section (reduced gaps) */}
+        <section className="pt-8 pb-10 md:py-16 px-4 md:px-6">
+          <div className="max-w-7xl mx-auto">
+            <SectionHeading
+              badgeClass="bg-emerald-500/20 border border-emerald-500/30"
+              dotClass="bg-emerald-400"
+              badgeText="Curated Just For You"
+              title="Trending Adventures"
+              titleGradientClass="from-emerald-400 to-yellow-400"
+              subTitle="Handpicked experiences for unforgettable memories"
+            />
+
+            {featuredTours.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 md:py-16">
+                <div className="w-12 h-12 border-4 border-white/20 border-t-emerald-500 rounded-full animate-spin mb-3" />
+                <p className="text-gray-400">Loading experiences...</p>
+              </div>
+            ) : (
+              <>
+                <motion.div
+                  initial={{ opacity: 0, y: 14 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ type: "spring", stiffness: 140, damping: 20 }}
                 >
-                  Discover All Packages
-                  <FaArrowRight />
-                </button>
-              </motion.div>
-            </>
-          )}
-        </div>
-      </section>
+                  <PackageGrid list={featuredTours} onView={onView} />
+                </motion.div>
 
-      {/* keep extra bottom space only on desktop */}
-      <div className="hidden md:block h-20" />
-    </div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ type: "spring", stiffness: 160, damping: 22, delay: 0.05 }}
+                  className="mt-6 md:mt-10"
+                >
+                  <button
+                    onClick={() => navigate("/tours")}
+                    className="px-10 py-4 rounded-full bg-gradient-to-r from-emerald-500 to-yellow-500 text-white font-bold hover:shadow-lg hover:shadow-emerald-500/30 transition-all duration-500 flex items-center gap-2"
+                  >
+                    Discover All Packages
+                    <FaArrowRight />
+                  </button>
+                </motion.div>
+              </>
+            )}
+          </div>
+        </section>
+
+        {/* keep extra bottom space only on desktop */}
+        <div className="hidden md:block h-20" />
+      </div>
+    </>
   );
 }
