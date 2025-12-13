@@ -36,7 +36,7 @@ const TourCardSkeleton = memo(({ style = {} }) => (
       width: style.width || "260px",
       height: "320px",
       backgroundColor: "rgba(255,255,255,0.05)",
-      borderRadius: "26px", // Increased radius
+      borderRadius: "26px",
       flexShrink: 0,
       position: "relative",
       overflow: "hidden",
@@ -82,19 +82,17 @@ const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false
         minWidth: isCarousel ? "260px" : 0,
         width: isCarousel ? (style.width || "260px") : "100%",
         backgroundColor: "white",
-        borderRadius: "26px", // Increased by ~5%
+        borderRadius: "26px",
         overflow: "hidden",
         cursor: "pointer",
         flexShrink: 0,
         position: "relative",
         zIndex: 1,
-        // Anti-flicker & Bleeding Fixes
         backfaceVisibility: "hidden",
         WebkitBackfaceVisibility: "hidden",
         transform: "translate3d(0,0,0)",
         WebkitTransform: "translate3d(0,0,0)",
-        isolation: "isolate", // Creates a new stacking context to prevent bleed
-        // Masking to strictly enforce border radius on images in WebKit
+        isolation: "isolate",
         maskImage: "radial-gradient(white, black)",
         WebkitMaskImage: "-webkit-radial-gradient(white, black)",
         ...style,
@@ -116,7 +114,7 @@ const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false
             willChange: "transform",
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
-            transform: "translate3d(0,0,0)", // Forces hardware acceleration
+            transform: "translate3d(0,0,0)",
           }}
           className="group-hover:scale-110"
         />
@@ -161,15 +159,15 @@ const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false
 TourCard.displayName = "TourCard";
 
 // -----------------------------------------
-// 4. CAROUSEL
+// 4. CAROUSEL (OPTIMIZED FOR SMOOTH SCROLL)
 // -----------------------------------------
 const Mobile3DCarousel = ({ items, onView, isMobile }) => {
   const scrollRef = useRef(null);
-  const ticking = useRef(false);
+  const rafRef = useRef(null);
 
   const updateCards = () => {
     const container = scrollRef.current;
-    if (!container) { ticking.current = false; return; }
+    if (!container) return;
 
     const containerRect = container.getBoundingClientRect();
     const viewportCenter = containerRect.left + containerRect.width / 2;
@@ -180,18 +178,13 @@ const Mobile3DCarousel = ({ items, onView, isMobile }) => {
       const rect = child.getBoundingClientRect();
       const childCenter = rect.left + rect.width / 2;
       const distance = Math.max(0, Math.abs(viewportCenter - childCenter) - 4);
-      let progress = distance / maxDistance;
-      if (progress > 1) progress = 1;
+      let progress = Math.min(1, distance / maxDistance);
 
-      // Subtle calculations for better performance
       const scale = 1.12 - (progress * 0.26);
       const opacity = 1 - (progress * 0.3);
 
       if (isMobile) {
-        // Optimized transform string
         child.style.transform = `translate3d(-36px, 0, 0) scale(${scale})`;
-        // We avoid changing Z-Index frequently if possible to avoid layer repaints, 
-        // but here it's needed for depth. 
         child.style.zIndex = 20 - Math.round(progress * 10);
         child.style.opacity = opacity;
       } else {
@@ -200,23 +193,26 @@ const Mobile3DCarousel = ({ items, onView, isMobile }) => {
         child.style.opacity = '';
       }
     });
-    ticking.current = false;
   };
 
   const handleScroll = () => {
-    if (!ticking.current) {
-      ticking.current = true;
-      window.requestAnimationFrame(updateCards);
-    }
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      updateCards();
+      rafRef.current = null;
+    });
   };
 
-  useLayoutEffect(() => { updateCards(); });
+  useLayoutEffect(() => { updateCards(); }, [isMobile]);
 
   useEffect(() => {
     const container = scrollRef.current;
     if (!container) return;
     container.addEventListener('scroll', handleScroll, { passive: true });
-    return () => container.removeEventListener('scroll', handleScroll);
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
   }, [isMobile]);
 
   return (
@@ -230,9 +226,9 @@ const Mobile3DCarousel = ({ items, onView, isMobile }) => {
         padding: '30px 0px',
         touchAction: 'pan-x',
         perspective: '1000px',
-        // Scrolling optimizations
         WebkitOverflowScrolling: 'touch',
-        scrollBehavior: 'auto' // Crucial: prevents smooth-scroll physics from fighting swipe speed
+        scrollBehavior: 'auto',
+        willChange: 'scroll-position'
       }}
     >
       <div style={{ minWidth: 'calc(50% - 94px)', flexShrink: 0 }} />
@@ -243,8 +239,9 @@ const Mobile3DCarousel = ({ items, onView, isMobile }) => {
           style={{
             scrollSnapAlign: 'center',
             flexShrink: 0,
-            willChange: isMobile ? 'transform, opacity' : 'auto', // Explicit optimization
-            transformStyle: isMobile ? 'preserve-3d' : 'flat'
+            willChange: isMobile ? 'transform, opacity' : 'auto',
+            transformStyle: isMobile ? 'preserve-3d' : 'flat',
+            contain: 'layout style paint'
           }}
         >
           <TourCard tour={tour} onView={onView} index={idx} isCarousel={true} />
@@ -319,9 +316,9 @@ export default function Tours() {
     let timeoutId = null;
     const handleResize = () => {
       clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => setWindowWidth(window.innerWidth), 100);
+      timeoutId = setTimeout(() => setWindowWidth(window.innerWidth), 150);
     };
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', handleResize, { passive: true });
     return () => { window.removeEventListener('resize', handleResize); clearTimeout(timeoutId); }
   }, []);
 
@@ -374,7 +371,6 @@ export default function Tours() {
                 <Mobile3DCarousel items={filteredList} onView={onView} isMobile={isMobile} />
               </div>
             ) : (
-              // DESKTOP GRID - ONE BY ONE LOADING
               <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <AnimatePresence mode="popLayout">
                   {filteredList.map((tour, idx) => (
@@ -394,14 +390,16 @@ export default function Tours() {
 
         <style>{`
           .mobile-3d-scroll::-webkit-scrollbar { display: none; }
-          .mobile-3d-scroll { -ms-overflow-style: none; scrollbar-width: none; scroll-snap-type: x proximity; }
+          .mobile-3d-scroll { 
+            -ms-overflow-style: none; 
+            scrollbar-width: none; 
+            scroll-snap-type: x proximity;
+          }
           .scrollbar-hide::-webkit-scrollbar { display: none; }
           .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
           
-          /* SMOOTHER PC HOVER CSS */
           @media (min-width: 1025px) {
             .tour-card-smooth {
-              /* Ensure overflow works with transforms */
               -webkit-mask-image: -webkit-radial-gradient(white, black);
               mask-image: radial-gradient(white, black);
               will-change: transform, box-shadow;
@@ -415,7 +413,13 @@ export default function Tours() {
           }
           
           .tour-card-smooth { -webkit-tap-highlight-color: transparent; }
-          .carousel-item { contain: layout paint; }
+          .carousel-item { contain: layout style paint; }
+          
+          /* Prevent scroll jank */
+          * {
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+          }
         `}</style>
       </div>
     </div>
