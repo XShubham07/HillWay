@@ -1,0 +1,14 @@
+echo '<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Redirect /admin to your new Backend URL
+  RewriteRule ^admin/?$ https://admin.hillway.in/ [R=301,L]
+  RewriteRule ^admin/(.*)$ https://admin.hillway.in/admin/$1 [R=301,L]
+
+  # React Router Rules
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+  RewriteRule ^ index.html [L]
+</IfModule>' > dist/.htaccess
