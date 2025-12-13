@@ -23,7 +23,8 @@ const BookingSchema = new mongoose.Schema({
   couponCode: String,
   
   // PAYMENT & ADMIN FIELDS
-  paymentType: { type: String, enum: ['Full', 'Partial'], default: 'Full' },
+  // UPDATED: Added 'Unpaid' to enum and set it as the default
+  paymentType: { type: String, enum: ['Full', 'Partial', 'Unpaid'], default: 'Unpaid' },
   paidAmount: { type: Number, default: 0 },
   adminNotes: { type: String, default: '' },
 
