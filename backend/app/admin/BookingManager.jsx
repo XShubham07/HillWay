@@ -308,20 +308,36 @@ export default function BookingManager({ bookings, tours, globalPrices, refreshD
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fade-in">
                     <div className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] w-full max-w-7xl h-[90vh] rounded-3xl border border-white/10 shadow-2xl overflow-hidden flex flex-col relative">
 
-                        {/* Header */}
+                        {/* UPDATED HEADER: Show Booked Date & Journey Date */}
                         <div className="p-6 md:p-8 border-b border-white/5 flex justify-between items-start bg-black/20">
-                            <div>
-                                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mb-2">
-                                    <h2 className="text-2xl md:text-4xl font-bold text-white tracking-tight">Booking Details</h2>
-                                    <span className={`inline-flex items-center justify-center text-sm px-4 py-1.5 rounded-full font-mono tracking-wider border w-max ${selectedBooking.status === 'Confirmed' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'}`}>
+                            <div className="flex-1">
+                                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mb-3">
+                                    <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Booking Details</h2>
+                                    <span className={`inline-flex items-center justify-center text-xs px-3 py-1 rounded-full font-mono tracking-wider border w-max ${selectedBooking.status === 'Confirmed' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'}`}>
                                         {selectedBooking.status}
                                     </span>
                                 </div>
-                                <p className="text-gray-400 text-xs md:text-sm flex items-center gap-2">
-                                    <FaClock className="text-gray-500" /> #{selectedBooking._id.slice(-6).toUpperCase()}
-                                </p>
+
+                                <div className="flex flex-col gap-1">
+                                    <p className="text-gray-400 text-xs md:text-sm flex flex-wrap items-center gap-3">
+                                        <span className="flex items-center gap-2 font-mono text-cyan-300">
+                                            <FaClock className="text-gray-500" /> #{selectedBooking._id.slice(-6).toUpperCase()}
+                                        </span>
+                                        <span className="hidden md:inline text-gray-700">|</span>
+                                        <span className="text-gray-300 flex items-center gap-2">
+                                            Booked: {new Date(selectedBooking.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                        </span>
+                                    </p>
+
+                                    {selectedBooking.travelDate && (
+                                        <p className="text-yellow-400 text-base md:text-lg font-bold flex items-center gap-2 mt-2">
+                                            <FaCalendarAlt /> Journey: {new Date(selectedBooking.travelDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
+                                        </p>
+                                    )}
+                                </div>
                             </div>
-                            <button onClick={() => setSelectedBooking(null)} className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition text-gray-300 hover:text-white border border-white/5">
+
+                            <button onClick={() => setSelectedBooking(null)} className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition text-gray-300 hover:text-white border border-white/5 shrink-0 ml-4">
                                 <FaTimes size={18} />
                             </button>
                         </div>
