@@ -210,7 +210,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#022c22]">
       <Hero />
 
       <Features />
