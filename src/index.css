@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* =========================================================
-   1. GLOBAL THEME VARIABLES - PREMIUM GOLD
+   1. GLOBAL THEME VARIABLES - PREMIUM GOLD + DARK GREEN
    ========================================================= */
 :root {
   /* Premium Gold Palette */
@@ -13,7 +13,7 @@
   --primary-light: #e5b558;
   --primary-glow: rgba(217, 164, 65, 0.3);
   
-  /* Supporting Colors */
+  /* Dark Green Background */
   --dark: #022c22;
   --dark-light: #0a3d32;
   --accent: #FFD700;
@@ -21,7 +21,7 @@
 }
 
 /* =========================================================
-   2. PREMIUM DARK GREEN + GOLD GRADIENT BACKGROUND
+   2. DARK GREEN BACKGROUND (MATCHING HOME.JSX)
    ========================================================= */
 html {
   width: 100%;
@@ -45,8 +45,8 @@ body {
   overscroll-behavior: none;
   position: relative;
 
-  /* Rich dark green base with gold accents */
-  background: linear-gradient(135deg, #022c22 0%, #0a3d32 40%, #022c22 80%, #1a1f1a 100%);
+  /* Solid dark green base matching Home.jsx */
+  background: #022c22;
   background-attachment: fixed;
   background-repeat: no-repeat;
   background-size: 100% 100%;
@@ -65,7 +65,7 @@ body {
   z-index: 1;
 }
 
-/* Animated Gold Accent Layer */
+/* Gold accent radial gradients (subtle) */
 body::before {
   content: "";
   position: fixed;
@@ -73,32 +73,16 @@ body::before {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(-45deg,
-      rgba(217, 164, 65, 0.12) 0%,
-      rgba(255, 215, 0, 0.15) 25%,
-      rgba(217, 164, 65, 0.08) 50%,
-      rgba(255, 215, 0, 0.12) 75%,
-      rgba(217, 164, 65, 0.1) 100%);
-  background-size: 400% 400%;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(217, 164, 65, 0.15) 0%, transparent 60%),
+    radial-gradient(circle at 100% 30%, rgba(31, 79, 60, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 0% 60%, rgba(8, 145, 178, 0.1) 0%, transparent 50%);
   z-index: 0;
   pointer-events: none;
-  animation: goldFlow 20s ease-in-out infinite;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  will-change: background-position;
+  opacity: 0.8;
 }
 
-@keyframes goldFlow {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-/* Gold glow spots */
+/* Subtle grain texture */
 body::after {
   content: "";
   position: fixed;
@@ -106,15 +90,11 @@ body::after {
   left: 0;
   right: 0;
   bottom: 0;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(217, 164, 65, 0.2) 0%, transparent 55%),
-    radial-gradient(circle at 15% 80%, rgba(255, 215, 0, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 85% 20%, rgba(217, 164, 65, 0.18) 0%, transparent 52%),
-    radial-gradient(circle at 30% 30%, rgba(255, 215, 0, 0.12) 0%, transparent 48%);
+  background-image: url('https://grainy-gradients.vercel.app/noise.svg');
+  opacity: 0.04;
+  mix-blend-mode: overlay;
   z-index: 0;
   pointer-events: none;
-  filter: blur(70px);
-  opacity: 0.6;
 }
 
 /* iOS Safari fix */
@@ -131,12 +111,7 @@ body::after {
 /* Mobile optimizations */
 @media (max-width: 768px) {
   body::before {
-    animation-duration: 24s;
-    background-size: 300% 300%;
-  }
-
-  body::after {
-    filter: blur(60px);
+    opacity: 0.6;
   }
 }
 
@@ -144,7 +119,6 @@ body::after {
 @media (prefers-reduced-motion: reduce) {
   body::before {
     animation: none;
-    background-position: 0% 50%;
   }
 }
 
