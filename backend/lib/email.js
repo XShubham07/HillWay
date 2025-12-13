@@ -1,10 +1,13 @@
 import nodemailer from 'nodemailer';
 
+// Configure SMTP Transporter for hillway.in (cPanel)
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: process.env.EMAIL_HOST || 'hillway.in', // Changed to hillway.in
+  port: 465, // Secure SSL/TLS port
+  secure: true, // Use SSL
   auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,
+    user: process.env.EMAIL_USER, // bookings@hillway.in
+    pass: process.env.EMAIL_PASS, // Your cPanel email password
   },
 });
 
@@ -12,7 +15,7 @@ export const sendBookingConfirmation = async (booking) => {
   if (!booking.email) return;
 
   const mailOptions = {
-    from: `"HillWay Tours" <${process.env.GMAIL_USER}>`,
+    from: `"HillWay Tours" <${process.env.EMAIL_USER}>`,
     to: booking.email,
     subject: `Booking Confirmed - #${booking._id.toString().slice(-6).toUpperCase()}`,
     html: `
@@ -29,7 +32,7 @@ export const sendBookingConfirmation = async (booking) => {
           <p><strong>Current Status:</strong> ${booking.status}</p>
         </div>
 
-        <p>You can track your booking status here: <a href="https://hillway7.vercel.app/status?refId=${booking._id.toString().slice(-6).toUpperCase()}">Track Booking</a></p>
+        <p>You can track your booking status here: <a href="https://hillway.in/status?refId=${booking._id.toString().slice(-6).toUpperCase()}">Track Booking</a></p>
         
         <p>Best Regards,<br/>HillWay Team</p>
       </div>
@@ -56,7 +59,7 @@ export const sendStatusUpdate = async (booking) => {
   const color = statusColors[booking.status] || '#333';
 
   const mailOptions = {
-    from: `"HillWay Tours" <${process.env.GMAIL_USER}>`,
+    from: `"HillWay Tours" <${process.env.EMAIL_USER}>`,
     to: booking.email,
     subject: `Update: Your Booking Status is ${booking.status}`,
     html: `
@@ -67,12 +70,12 @@ export const sendStatusUpdate = async (booking) => {
         
         <div style="padding: 15px; border: 1px solid #ddd; border-radius: 8px; margin: 20px 0; text-align: center;">
           <h3>New Status: <span style="color: ${color};">${booking.status}</span></h3>
-          ${booking.adminNotes ? `<p><strong>Note form Admin:</strong> "${booking.adminNotes}"</p>` : ''}
+          ${booking.adminNotes ? `<p><strong>Note from Admin:</strong> "${booking.adminNotes}"</p>` : ''}
         </div>
 
         ${booking.status === 'Confirmed' ? `<p>Please be ready for your trip on <strong>${new Date(booking.travelDate).toLocaleDateString()}</strong>!</p>` : ''}
         
-        <p>View Details: <a href="https://hillway7.vercel.app/status?refId=${booking._id.toString().slice(-6).toUpperCase()}">Track Booking</a></p>
+        <p>View Details: <a href="https://hillway.in/status?refId=${booking._id.toString().slice(-6).toUpperCase()}">Track Booking</a></p>
         
         <p>Best Regards,<br/>HillWay Team</p>
       </div>
