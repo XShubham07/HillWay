@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Hero from "../components/Hero";
 import PackageGrid from "../components/PackageGrid";
 import Features from "../components/Features";
+import ReviewsCarousel from "../components/ReviewsCarousel";
 import { FaArrowRight, FaStar, FaMapMarkerAlt } from "react-icons/fa";
 
 const HIGHLIGHT_DESTINATIONS = [
@@ -312,6 +313,29 @@ export default function Home() {
                 </motion.div>
               </>
             )}
+          </div>
+        </section>
+
+        {/* Reviews Section */}
+        <section className="pt-8 pb-10 md:py-16 px-4 md:px-6">
+          <div className="max-w-7xl mx-auto">
+            <SectionHeading
+              badgeClass="bg-cyan-500/20 border border-cyan-500/30"
+              dotClass="bg-cyan-400"
+              badgeText="What Travelers Say"
+              title="Guest Experiences"
+              titleGradientClass="from-cyan-400 to-blue-400"
+              subTitle="Real stories from our amazing travelers"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ type: "spring", stiffness: 140, damping: 20 }}
+            >
+              <ReviewsCarousel />
+            </motion.div>
           </div>
         </section>
 
