@@ -27,7 +27,7 @@ export default function AgentDashboard() {
 
     // 2. Fetch Dashboard Data from Backend
     // Using the 'Dashboard' (capital D) path as per your file structure, but ideally should be lowercase.
-    fetch(`/api/agent/Dashboard?agentId=${user._id}`)
+    fetch(`https://hillway7.vercel.app/api/agent/Dashboard?agentId=${user._id}`)
       .then(res => res.json())
       .then(res => {
         if (res.success) setData(res.data);

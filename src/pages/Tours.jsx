@@ -289,7 +289,7 @@ export default function Tours() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   useEffect(() => {
-    fetch('/api/tours')
+    fetch('https://hillway7.vercel.app/api/tours')
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
