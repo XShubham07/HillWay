@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, memo, useLayoutEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { FaMapMarkerAlt, FaTags, FaFilter, FaChevronDown, FaTimes } from "react-icons/fa";
 
 // -----------------------------------------
 // 1. OPTIMIZED BACKGROUND
@@ -70,14 +71,14 @@ const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false
         }
       } : {}}
       whileHover={!isCarousel ? {
-        scale: 1.1,
+        scale: 1.05,
         zIndex: 50,
+        boxShadow: "0 20px 40px rgba(0,0,0,0.4)"
       } : {}}
       role="button"
       tabIndex={0}
       className="tour-card-smooth group relative"
       onClick={() => onView(tour)}
-      onKeyDown={(e) => e.key === "Enter" && onView(tour)}
       style={{
         minWidth: isCarousel ? "260px" : 0,
         width: isCarousel ? (style.width || "260px") : "100%",
@@ -88,40 +89,21 @@ const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false
         flexShrink: 0,
         position: "relative",
         zIndex: 1,
-        backfaceVisibility: "hidden",
-        WebkitBackfaceVisibility: "hidden",
-        transform: "translate3d(0,0,0)",
-        WebkitTransform: "translate3d(0,0,0)",
         isolation: "isolate",
-        maskImage: "radial-gradient(white, black)",
-        WebkitMaskImage: "-webkit-radial-gradient(white, black)",
         ...style,
       }}
     >
       <div style={{ position: "relative", height: "320px", backgroundColor: "#f3f4f6" }}>
 
-        {/* Image with Lazy Loading */}
         <img
           src={tour.img}
           alt={tour.title}
           loading="lazy"
-          decoding="async"
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            transition: "transform 0.8s cubic-bezier(0.25, 1, 0.5, 1)",
-            willChange: "transform",
-            backfaceVisibility: "hidden",
-            WebkitBackfaceVisibility: "hidden",
-            transform: "translate3d(0,0,0)",
-          }}
-          className="group-hover:scale-110"
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent pointer-events-none" />
 
-        {/* Tags */}
         <div className="absolute top-4 left-4 flex gap-2 z-10 flex-wrap">
           {tour.tags && tour.tags.slice(0, 2).map((tag, i) => (
             <span key={i} className="bg-black/60 backdrop-blur-md px-2 py-1 rounded-md text-[10px] font-bold text-white border border-white/10 uppercase tracking-wide">
@@ -130,21 +112,23 @@ const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false
           ))}
         </div>
 
-        {/* Days Badge */}
-        <div className="absolute top-4 right-4 bg-white/95 px-3 py-1.5 rounded-full text-xs font-extrabold text-gray-900 shadow-sm z-10 transition-all duration-500 group-hover:bg-[#D9A441] group-hover:scale-105">
+        <div className="absolute top-4 right-4 bg-white/95 px-3 py-1.5 rounded-full text-xs font-extrabold text-gray-900 shadow-sm z-10">
           {tour.days}
         </div>
 
         <div className="absolute bottom-6 left-5 right-5 z-10">
-          <h3 className="text-2xl font-black text-white mb-1 leading-none drop-shadow-md transition-all duration-500 group-hover:translate-y-[-2px]">
+          <p className="text-[10px] text-gray-300 font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
+             <span className="w-1.5 h-1.5 rounded-full bg-[#D9A441]"></span> {tour.location}
+          </p>
+          <h3 className="text-2xl font-black text-white mb-1 leading-none drop-shadow-md">
             {tour.title}
           </h3>
 
           <div className="flex justify-between items-end mt-2">
-            <p className="text-gray-200 text-xs font-medium line-clamp-2 max-w-[65%] leading-snug transition-all duration-500 group-hover:text-white">
+            <p className="text-gray-200 text-xs font-medium line-clamp-2 max-w-[65%] leading-snug">
               {tour.summary}
             </p>
-            <div className="text-right shrink-0 transition-all duration-500 group-hover:scale-105">
+            <div className="text-right shrink-0">
               <span className="block text-[10px] text-gray-400 font-bold uppercase tracking-wider">Starting</span>
               <span className="block text-xl font-extrabold text-[#D9A441] drop-shadow-md">
                 {tour.price}
@@ -159,7 +143,7 @@ const TourCard = memo(({ tour, onView, style = {}, index = 0, isCarousel = false
 TourCard.displayName = "TourCard";
 
 // -----------------------------------------
-// 4. CAROUSEL (OPTIMIZED FOR SMOOTH SCROLL)
+// 4. CAROUSEL
 // -----------------------------------------
 const Mobile3DCarousel = ({ items, onView, isMobile }) => {
   const scrollRef = useRef(null);
@@ -253,38 +237,144 @@ const Mobile3DCarousel = ({ items, onView, isMobile }) => {
 };
 
 // -----------------------------------------
-// 5. FILTER BAR
+// 5. NEW DYNAMIC FILTER SECTION
 // -----------------------------------------
 const AVAILABLE_TAGS = ["All", "Group", "Couple", "Honeymoon", "Adventure", "Romantic", "Family", "Solo"];
 
-const FilterBar = ({ activeTag, setActiveTag }) => (
-  <div className="flex gap-3 overflow-x-auto pb-6 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap">
-    {AVAILABLE_TAGS.map((tag) => (
-      <button
-        key={tag}
-        onClick={() => setActiveTag(tag)}
-        className={`
-          whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 border
-          ${activeTag === tag
-            ? "bg-[#D9A441] text-black border-[#D9A441] shadow-[0_0_20px_rgba(217,164,65,0.3)] scale-105"
-            : "bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20"}
-        `}
-      >
-        {tag}
-      </button>
-    ))}
-  </div>
-);
+const FilterSection = ({ activeTag, setActiveTag, activeLocation, setActiveLocation, locations }) => {
+  const [activeMenu, setActiveMenu] = useState(null); // 'location' | 'type' | null
+
+  const toggleMenu = (menu) => {
+    if (activeMenu === menu) setActiveMenu(null);
+    else setActiveMenu(menu);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* CONTROL BUTTONS */}
+      <div className="flex flex-wrap gap-4">
+        
+        {/* Location Button */}
+        <button 
+          onClick={() => toggleMenu('location')}
+          className={`flex items-center gap-3 px-6 py-3 rounded-full text-sm font-bold transition-all border ${
+            activeMenu === 'location' || activeLocation !== 'All'
+              ? 'bg-[#D9A441] text-black border-[#D9A441] shadow-[0_0_20px_rgba(217,164,65,0.3)]'
+              : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10'
+          }`}
+        >
+          <FaMapMarkerAlt />
+          <span className="uppercase tracking-wider text-xs">Location:</span>
+          <span>{activeLocation}</span>
+          <FaChevronDown className={`ml-2 text-xs transition-transform ${activeMenu === 'location' ? 'rotate-180' : ''}`} />
+        </button>
+
+        {/* Travel Type Button */}
+        <button 
+          onClick={() => toggleMenu('type')}
+          className={`flex items-center gap-3 px-6 py-3 rounded-full text-sm font-bold transition-all border ${
+            activeMenu === 'type' || activeTag !== 'All'
+              ? 'bg-[#D9A441] text-black border-[#D9A441] shadow-[0_0_20px_rgba(217,164,65,0.3)]'
+              : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10'
+          }`}
+        >
+          <FaTags />
+          <span className="uppercase tracking-wider text-xs">Type:</span>
+          <span>{activeTag}</span>
+          <FaChevronDown className={`ml-2 text-xs transition-transform ${activeMenu === 'type' ? 'rotate-180' : ''}`} />
+        </button>
+
+        {/* Clear Filters (Only shows if something is selected) */}
+        {(activeLocation !== 'All' || activeTag !== 'All') && (
+          <button 
+            onClick={() => { setActiveLocation('All'); setActiveTag('All'); setActiveMenu(null); }}
+            className="flex items-center gap-2 px-4 py-3 rounded-full text-xs font-bold text-red-400 hover:text-red-300 transition-colors"
+          >
+            <FaTimes /> Clear
+          </button>
+        )}
+      </div>
+
+      {/* EXPANDABLE CATEGORY BAR */}
+      <AnimatePresence>
+        {activeMenu && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 shadow-xl">
+              
+              {/* LOCATION PILLS */}
+              {activeMenu === 'location' && (
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => { setActiveLocation('All'); setActiveMenu(null); }}
+                    className={`px-4 py-2 rounded-full text-xs font-bold transition-all border ${activeLocation === 'All' ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-black/40 text-gray-400 border-white/5 hover:border-white/20 hover:text-white'}`}
+                  >
+                    All Locations
+                  </button>
+                  {locations.map((loc) => (
+                    <button
+                      key={loc}
+                      onClick={() => { setActiveLocation(loc); setActiveMenu(null); }}
+                      className={`px-4 py-2 rounded-full text-xs font-bold transition-all border ${activeLocation === loc ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg' : 'bg-black/40 text-gray-400 border-white/5 hover:border-white/20 hover:text-white'}`}
+                    >
+                      {loc}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* TAG PILLS */}
+              {activeMenu === 'type' && (
+                <div className="flex flex-wrap gap-2">
+                  {AVAILABLE_TAGS.map((tag) => (
+                    <button
+                      key={tag}
+                      onClick={() => { setActiveTag(tag); setActiveMenu(null); }}
+                      className={`px-4 py-2 rounded-full text-xs font-bold transition-all border ${activeTag === tag ? 'bg-[#D9A441] text-black border-[#D9A441] shadow-lg' : 'bg-black/40 text-gray-400 border-white/5 hover:border-white/20 hover:text-white'}`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 // -----------------------------------------
 // MAIN PAGE
 // -----------------------------------------
 export default function Tours() {
   const navigate = useNavigate();
+  const locationState = useLocation();
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Filter States
   const [activeTag, setActiveTag] = useState("All");
+  const [activeLocation, setActiveLocation] = useState("All");
+
+  // AUTO-SELECT LOCATION FROM REDIRECT
+  useEffect(() => {
+    if (locationState.state && locationState.state.location) {
+      setActiveLocation(locationState.state.location);
+      // Clear state to avoid persistent selection on refresh if desired, 
+      // but keeping it allows "All" button on destinations to work if passed correctly.
+    } else {
+      // Default to All if no state passed
+      setActiveLocation("All");
+    }
+  }, [locationState]);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -300,7 +390,8 @@ export default function Tours() {
             price: `₹${t.basePrice.toLocaleString('en-IN')}`,
             img: t.img,
             summary: t.subtitle,
-            tags: t.tags || []
+            tags: t.tags || [],
+            location: t.location || "Sikkim"
           }));
           setList(formatted);
         }
@@ -325,12 +416,20 @@ export default function Tours() {
   const isMobile = windowWidth < 1024;
   const onView = (p) => navigate(`/tours/${p.id}`);
 
+  // Derived unique locations
+  const availableLocations = useMemo(() => {
+    const locs = list.map(t => t.location).filter(Boolean);
+    return [...new Set(locs)].sort();
+  }, [list]);
+
+  // Filter Logic
   const filteredList = useMemo(() => {
-    if (activeTag === "All") return list;
-    return list.filter(tour =>
-      tour.tags.some(t => t.toUpperCase() === activeTag.toUpperCase())
-    );
-  }, [list, activeTag]);
+    return list.filter(tour => {
+      const tagMatch = activeTag === "All" || tour.tags.some(t => t.toUpperCase() === activeTag.toUpperCase());
+      const locationMatch = activeLocation === "All" || tour.location === activeLocation;
+      return tagMatch && locationMatch;
+    });
+  }, [list, activeTag, activeLocation]);
 
   return (
     <div className="relative min-h-screen" style={{ isolation: 'isolate' }}>
@@ -345,10 +444,17 @@ export default function Tours() {
             transition={{ duration: 0.6 }}
             className="mb-8"
           >
-            <h1 className="text-4xl md:text-5xl font-black text-white drop-shadow-lg tracking-tight font-montserrat">Explore Packages</h1>
-            <p className="text-emerald-100/80 mt-2 text-sm md:text-base font-medium mb-8">Handpicked adventures designed for you</p>
+            <h1 className="text-4xl md:text-5xl font-black text-white drop-shadow-lg tracking-tight font-montserrat mb-2">Explore Packages</h1>
+            <p className="text-emerald-100/80 mt-2 text-sm md:text-base font-medium mb-10">Handpicked adventures designed for you</p>
 
-            <FilterBar activeTag={activeTag} setActiveTag={setActiveTag} />
+            {/* TWO BUTTON FILTER MENU */}
+            <FilterSection 
+              activeTag={activeTag} 
+              setActiveTag={setActiveTag} 
+              activeLocation={activeLocation}
+              setActiveLocation={setActiveLocation}
+              locations={availableLocations}
+            />
           </motion.div>
 
           <div style={{ marginTop: '24px' }}>
@@ -364,7 +470,7 @@ export default function Tours() {
               )
             ) : filteredList.length === 0 ? (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-white/60 font-bold text-lg border border-white/10 rounded-3xl bg-white/5 backdrop-blur-sm">
-                No tours found for "{activeTag}"
+                No tours found for "{activeTag}" in "{activeLocation}"
               </motion.div>
             ) : isMobile ? (
               <div style={{ margin: '0 -16px' }}>
@@ -414,8 +520,6 @@ export default function Tours() {
           
           .tour-card-smooth { -webkit-tap-highlight-color: transparent; }
           .carousel-item { contain: layout style paint; }
-          
-          /* IMPORTANT: Removed global '*' transform which broke fixed positioning on Navbar */
         `}</style>
       </div>
     </div>

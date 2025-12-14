@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom"; // IMPORTED PORTAL
 import { Link } from "react-router-dom";
 import {
   FaUsers,
@@ -28,6 +29,21 @@ import "react-datepicker/dist/react-datepicker.css";
 const StatusPopup = ({ isOpen, onClose, data, type }) => {
   const [copied, setCopied] = useState(false);
 
+  // --- SCROLL LOCK: Locks body when popup is open ---
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isOpen]);
+
   useEffect(() => {
     if (isOpen && type === 'success') {
       const count = 200;
@@ -54,7 +70,6 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
 
   const isSuccess = type === 'success';
   const refId = data?._id ? `#HW-${data._id.slice(-6).toUpperCase()}` : 'N/A';
-
   const trackingLink = data ? `${window.location.origin}/status?refId=${data._id.slice(-6).toUpperCase()}` : '';
 
   const handleCopyLink = () => {
@@ -63,15 +78,18 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  return (
+  // --- PORTAL RENDER ---
+  // This moves the popup DOM to document.body, escaping any parent stacking contexts
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center px-4"
-          style={{ background: "rgba(0, 0, 0, 0.8)", backdropFilter: "blur(10px)" }}
+          // Ultra-high Z-index combined with Portal ensures top placement
+          className="fixed inset-0 z-[99999] flex items-center justify-center px-4"
+          style={{ background: "rgba(0, 0, 0, 0.85)", backdropFilter: "blur(8px)" }}
         >
           <motion.div
             initial={{ scale: 0.8, opacity: 0, y: 20 }}
@@ -80,13 +98,13 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
             className={`
               relative w-full max-w-sm overflow-hidden rounded-[2.5rem]
-              border shadow-2xl backdrop-blur-xl text-center p-0
+              border shadow-2xl backdrop-blur-2xl text-center p-0
               ${isSuccess
                 ? "bg-gradient-to-b from-[#D9A441]/20 to-[#0f172a]/95 border-[#D9A441]/50"
                 : "bg-gradient-to-b from-red-500/20 to-[#0f172a]/95 border-red-500/50"}
             `}
           >
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none" />
 
             <div className="relative p-8 z-10 flex flex-col items-center">
               <button
@@ -100,8 +118,11 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
                 {isSuccess && <div className="absolute inset-0 bg-[#D9A441] blur-2xl opacity-40 animate-pulse rounded-full"></div>}
                 <motion.div
                   initial={{ scale: 0, rotate: -45 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
+                  animate={isSuccess ? { scale: [1, 1.1, 1], rotate: 0 } : { scale: 1, rotate: 0 }}
+                  transition={isSuccess 
+                    ? { scale: { repeat: Infinity, duration: 1.5, ease: "easeInOut" }, rotate: { type: "spring", stiffness: 200, delay: 0.1 } }
+                    : { type: "spring", stiffness: 200, delay: 0.1 }
+                  }
                   className={`
                     relative w-24 h-24 rounded-full flex items-center justify-center shadow-2xl z-10
                     ${isSuccess
@@ -117,7 +138,7 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
                 {isSuccess ? "Booking Confirmed!" : "Booking Found"}
               </h3>
 
-              <div className="bg-black/40 rounded-xl px-4 py-2 mb-4 border border-white/10">
+              <div className="bg-black/40 rounded-xl px-4 py-2 mb-4 border border-white/10 shadow-inner">
                 <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-0.5">Reference ID</p>
                 <p className={`font-mono text-xl font-bold tracking-wider ${isSuccess ? "text-[#D9A441]" : "text-red-400"}`}>
                   {refId}
@@ -170,7 +191,8 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body // Portal Target
   );
 };
 
@@ -246,10 +268,25 @@ export default function BookingSidebar({ tour = {} }) {
   const [submitting, setSubmitting] = useState(false);
   const [agreed, setAgreed] = useState(false);
 
+  // --- Strict Scroll Locking for Mobile Sidebar ---
   useEffect(() => {
-    if (open) document.body.style.overflow = "hidden";
-    else document.body.style.overflow = "unset";
-    return () => { document.body.style.overflow = "unset"; };
+    if (open) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+    };
   }, [open]);
 
   const [globalRates, setGlobalRates] = useState({
@@ -399,6 +436,7 @@ export default function BookingSidebar({ tour = {} }) {
     if (!form.travelDate) return alert("Please select a Journey Date");
     if (!form.name.trim()) return alert("Please enter your Name");
     if (!form.phone || form.phone.length !== 10) return alert("Please enter a valid 10-digit Phone Number");
+    if (!form.email.trim()) return alert("Please enter your Email");
     if (!agreed) return alert("Please agree to the Terms & Conditions");
 
     setSubmitting(true);
@@ -452,7 +490,7 @@ export default function BookingSidebar({ tour = {} }) {
       </div>
 
       <div className="space-y-3">
-        {/* Date Picker - Styles Updated to match Name Input */}
+        {/* Date Picker */}
         <div className="relative group">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
             <FaCalendarAlt className="text-[#D9A441] text-lg" />
@@ -460,15 +498,16 @@ export default function BookingSidebar({ tour = {} }) {
           <DatePicker
             selected={form.travelDate}
             onChange={(date) => handle("travelDate", date)}
+            onFocus={(e) => e.target.blur()} // Prevent Keyboard
             minDate={new Date()}
             placeholderText="Select Journey Date"
             dateFormat="dd MMM yyyy"
-            className="w-full pl-12 pr-4 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white font-medium outline-none transition-all text-base sm:text-sm backdrop-blur-sm cursor-pointer placeholder-gray-500"
+            className="w-full pl-12 pr-4 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white font-medium outline-none transition-all text-base sm:text-sm cursor-pointer placeholder-gray-500"
             calendarClassName="!bg-[#1e293b] !border-white/10 !text-white !font-sans !rounded-xl !shadow-2xl !p-3 custom-datepicker"
             dayClassName={() => "!text-gray-200 hover:!bg-[#D9A441] hover:!text-black !rounded-full"}
             monthClassName={() => "!text-[#D9A441] !font-bold"}
             weekDayClassName={() => "!text-gray-500"}
-            popperClassName="!z-[9999]"
+            popperClassName="!z-[99999]"
             wrapperClassName="w-full"
           />
           <style>{`
@@ -477,7 +516,7 @@ export default function BookingSidebar({ tour = {} }) {
                 .custom-datepicker .react-datepicker__day--selected { background-color: #D9A441 !important; color: black !important; font-weight: bold; }
                 .custom-datepicker .react-datepicker__day--keyboard-selected { background-color: rgba(217, 164, 65, 0.3) !important; color: white !important; }
                 .react-datepicker__triangle { display: none; }
-                .react-datepicker-popper { z-index: 1000 !important; }
+                .react-datepicker-popper { z-index: 100000 !important; }
             `}</style>
         </div>
 
@@ -485,7 +524,7 @@ export default function BookingSidebar({ tour = {} }) {
           type="text"
           value={form.name}
           onChange={(e) => handle("name", e.target.value)}
-          className="w-full px-4 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white placeholder-gray-500 outline-none transition-all text-base sm:text-sm backdrop-blur-sm"
+          className="w-full px-4 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white placeholder-gray-500 outline-none transition-all text-base sm:text-sm"
           placeholder="Full Name"
         />
 
@@ -497,7 +536,7 @@ export default function BookingSidebar({ tour = {} }) {
               value={form.phone}
               onChange={handlePhoneChange}
               maxLength={10}
-              className="w-full pl-14 pr-3 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white placeholder-gray-500 font-medium outline-none transition-all text-base sm:text-sm backdrop-blur-sm"
+              className="w-full pl-14 pr-3 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white placeholder-gray-500 font-medium outline-none transition-all text-base sm:text-sm"
               placeholder="Mobile Number"
             />
           </div>
@@ -505,8 +544,8 @@ export default function BookingSidebar({ tour = {} }) {
             type="email"
             value={form.email}
             onChange={(e) => handle("email", e.target.value)}
-            className="w-full sm:flex-[1.2] px-4 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white placeholder-gray-500 outline-none transition-all text-base sm:text-sm backdrop-blur-sm"
-            placeholder="Email (Optional)"
+            className="w-full sm:flex-[1.2] px-4 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white placeholder-gray-500 outline-none transition-all text-base sm:text-sm"
+            placeholder="Email"
           />
         </div>
       </div>
@@ -705,7 +744,6 @@ export default function BookingSidebar({ tour = {} }) {
       />
 
       <div className="hidden lg:block">
-        {/* Decreased blur for better desktop performance */}
         <div className="
           w-full p-6 rounded-3xl sticky top-24 
           bg-[#0f172a]/40 backdrop-blur-md
@@ -750,8 +788,8 @@ export default function BookingSidebar({ tour = {} }) {
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              // Reduced blur from 3xl to xl for smoother mobile scrolling
-              className="fixed bottom-0 left-0 right-0 z-[2001] bg-[#0f172a]/80 backdrop-blur-lg rounded-t-[2.5rem] border-t border-white/10 max-h-[85vh] overflow-y-auto shadow-2xl"
+              // Added overscroll-contain to stop pull-to-refresh / background scroll chaining
+              className="fixed bottom-0 left-0 right-0 z-[2001] bg-[#0f172a]/70 backdrop-blur-xl rounded-t-[2.5rem] border-t border-white/10 max-h-[85vh] overflow-y-auto shadow-2xl overscroll-contain"
             >
               <div className="sticky top-0 w-full flex justify-center pt-4 pb-2 z-10" onClick={() => setOpen(false)}>
                 <div className="w-12 h-1.5 rounded-full bg-white/20" />

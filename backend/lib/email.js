@@ -8,6 +8,14 @@ const getEmailTemplate = ({ title, message, booking, color = '#0891b2', showButt
   const refId = booking._id.toString().slice(-6).toUpperCase();
   const trackUrl = `https://hillway.in/status?refId=${refId}`;
   
+  // Calculate Amounts
+  const paidAmount = booking.paidAmount || 0;
+  const dueAmount = booking.totalPrice - paidAmount;
+
+  // Coupon Logic
+  const originalPrice = booking.originalPrice || booking.totalPrice;
+  const discount = originalPrice - booking.totalPrice;
+
   return `
     <!DOCTYPE html>
     <html>
@@ -35,37 +43,39 @@ const getEmailTemplate = ({ title, message, booking, color = '#0891b2', showButt
     <body>
       <div class="container">
         
+        <!-- HEADER -->
         <div class="header">
           <h1>${title}</h1>
           <div class="status-badge">#HW-${refId}</div>
         </div>
 
+        <!-- BODY -->
         <div class="content">
           <p class="greeting">Hi <strong>${booking.name}</strong>,</p>
           <div class="message">${message}</div>
 
+          <!-- BOOKING DETAILS -->
           <div class="card">
             <h3 class="card-title">Booking Details</h3>
-            <div style="width: 100%;">
-              <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                  <td style="padding: 5px 0; color: #6b7280;">Tour Package</td>
-                  <td style="padding: 5px 0; text-align: right; font-weight: 600;">${booking.tourTitle}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 5px 0; color: #6b7280;">Travel Date</td>
-                  <td style="padding: 5px 0; text-align: right; font-weight: 600;">${new Date(booking.travelDate).toLocaleDateString('en-IN', { dateStyle: 'long' })}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 5px 0; color: #6b7280;">Contact</td>
-                  <td style="padding: 5px 0; text-align: right; font-weight: 600;">${booking.phone}</td>
-                </tr>
-              </table>
-            </div>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 5px 0; color: #6b7280;">Tour Package</td>
+                <td style="padding: 5px 0; text-align: right; font-weight: 600;">${booking.tourTitle}</td>
+              </tr>
+              <tr>
+                <td style="padding: 5px 0; color: #6b7280;">Travel Date</td>
+                <td style="padding: 5px 0; text-align: right; font-weight: 600;">${new Date(booking.travelDate).toLocaleDateString('en-IN', { dateStyle: 'long' })}</td>
+              </tr>
+              <tr>
+                <td style="padding: 5px 0; color: #6b7280;">Contact</td>
+                <td style="padding: 5px 0; text-align: right; font-weight: 600;">${booking.phone}</td>
+              </tr>
+            </table>
           </div>
 
+          <!-- PRICE BREAKDOWN -->
           <div class="card" style="background-color: #ffffff;">
-            <h3 class="card-title">Price Breakdown</h3>
+            <h3 class="card-title">Payment Summary</h3>
             <table style="width: 100%; border-collapse: collapse;">
               <tr>
                 <td style="padding: 5px 0; color: #4b5563;">Adults (${booking.adults})</td>
@@ -76,13 +86,32 @@ const getEmailTemplate = ({ title, message, booking, color = '#0891b2', showButt
                 <td style="padding: 5px 0; color: #4b5563;">Children (${booking.children})</td>
                 <td style="padding: 5px 0; text-align: right;">-</td>
               </tr>` : ''}
+              
+              ${discount > 0 ? `
+              <tr>
+                <td style="padding: 5px 0; color: #16a34a;">Coupon Discount</td>
+                <td style="padding: 5px 0; text-align: right; color: #16a34a;">- ₹${discount.toLocaleString('en-IN')}</td>
+              </tr>` : ''}
+
               <tr>
                 <td style="padding-top: 12px; font-weight: 700; color: #111827; border-top: 1px dashed #e5e7eb;">Total Amount</td>
-                <td style="padding-top: 12px; font-weight: 700; color: #059669; text-align: right; border-top: 1px dashed #e5e7eb; font-size: 18px;">₹${booking.totalPrice.toLocaleString('en-IN')}</td>
+                <td style="padding-top: 12px; font-weight: 700; color: #111827; text-align: right; border-top: 1px dashed #e5e7eb; font-size: 16px;">₹${booking.totalPrice.toLocaleString('en-IN')}</td>
               </tr>
+              
+              ${booking.status === 'Confirmed' || booking.paymentType === 'Partial' ? `
+              <tr>
+                <td style="padding: 5px 0; color: #059669; font-weight: 600;">Amount Paid</td>
+                <td style="padding: 5px 0; text-align: right; color: #059669; font-weight: 600;">₹${paidAmount.toLocaleString('en-IN')}</td>
+              </tr>
+              <tr>
+                <td style="padding: 5px 0; color: #dc2626; font-weight: 600;">Amount Due</td>
+                <td style="padding: 5px 0; text-align: right; color: #dc2626; font-weight: 600;">₹${dueAmount.toLocaleString('en-IN')}</td>
+              </tr>
+              ` : ''}
             </table>
           </div>
 
+          <!-- CTA BUTTON -->
           ${showButton ? `
           <div class="btn-container">
             <a href="${trackUrl}" class="btn">Track Booking Status</a>
@@ -90,13 +119,14 @@ const getEmailTemplate = ({ title, message, booking, color = '#0891b2', showButt
           ` : ''}
 
           <p style="margin-top: 40px; font-size: 14px; color: #6b7280; text-align: center;">
-            Need help?contact <a href="mailto:support@hillway.in" style="color: ${color}">support@hillway.in</a>
+            Need help? Reply to this email or contact <a href="mailto:support@hillway.in" style="color: ${color}">support@hillway.in</a>
           </p>
         </div>
 
+        <!-- FOOTER -->
         <div class="footer">
           &copy; ${new Date().getFullYear()} HillWay Tours. All rights reserved.<br/>
-          Patna,Bihar
+          Sikkim, India
         </div>
       </div>
     </body>
@@ -106,9 +136,8 @@ const getEmailTemplate = ({ title, message, booking, color = '#0891b2', showButt
 
 // --- 1. SEND BOOKING RECEIVED EMAIL (INITIAL) ---
 export const sendBookingConfirmation = async (booking) => {
-  // Check API Key
   if (!process.env.RESEND_API_KEY) {
-    console.error("❌ RESEND_API_KEY is missing. Emails will not send.");
+    console.error("❌ RESEND_API_KEY is missing.");
     return;
   }
   if (!booking.email) return;
@@ -147,29 +176,22 @@ export const sendStatusUpdate = async (booking) => {
   const fromEmail = process.env.EMAIL_FROM || 'HillWay Tours <bookings@hillway.in>';
   const refId = booking._id.toString().slice(-6).toUpperCase();
   
-  // Logic for different statuses
   let title = 'Booking Status Update';
   let message = `The status of your booking has been updated to <strong>${booking.status}</strong>.`;
   let color = '#333';
   let subject = `Update: Booking #HW-${refId}`;
 
-  // CUSTOMIZE BASED ON STATUS
   if (booking.status === 'Confirmed') {
     title = 'Booking Confirmed! 🎉';
-    message = `Great news! Your booking for <strong>${booking.tourTitle}</strong> has been officially confirmed. We are excited to host you!`;
-    color = '#059669'; // Green for Success
+    message = `Great news! Your booking for <strong>${booking.tourTitle}</strong> has been officially confirmed.`;
+    color = '#059669'; // Green
     subject = `Booking Confirmed - #HW-${refId}`;
   } else if (booking.status === 'Cancelled') {
     title = 'Booking Cancelled';
     message = `We're sorry, but your booking for <strong>${booking.tourTitle}</strong> has been cancelled.`;
-    color = '#dc2626'; // Red for Cancelled
-  } else if (booking.status === 'Completed') {
-    title = 'Trip Completed 🏔️';
-    message = `We hope you had a wonderful trip to <strong>${booking.tourTitle}</strong>! Thank you for traveling with us.`;
-    color = '#7c3aed'; // Purple for Completed
+    color = '#dc2626'; // Red
   }
 
-  // Add Admin Note if exists
   if (booking.adminNotes) {
     message += `<br/><br/><strong>Note from Admin:</strong> <br/><em style="background:#fff3cd; padding:5px 10px; border-radius:4px; display:inline-block;">"${booking.adminNotes}"</em>`;
   }
@@ -179,7 +201,7 @@ export const sendStatusUpdate = async (booking) => {
       from: fromEmail,
       to: booking.email,
       subject: subject,
-      text: `Hi ${booking.name}, ${message.replace(/<[^>]*>?/gm, '')} Track: https://hillway.in/status?refId=${refId}`,
+      text: `Hi ${booking.name}, status updated to ${booking.status}. Track: https://hillway.in/status?refId=${refId}`,
       html: getEmailTemplate({
         title: title,
         message: message,
@@ -195,5 +217,32 @@ export const sendStatusUpdate = async (booking) => {
     console.log(`✅ Status Update email sent to ${booking.email}`);
   } catch (err) {
     console.error("❌ Unexpected Email Error:", err);
+  }
+};
+
+// --- 3. SEND ADMIN ALERT ---
+export const sendAdminNewBookingAlert = async (booking) => {
+  if (!process.env.RESEND_API_KEY) return;
+
+  const adminEmail = 'admin@hillway.in';
+  const fromEmail = process.env.EMAIL_FROM || 'HillWay Tours <bookings@hillway.in>';
+
+  try {
+    await resend.emails.send({
+      from: fromEmail,
+      to: adminEmail,
+      subject: `🔔 New Booking: ${booking.name} (${booking.tourTitle})`,
+      text: `New Booking Received!\n\nName: ${booking.name}\nPhone: ${booking.phone}\nPackage: ${booking.tourTitle}\nTotal: ₹${booking.totalPrice}\n\nLogin to Admin Panel to confirm.`,
+      html: getEmailTemplate({
+        title: 'New Booking Alert!',
+        message: `You have received a new booking request from <strong>${booking.name}</strong>.`,
+        booking,
+        color: '#d97706',
+        isAdmin: true
+      })
+    });
+    console.log(`✅ Admin Alert sent to ${adminEmail}`);
+  } catch (err) {
+    console.error("❌ Admin Email Failed:", err);
   }
 };

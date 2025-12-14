@@ -5,7 +5,7 @@ import Agent from '@/models/Agent';
 import { NextResponse } from 'next/server';
 
 // Email Functions
-import { sendBookingConfirmation, sendStatusUpdate } from '@/lib/email';
+import { sendBookingConfirmation, sendStatusUpdate, sendAdminNewBookingAlert } from '@/lib/email';
 
 // ---------------------------------------------------------
 // POST: Create Booking
@@ -34,9 +34,12 @@ export async function POST(request) {
 
     // FIX: Added 'await' to ensure email sends before function closes
     try {
-      await sendBookingConfirmation(booking);
+      await Promise.all([
+        sendBookingConfirmation(booking),
+        sendAdminNewBookingAlert(booking)
+      ]);
     } catch (emailError) {
-      console.error("Failed to send confirmation email:", emailError);
+      console.error("Failed to send emails:", emailError);
       // Continue execution - don't fail the booking just because email failed
     }
 

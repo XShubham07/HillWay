@@ -155,7 +155,6 @@ export default function Destinations() {
     }
   };
 
-  // Handle category change with auto-scroll
   const handleCategoryChange = (cat) => {
     setActiveCategory(cat);
     if (categoryRefs.current[cat]) {
@@ -167,7 +166,6 @@ export default function Destinations() {
     }
   };
 
-  // Handle tab change with auto-scroll
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     if (tabRefs.current[tab]) {
@@ -179,12 +177,18 @@ export default function Destinations() {
     }
   };
 
+  // --- NEW REDIRECT LOGIC ---
+  const handleExploreRedirect = () => {
+    // If viewing "All", send "All". If viewing specific, send that region.
+    const targetLocation = activeCategory === "All" ? "All" : currentDest.region;
+    navigate('/tours', { state: { location: targetLocation } });
+  };
+
   return (
     <div className="min-h-screen bg-[#022c22] text-white font-sans selection:bg-[#D9A441] selection:text-black pb-20">
       
       <div className="relative z-10 pt-20 lg:pt-32 container mx-auto px-4 max-w-[1400px]">
 
-         {/* MAIN VIEW TOGGLE */}
          <div className="flex justify-center mb-6">
             <div className="bg-white/5 p-1.5 rounded-full flex gap-1 border border-white/10 shadow-2xl">
                <button 
@@ -202,10 +206,8 @@ export default function Destinations() {
             </div>
          </div>
 
-         {/* VIEW 1: DESTINATIONS DASHBOARD */}
          {mainView === "destinations" && (
            <>
-             {/* FIXED CATEGORY BAR */}
              <div className="sticky top-[64px] z-50 bg-[#022c22] py-4 -mx-4 px-4 mb-6 border-b border-white/10 shadow-2xl">
                 <div className="flex gap-3 md:gap-4 overflow-x-auto overflow-y-hidden scrollbar-hide scroll-smooth">
                    {CATEGORIES.map(cat => (
@@ -226,7 +228,6 @@ export default function Destinations() {
              </div>
 
              <div className="flex flex-col lg:flex-row gap-8">
-                {/* LIST SIDEBAR */}
                 <div 
                   className="w-full lg:w-[350px] shrink-0 flex flex-col h-[auto] lg:h-[calc(100vh-200px)] lg:sticky lg:top-44"
                 >
@@ -262,10 +263,8 @@ export default function Destinations() {
                    </div>
                 </div>
 
-                {/* CONTENT */}
                 <div ref={contentRef} className="flex-1 bg-[#022c22]/80 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl min-h-[800px] flex flex-col relative">
                    
-                   {/* Hero */}
                    <div className="relative h-[350px] lg:h-[450px] shrink-0 bg-emerald-900">
                       <PremiumImage src={currentDest.img} alt={currentDest.name} className="absolute inset-0 w-full h-full" />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#022c22] via-[#022c22]/40 to-transparent" />
@@ -280,50 +279,19 @@ export default function Destinations() {
                       </div>
                    </div>
 
-                   {/* Stats */}
                    <div className="grid grid-cols-3 border-y border-white/10 bg-black/20 divide-x divide-white/10">
                       <div className="p-5 text-center"><p className="text-emerald-200 text-[10px] uppercase font-bold mb-1"><FaMountain className="inline mr-1 text-[#D9A441]"/> Elevation</p><p className="text-white font-bold text-lg">{currentDest.stats.alt}</p></div>
                       <div className="p-5 text-center"><p className="text-emerald-200 text-[10px] uppercase font-bold mb-1"><FaCloudSun className="inline mr-1 text-[#D9A441]"/> Weather</p><p className="text-white font-bold text-lg">{currentDest.stats.temp}</p></div>
                       <div className="p-5 text-center"><p className="text-emerald-200 text-[10px] uppercase font-bold mb-1"><FaClock className="inline mr-1 text-[#D9A441]"/> Best Time</p><p className="text-white font-bold text-lg">{currentDest.stats.best}</p></div>
                    </div>
 
-                   {/* Tabs Content */}
                    <div className="p-6 lg:p-12 flex-1">
-                      {/* HORIZONTAL SCROLLABLE TABS WITH AUTO-SCROLL */}
                       <div className="mb-10 border-b border-white/10 pb-6 -mx-6 px-6 lg:mx-0 lg:px-0">
                         <div className="flex gap-3 overflow-x-auto overflow-y-hidden scrollbar-hide scroll-smooth snap-x snap-mandatory">
-                          <TabButton 
-                            active={activeTab} 
-                            id="guide" 
-                            label="Tour Guide" 
-                            icon={<FaInfoCircle />} 
-                            onClick={() => handleTabChange('guide')}
-                            buttonRef={el => tabRefs.current['guide'] = el}
-                          />
-                          <TabButton 
-                            active={activeTab} 
-                            id="attractions" 
-                            label="Attractions" 
-                            icon={<FaMapMarkerAlt />} 
-                            onClick={() => handleTabChange('attractions')}
-                            buttonRef={el => tabRefs.current['attractions'] = el}
-                          />
-                          <TabButton 
-                            active={activeTab} 
-                            id="todo" 
-                            label="Things To Do" 
-                            icon={<FaHiking />} 
-                            onClick={() => handleTabChange('todo')}
-                            buttonRef={el => tabRefs.current['todo'] = el}
-                          />
-                          <TabButton 
-                            active={activeTab} 
-                            id="reach" 
-                            label="How to Reach" 
-                            icon={<FaPlane />} 
-                            onClick={() => handleTabChange('reach')}
-                            buttonRef={el => tabRefs.current['reach'] = el}
-                          />
+                          <TabButton active={activeTab} id="guide" label="Tour Guide" icon={<FaInfoCircle />} onClick={() => handleTabChange('guide')} buttonRef={el => tabRefs.current['guide'] = el} />
+                          <TabButton active={activeTab} id="attractions" label="Attractions" icon={<FaMapMarkerAlt />} onClick={() => handleTabChange('attractions')} buttonRef={el => tabRefs.current['attractions'] = el} />
+                          <TabButton active={activeTab} id="todo" label="Things To Do" icon={<FaHiking />} onClick={() => handleTabChange('todo')} buttonRef={el => tabRefs.current['todo'] = el} />
+                          <TabButton active={activeTab} id="reach" label="How to Reach" icon={<FaPlane />} onClick={() => handleTabChange('reach')} buttonRef={el => tabRefs.current['reach'] = el} />
                         </div>
                       </div>
 
@@ -372,7 +340,7 @@ export default function Destinations() {
                       </div>
                       
                       <div className="mt-16 pt-8 border-t border-white/10 flex justify-center">
-                         <button onClick={() => navigate('/tours')} className="group flex items-center gap-4 px-12 py-5 bg-gradient-to-r from-[#D9A441] to-yellow-500 hover:from-[#c29032] hover:to-yellow-400 text-black font-black text-xl rounded-full shadow-[0_0_40px_rgba(217,164,65,0.3)] transition-all transform hover:scale-105 active:scale-95">
+                         <button onClick={handleExploreRedirect} className="group flex items-center gap-4 px-12 py-5 bg-gradient-to-r from-[#D9A441] to-yellow-500 hover:from-[#c29032] hover:to-yellow-400 text-black font-black text-xl rounded-full shadow-[0_0_40px_rgba(217,164,65,0.3)] transition-all transform hover:scale-105 active:scale-95">
                            Explore Packages <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
                          </button>
                       </div>
@@ -382,7 +350,6 @@ export default function Destinations() {
            </>
          )}
 
-         {/* VIEW 2: ALL ATTRACTIONS */}
          {mainView === "all-attractions" && (
             <div className="space-y-24 pb-20">
                {DESTINATION_DATA.map((dest) => (

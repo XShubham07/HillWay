@@ -12,7 +12,7 @@
   --primary-darker: #b08629;
   --primary-light: #e5b558;
   --primary-glow: rgba(217, 164, 65, 0.3);
-  
+
   /* Dark Green Background */
   --dark: #022c22;
   --dark-light: #0a3d32;
@@ -21,23 +21,26 @@
 }
 
 /* =========================================================
-   2. DARK GREEN BACKGROUND (MATCHING HOME.JSX)
+   2. DARK GREEN BACKGROUND & BASE SETUP
    ========================================================= */
 html {
   width: 100%;
-  min-height: 100vh;
-  min-height: -webkit-fill-available;
+  height: 100%;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
   overscroll-behavior-y: none;
-  -webkit-overflow-scrolling: touch;
-  background: #022c22;
+  background: var(--dark);
+  
+  /* Modern scrollbar support (Firefox) */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(217, 164, 65, 0.6) rgba(0, 0, 0, 0.3);
 }
 
 body {
   width: 100%;
   min-height: 100vh;
+  /* iOS Safari height fix */
   min-height: -webkit-fill-available;
   margin: 0;
   padding: 0;
@@ -45,11 +48,8 @@ body {
   overscroll-behavior: none;
   position: relative;
 
-  /* Solid dark green base matching Home.jsx */
-  background: #022c22;
-  background-attachment: fixed;
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
+  /* Solid dark green base */
+  background-color: var(--dark);
   color: #fff;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-tap-highlight-color: transparent;
@@ -60,12 +60,11 @@ body {
 #root {
   width: 100%;
   min-height: 100vh;
-  min-height: -webkit-fill-available;
   position: relative;
-  z-index: 1;
+  z-index: 1; /* Ensures content sits above background layers */
 }
 
-/* Gold accent radial gradients (subtle) */
+/* Gold accent radial gradients (subtle background) */
 body::before {
   content: "";
   position: fixed;
@@ -77,7 +76,7 @@ body::before {
     radial-gradient(circle at 50% 0%, rgba(217, 164, 65, 0.15) 0%, transparent 60%),
     radial-gradient(circle at 100% 30%, rgba(31, 79, 60, 0.15) 0%, transparent 50%),
     radial-gradient(circle at 0% 60%, rgba(8, 145, 178, 0.1) 0%, transparent 50%);
-  z-index: 0;
+  z-index: -2; /* Pushed to back */
   pointer-events: none;
   opacity: 0.8;
 }
@@ -93,19 +92,8 @@ body::after {
   background-image: url('https://grainy-gradients.vercel.app/noise.svg');
   opacity: 0.04;
   mix-blend-mode: overlay;
-  z-index: 0;
+  z-index: -1; /* Above gradient, below content */
   pointer-events: none;
-}
-
-/* iOS Safari fix */
-@supports (-webkit-touch-callout: none) {
-  html,
-  body,
-  #root {
-    height: 100%;
-    min-height: 100%;
-    min-height: -webkit-fill-available;
-  }
 }
 
 /* Mobile optimizations */
@@ -119,17 +107,19 @@ body::after {
 @media (prefers-reduced-motion: reduce) {
   body::before {
     animation: none;
+    transition: none;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
 /* =========================================================
-   3. CUSTOM SCROLLBAR - GOLD THEME
+   3. CUSTOM SCROLLBAR - GOLD THEME (Webkit)
    ========================================================= */
-html {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(217, 164, 65, 0.6) rgba(0, 0, 0, 0.3);
-}
-
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -137,13 +127,13 @@ html {
 
 ::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.3);
-  border-radius: 10px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%);
-  border-radius: 10px;
-  border: 2px solid rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -151,8 +141,8 @@ html {
 }
 
 .scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 .scrollbar-hide::-webkit-scrollbar {
@@ -175,18 +165,13 @@ html {
   color: white;
 }
 
-::-moz-selection {
-  background: var(--primary);
-  color: white;
-}
-
 /* =========================================================
    5. NAVBAR - PREMIUM GOLD
    ========================================================= */
 .navbar-clean {
   background: rgba(2, 44, 34, 0.85);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
   border-bottom: 1px solid rgba(217, 164, 65, 0.2);
   box-shadow:
     0 4px 20px rgba(0, 0, 0, 0.3),
@@ -197,6 +182,8 @@ html {
 .navbar-clean.scrolled {
   background: rgba(2, 44, 34, 0.95);
   border-bottom: 1px solid rgba(217, 164, 65, 0.3);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .nav-link-clean {
@@ -204,15 +191,15 @@ html {
   border-radius: 0.75rem;
   font-weight: 600;
   color: #e2e8f0;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   position: relative;
+  overflow: hidden;
 }
 
 .nav-link-clean::before {
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: 0.75rem;
   background: linear-gradient(135deg, var(--primary), var(--accent));
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -220,124 +207,80 @@ html {
 }
 
 .nav-link-clean:hover::before {
-  opacity: 0.2;
+  opacity: 0.15;
 }
 
 .nav-link-clean:hover {
   color: var(--primary-light);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .nav-link-clean.active {
-  background: linear-gradient(135deg, rgba(217, 164, 65, 0.25), rgba(255, 215, 0, 0.2));
+  background: rgba(217, 164, 65, 0.15);
   color: var(--accent);
-  border: 1px solid rgba(217, 164, 65, 0.4);
+  border: 1px solid rgba(217, 164, 65, 0.3);
 }
 
 /* =========================================================
    6. GLASS CARDS - PREMIUM GOLD
    ========================================================= */
 .glass-card {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(217, 164, 65, 0.1) inset,
-    0 20px 60px rgba(217, 164, 65, 0.08);
+    0 4px 24px -1px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(217, 164, 65, 0.05) inset;
   border-radius: 24px;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .glass-card:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(217, 164, 65, 0.4);
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(217, 164, 65, 0.3);
   box-shadow:
-    0 12px 48px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(217, 164, 65, 0.3) inset,
-    0 0 60px rgba(217, 164, 65, 0.15);
+    0 20px 40px -5px rgba(0, 0, 0, 0.4),
+    0 0 30px rgba(217, 164, 65, 0.1);
+  transform: translateY(-4px);
 }
 
 .glass-card-strong {
-  background: rgba(2, 44, 34, 0.6);
+  background: rgba(2, 44, 34, 0.75);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(217, 164, 65, 0.25);
+  border: 1px solid rgba(217, 164, 65, 0.2);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    0 0 40px rgba(217, 164, 65, 0.15);
+    0 10px 30px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(217, 164, 65, 0.1);
 }
 
 .accent-gradient {
   background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
 }
 
-.accent-gradient-reverse {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
-}
-
 /* =========================================================
-   7. MOBILE OPTIMIZATIONS
-   ========================================================= */
-@media (hover: hover) and (pointer: fine) {
-  .tour-card-mobile:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow:
-      0 20px 40px rgba(0, 0, 0, 0.4),
-      0 0 60px rgba(217, 164, 65, 0.25);
-  }
-
-  .glass-card:hover {
-    transform: translateY(-4px);
-  }
-}
-
-@media (hover: none) and (pointer: coarse) {
-  .glass-card {
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-  }
-
-  button,
-  a {
-    touch-action: manipulation;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* =========================================================
-   8. PREMIUM BUTTONS & UTILITIES
+   7. BUTTONS & INTERACTIVE ELEMENTS
    ========================================================= */
 .btn-premium {
   background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-  color: black;
+  color: #022c22; /* Dark text on gold button for readability */
   font-weight: 700;
   padding: 0.75rem 1.5rem;
   border-radius: 9999px;
   border: none;
-  box-shadow:
-    0 4px 20px rgba(217, 164, 65, 0.4),
-    0 0 40px rgba(255, 215, 0, 0.25);
+  box-shadow: 0 4px 15px rgba(217, 164, 65, 0.3);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-premium:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow:
-    0 8px 30px rgba(217, 164, 65, 0.5),
-    0 0 60px rgba(255, 215, 0, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 25px rgba(217, 164, 65, 0.5),
+    0 0 10px rgba(255, 215, 0, 0.2);
 }
 
 .btn-premium:active {
@@ -348,80 +291,71 @@ html {
   background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   -webkit-background-clip: text;
   background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -1000px 0;
-  }
-  100% {
-    background-position: 1000px 0;
-  }
-}
-
-.shimmer:hover {
-  animation: shimmer 2s infinite linear;
-  background: linear-gradient(to right,
-      transparent 0%,
-      rgba(255, 255, 255, 0.25) 50%,
-      transparent 100%);
-  background-size: 1000px 100%;
-}
-
-@keyframes pulse-glow {
-  0%,
-  100% {
-    box-shadow: 0 0 15px rgba(217, 164, 65, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
-  }
-}
-
-.pulse-glow {
-  animation: pulse-glow 3s ease-in-out infinite;
-}
-
-.skeleton {
-  background: linear-gradient(90deg,
-      rgba(255, 255, 255, 0.04) 25%,
-      rgba(255, 255, 255, 0.1) 50%,
-      rgba(255, 255, 255, 0.04) 75%);
-  background-size: 200% 100%;
-  animation: loading 1.5s ease-in-out infinite;
-}
-
-@keyframes loading {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-@supports not (backdrop-filter: blur(12px)) {
-  .glass-card {
-    background: rgba(2, 44, 34, 0.75);
-  }
-
-  .navbar-clean {
-    background: rgba(2, 44, 34, 0.95);
-  }
+  color: transparent;
 }
 
 /* =========================================================
-   9. PERFORMANCE
+   8. ANIMATIONS & EFFECTS
    ========================================================= */
-.gpu-accelerate {
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  perspective: 1000px;
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
-* {
-  box-sizing: border-box;
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transform: skewX(-20deg);
+  animation: shimmer 2s infinite;
+  pointer-events: none;
+}
+
+.skeleton {
+  background: #0a3d32;
+  background-image: linear-gradient(
+    90deg, 
+    #0a3d32 0px, 
+    #134e40 40px, 
+    #0a3d32 80px
+  );
+  background-size: 600px;
+  animation: skeleton-loading 2s infinite ease-out;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: -100px; }
+  100% { background-position: 100% 0; }
+}
+
+/* =========================================================
+   9. PERFORMANCE & FALLBACKS
+   ========================================================= */
+.gpu-accelerate {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Fallback for browsers without backdrop-filter support */
+@supports not (backdrop-filter: blur(12px)) {
+  .glass-card, .navbar-clean {
+    background: rgba(2, 44, 34, 0.95);
+  }
 }
 
 img {
@@ -432,5 +366,5 @@ img {
 
 .prevent-shift {
   content-visibility: auto;
-  contain-intrinsic-size: auto 500px;
+  contain-intrinsic-size: 1px 500px; /* Provides estimate to prevent jumping */
 }
