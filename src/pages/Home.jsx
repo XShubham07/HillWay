@@ -7,33 +7,20 @@ import PackageGrid from "../components/PackageGrid";
 import Features from "../components/Features";
 import ReviewsCarousel from "../components/ReviewsCarousel";
 import { FaArrowRight, FaStar, FaMapMarkerAlt } from "react-icons/fa";
+import { DESTINATION_DATA } from "../data/destinationsData";
 
-const HIGHLIGHT_DESTINATIONS = [
-  {
-    id: 1,
-    name: "Gangtok",
-    tag: "Sikkim Capital",
-    desc: "Monasteries meet modern culture in mountain mist",
-    img: "/g1.webp",
-    stats: { tours: 12, rating: 4.8 },
+// Import top 3 destinations from destination data
+const HIGHLIGHT_DESTINATIONS = DESTINATION_DATA.slice(0, 3).map((dest) => ({
+  id: dest.id,
+  name: dest.name,
+  tag: dest.tagline,
+  desc: dest.overview.slice(0, 60) + "...",
+  img: dest.img,
+  stats: {
+    tours: dest.attractions.length,
+    rating: 4.8,
   },
-  {
-    id: 2,
-    name: "Lachung",
-    tag: "Alpine Paradise",
-    desc: "Gateway to mystical Yumthang Valley blooms",
-    img: "/g4.webp",
-    stats: { tours: 8, rating: 4.9 },
-  },
-  {
-    id: 3,
-    name: "Darjeeling",
-    tag: "Queen of Hills",
-    desc: "Heritage toy train through tea gardens",
-    img: "/g2.webp",
-    stats: { tours: 15, rating: 4.7 },
-  },
-];
+}));
 
 /* ---------------------------
    Premium heading animation
@@ -74,6 +61,66 @@ const underline = {
     transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1], delay: 0.12 },
   },
 };
+
+// Animated Destination Heading Component
+function AnimatedDestinationHeading() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const destinations = DESTINATION_DATA.map(d => d.name);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % destinations.length);
+    }, 2500); // Change every 2.5 seconds
+
+    return () => clearInterval(interval);
+  }, [destinations.length]);
+
+  return (
+    <motion.div
+      variants={headingWrap}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: "-120px" }}
+      className="mb-6 md:mb-10"
+      style={{ willChange: "transform, opacity" }}
+    >
+      <motion.div variants={subPop} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-500/20 border border-yellow-500/30 mb-3">
+        <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
+        <span className="text-xs font-bold uppercase tracking-wider">Explore The Unseen</span>
+      </motion.div>
+
+      <motion.h2
+        variants={titlePop}
+        className="font-title text-4xl md:text-5xl font-black mb-2 leading-tight"
+        style={{ willChange: "transform, opacity" }}
+      >
+        <span className="bg-gradient-to-r from-yellow-400 to-[#D9A441] bg-clip-text text-transparent">
+          Show All{" "}
+        </span>
+        <motion.span
+          key={currentIndex}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.5 }}
+          className="inline-block bg-gradient-to-r from-yellow-400 to-[#D9A441] bg-clip-text text-transparent font-black"
+        >
+          {destinations[currentIndex]}
+        </motion.span>
+        <span className="text-yellow-400"> • • •</span>
+      </motion.h2>
+
+      <motion.div
+        variants={underline}
+        className="origin-left h-[3px] w-16 md:w-20 rounded-full bg-gradient-to-r from-[#D9A441] to-yellow-400 mb-3"
+      />
+
+      <motion.p variants={subPop} className="text-gray-300 text-base md:text-lg">
+        Discover breathtaking landscapes and hidden gems
+      </motion.p>
+    </motion.div>
+  );
+}
 
 function SectionHeading({
   badgeClass,
@@ -236,14 +283,7 @@ export default function Home() {
         {/* Destinations Section (reduced gaps) */}
         <section className="pt-10 pb-6 md:py-16 px-4 md:px-6">
           <div className="max-w-7xl mx-auto">
-            <SectionHeading
-              badgeClass="bg-yellow-500/20 border border-yellow-500/30"
-              dotClass="bg-yellow-400"
-              badgeText="Explore The Unseen"
-              title="Iconic Destinations"
-              titleGradientClass="from-yellow-400 to-[#D9A441]"
-              subTitle="Discover breathtaking landscapes and hidden gems"
-            />
+            <AnimatedDestinationHeading />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-6 md:mb-8">
               {HIGHLIGHT_DESTINATIONS.map((dest, index) => (
@@ -259,7 +299,7 @@ export default function Home() {
             >
               <button
                 onClick={() => navigate("/destinations")}
-                className="px-7 py-3 rounded-full bg-white/10 border border-white/30 hover:border-yellow-500/50 text-white font-semibold hover:bg-white/20 transition-all duration-300 flex items-center gap-2"
+                className="px-7 py-3 rounded-full bg-gradient-to-r from-[#D9A441] to-yellow-500 text-black font-bold hover:shadow-lg hover:shadow-[#D9A441]/30 transition-all duration-300 flex items-center gap-2"
               >
                 View All Destinations
                 <FaArrowRight className="text-xs" />
