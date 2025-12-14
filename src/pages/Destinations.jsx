@@ -27,10 +27,10 @@ const PremiumImage = memo(({ src, alt, className }) => {
   }, [src]);
 
   return (
-    <div className={`relative overflow-hidden bg-slate-800 ${className}`}>
+    <div className={`relative overflow-hidden bg-emerald-900 ${className}`}>
       {/* Skeleton Pulse */}
       <div 
-        className={`absolute inset-0 bg-slate-700 animate-pulse transition-opacity duration-500 ${isLoaded ? 'opacity-0' : 'opacity-100'}`} 
+        className={`absolute inset-0 bg-emerald-800 animate-pulse transition-opacity duration-500 ${isLoaded ? 'opacity-0' : 'opacity-100'}`} 
       />
       
       {/* Actual Image */}
@@ -83,13 +83,13 @@ const AttractionCard = ({ attr }) => (
 );
 
 const TodoCard = ({ item }) => (
-  <div className="flex gap-5 bg-[#1e293b] p-6 rounded-2xl border border-white/10 hover:border-[#D9A441]/50 transition-colors group h-full">
+  <div className="flex gap-5 bg-[#022c22] p-6 rounded-2xl border border-white/10 hover:border-[#D9A441]/50 transition-colors group h-full">
      <div className="w-14 h-14 rounded-full bg-black/40 flex items-center justify-center text-[#D9A441] text-2xl shrink-0 group-hover:rotate-12 transition-transform duration-300 border border-white/5">
         {item.icon}
      </div>
      <div>
         <h5 className="text-lg font-bold text-white mb-2">{item.text}</h5>
-        <p className="text-sm text-gray-400 leading-relaxed">{item.detail}</p>
+        <p className="text-sm text-gray-200 leading-relaxed">{item.detail}</p>
      </div>
   </div>
 );
@@ -109,17 +109,17 @@ const GroupedAttractionRow = ({ dest }) => (
     
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {dest.attractions.map((attr, idx) => (
-        <div key={idx} className="bg-[#1e293b] rounded-2xl overflow-hidden border border-white/10 hover:border-[#D9A441]/50 transition-all group hover:-translate-y-1 duration-300 shadow-xl">
+        <div key={idx} className="bg-[#022c22] rounded-2xl overflow-hidden border border-white/10 hover:border-[#D9A441]/50 transition-all group hover:-translate-y-1 duration-300 shadow-xl">
           <div className="h-48 relative">
             <PremiumImage src={attr.img} alt={attr.name} className="w-full h-full" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#1e293b] via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#022c22] via-transparent to-transparent" />
             <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-bold text-white border border-white/10 uppercase tracking-wider">
               {attr.type}
             </span>
           </div>
           <div className="p-5 relative">
             <h4 className="text-lg font-bold text-white mb-2 group-hover:text-[#D9A441] transition-colors">{attr.name}</h4>
-            <p className="text-gray-400 text-xs leading-relaxed line-clamp-3">{attr.desc}</p>
+            <p className="text-gray-200 text-xs leading-relaxed line-clamp-3">{attr.desc}</p>
           </div>
         </div>
       ))}
@@ -163,7 +163,7 @@ export default function Destinations() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-white font-sans selection:bg-[#D9A441] selection:text-black pb-20">
+    <div className="min-h-screen bg-[#022c22] text-white font-sans selection:bg-[#D9A441] selection:text-black pb-20">
       
       <div className="relative z-10 pt-28 lg:pt-32 container mx-auto px-4 max-w-[1400px]">
 
@@ -188,7 +188,7 @@ export default function Destinations() {
          {/* VIEW 1: DESTINATIONS DASHBOARD */}
          {mainView === "destinations" && (
            <>
-             <div className="sticky top-20 z-40 bg-[#0f172a]/95 py-4 -mx-4 px-4 mb-8 border-b border-white/10 shadow-xl backdrop-blur-md">
+             <div className="sticky top-20 z-40 bg-[#022c22]/95 py-4 -mx-4 px-4 mb-8 border-b border-white/10 shadow-xl backdrop-blur-md">
                 <div className="flex justify-start lg:justify-center overflow-x-auto no-scrollbar gap-3 md:gap-4">
                    {CATEGORIES.map(cat => (
                       <button
@@ -224,11 +224,11 @@ export default function Destinations() {
                           onClick={() => handleDestChange(dest.id)}
                           className={`flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all duration-200 border min-w-[280px] lg:min-w-0 ${
                             selectedId === dest.id 
-                              ? 'bg-[#1e293b] border-[#D9A441]/50 shadow-xl scale-[1.02] ring-1 ring-[#D9A441]/20' 
+                              ? 'bg-[#022c22] border-[#D9A441]/50 shadow-xl scale-[1.02] ring-1 ring-[#D9A441]/20' 
                               : 'bg-white/5 border-transparent hover:bg-white/10 opacity-80 hover:opacity-100'
                           }`}
                         >
-                           <div className="w-16 h-16 rounded-xl overflow-hidden shadow-md shrink-0 bg-slate-800">
+                           <div className="w-16 h-16 rounded-xl overflow-hidden shadow-md shrink-0 bg-emerald-900">
                               <PremiumImage src={dest.img} alt={dest.name} className="w-full h-full" />
                            </div>
                            <div className="flex-1 min-w-0">
@@ -242,12 +242,12 @@ export default function Destinations() {
                 </div>
 
                 {/* CONTENT */}
-                <div ref={contentRef} className="flex-1 bg-[#1e293b]/50 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl min-h-[800px] flex flex-col relative">
+                <div ref={contentRef} className="flex-1 bg-[#022c22]/80 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl min-h-[800px] flex flex-col relative">
                    
                    {/* Hero */}
-                   <div className="relative h-[350px] lg:h-[450px] shrink-0 bg-slate-900">
+                   <div className="relative h-[350px] lg:h-[450px] shrink-0 bg-emerald-900">
                       <PremiumImage src={currentDest.img} alt={currentDest.name} className="absolute inset-0 w-full h-full" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#1e293b] via-[#1e293b]/30 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#022c22] via-[#022c22]/40 to-transparent" />
                       <div className="absolute bottom-0 left-0 w-full p-8 lg:p-12">
                          <div className="flex gap-2 mb-4">
                            <span className="px-3 py-1 bg-black/40 backdrop-blur-md border border-white/10 text-[#D9A441] text-[10px] font-black uppercase tracking-widest rounded-md">
@@ -255,15 +255,15 @@ export default function Destinations() {
                            </span>
                          </div>
                          <h1 className="text-5xl lg:text-8xl font-black text-white mb-2 tracking-tight drop-shadow-xl">{currentDest.name}</h1>
-                         <p className="text-xl lg:text-2xl text-gray-200 font-light italic">{currentDest.tagline}</p>
+                         <p className="text-xl lg:text-2xl text-emerald-100 font-light italic">{currentDest.tagline}</p>
                       </div>
                    </div>
 
                    {/* Stats */}
                    <div className="grid grid-cols-3 border-y border-white/10 bg-black/20 divide-x divide-white/10">
-                      <div className="p-5 text-center"><p className="text-gray-500 text-[10px] uppercase font-bold mb-1"><FaMountain className="inline mr-1 text-[#D9A441]"/> Elevation</p><p className="text-white font-bold text-lg">{currentDest.stats.alt}</p></div>
-                      <div className="p-5 text-center"><p className="text-gray-500 text-[10px] uppercase font-bold mb-1"><FaCloudSun className="inline mr-1 text-[#D9A441]"/> Weather</p><p className="text-white font-bold text-lg">{currentDest.stats.temp}</p></div>
-                      <div className="p-5 text-center"><p className="text-gray-500 text-[10px] uppercase font-bold mb-1"><FaClock className="inline mr-1 text-[#D9A441]"/> Best Time</p><p className="text-white font-bold text-lg">{currentDest.stats.best}</p></div>
+                      <div className="p-5 text-center"><p className="text-emerald-200 text-[10px] uppercase font-bold mb-1"><FaMountain className="inline mr-1 text-[#D9A441]"/> Elevation</p><p className="text-white font-bold text-lg">{currentDest.stats.alt}</p></div>
+                      <div className="p-5 text-center"><p className="text-emerald-200 text-[10px] uppercase font-bold mb-1"><FaCloudSun className="inline mr-1 text-[#D9A441]"/> Weather</p><p className="text-white font-bold text-lg">{currentDest.stats.temp}</p></div>
+                      <div className="p-5 text-center"><p className="text-emerald-200 text-[10px] uppercase font-bold mb-1"><FaClock className="inline mr-1 text-[#D9A441]"/> Best Time</p><p className="text-white font-bold text-lg">{currentDest.stats.best}</p></div>
                    </div>
 
                    {/* Tabs Content */}
@@ -281,7 +281,7 @@ export default function Destinations() {
                             <motion.div key="guide" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-10">
                               <div>
                                 <SectionHeading title={`About ${currentDest.name}`} icon={<FaInfoCircle />} />
-                                <p className="text-gray-300 text-lg leading-loose font-light border-l-4 border-[#D9A441] pl-6 bg-white/5 p-6 rounded-r-2xl shadow-inner">{currentDest.overview}</p>
+                                <p className="text-emerald-50 text-lg leading-loose font-light border-l-4 border-[#D9A441] pl-6 bg-emerald-900/40 p-6 rounded-r-2xl shadow-inner">{currentDest.overview}</p>
                               </div>
                             </motion.div>
                           )}
@@ -309,9 +309,9 @@ export default function Destinations() {
                                   { mode: 'By Train', icon: <FaTrain />, desc: currentDest.howToReach.rail, color: 'text-orange-400', bg: 'bg-orange-500/20' },
                                   { mode: 'By Road', icon: <FaCar />, desc: currentDest.howToReach.road, color: 'text-green-400', bg: 'bg-green-500/20' }
                                ].map((item, i) => (
-                                 <div key={i} className="bg-[#0f172a] p-8 rounded-2xl border border-white/10 flex gap-6 items-start hover:border-white/20 transition-colors">
+                                 <div key={i} className="bg-[#022c22] p-8 rounded-2xl border border-white/10 flex gap-6 items-start hover:border-white/20 transition-colors">
                                     <div className={`w-16 h-16 rounded-2xl ${item.bg} flex items-center justify-center ${item.color} text-2xl shrink-0`}>{item.icon}</div>
-                                    <div><h4 className="text-xl font-bold text-white mb-2">{item.mode}</h4><p className="text-gray-400 text-base leading-relaxed">{item.desc}</p></div>
+                                    <div><h4 className="text-xl font-bold text-white mb-2">{item.mode}</h4><p className="text-emerald-50 text-base leading-relaxed">{item.desc}</p></div>
                                  </div>
                                ))}
                             </motion.div>
@@ -320,7 +320,7 @@ export default function Destinations() {
                       </div>
                       
                       <div className="mt-16 pt-8 border-t border-white/10 flex justify-center">
-                         <button onClick={() => navigate('/tours')} className="group flex items-center gap-4 px-12 py-5 bg-[#D9A441] hover:bg-[#c29032] text-black font-black text-xl rounded-full shadow-[0_0_40px_rgba(217,164,65,0.3)] transition-all transform hover:scale-105 active:scale-95">
+                         <button onClick={() => navigate('/tours')} className="group flex items-center gap-4 px-12 py-5 bg-gradient-to-r from-[#D9A441] to-yellow-500 hover:from-[#c29032] hover:to-yellow-400 text-black font-black text-xl rounded-full shadow-[0_0_40px_rgba(217,164,65,0.3)] transition-all transform hover:scale-105 active:scale-95">
                            Explore Packages <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
                          </button>
                       </div>
