@@ -42,8 +42,9 @@ const PremiumImage = memo(({ src, alt, className }) => {
 PremiumImage.displayName = "PremiumImage";
 
 // --- SUB-COMPONENTS ---
-const TabButton = ({ active, id, label, icon, onClick }) => (
+const TabButton = ({ active, id, label, icon, onClick, buttonRef }) => (
   <button 
+    ref={buttonRef}
     onClick={onClick}
     className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs md:text-sm font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 whitespace-nowrap flex-shrink-0 ${
       active === id 
@@ -127,6 +128,7 @@ export default function Destinations() {
   const navigate = useNavigate();
   const contentRef = useRef(null);
   const categoryRefs = useRef({});
+  const tabRefs = useRef({});
 
   const filteredDestinations = useMemo(() => {
     return DESTINATION_DATA.filter(dest => 
@@ -156,9 +158,20 @@ export default function Destinations() {
   // Handle category change with auto-scroll
   const handleCategoryChange = (cat) => {
     setActiveCategory(cat);
-    // Scroll the clicked button into view
     if (categoryRefs.current[cat]) {
       categoryRefs.current[cat].scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'start'
+      });
+    }
+  };
+
+  // Handle tab change with auto-scroll
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    if (tabRefs.current[tab]) {
+      tabRefs.current[tab].scrollIntoView({
         behavior: 'smooth',
         block: 'nearest',
         inline: 'start'
@@ -192,7 +205,7 @@ export default function Destinations() {
          {/* VIEW 1: DESTINATIONS DASHBOARD */}
          {mainView === "destinations" && (
            <>
-             {/* FIXED CATEGORY BAR - No gap */}
+             {/* FIXED CATEGORY BAR */}
              <div className="sticky top-[64px] z-50 bg-[#022c22] py-4 -mx-4 px-4 mb-6 border-b border-white/10 shadow-2xl">
                 <div className="flex gap-3 md:gap-4 overflow-x-auto overflow-y-hidden scrollbar-hide scroll-smooth">
                    {CATEGORIES.map(cat => (
@@ -276,13 +289,41 @@ export default function Destinations() {
 
                    {/* Tabs Content */}
                    <div className="p-6 lg:p-12 flex-1">
-                      {/* HORIZONTAL SCROLLABLE TABS */}
+                      {/* HORIZONTAL SCROLLABLE TABS WITH AUTO-SCROLL */}
                       <div className="mb-10 border-b border-white/10 pb-6 -mx-6 px-6 lg:mx-0 lg:px-0">
                         <div className="flex gap-3 overflow-x-auto overflow-y-hidden scrollbar-hide scroll-smooth snap-x snap-mandatory">
-                          <TabButton active={activeTab} id="guide" label="Tour Guide" icon={<FaInfoCircle />} onClick={() => setActiveTab('guide')} />
-                          <TabButton active={activeTab} id="attractions" label="Attractions" icon={<FaMapMarkerAlt />} onClick={() => setActiveTab('attractions')} />
-                          <TabButton active={activeTab} id="todo" label="Things To Do" icon={<FaHiking />} onClick={() => setActiveTab('todo')} />
-                          <TabButton active={activeTab} id="reach" label="How to Reach" icon={<FaPlane />} onClick={() => setActiveTab('reach')} />
+                          <TabButton 
+                            active={activeTab} 
+                            id="guide" 
+                            label="Tour Guide" 
+                            icon={<FaInfoCircle />} 
+                            onClick={() => handleTabChange('guide')}
+                            buttonRef={el => tabRefs.current['guide'] = el}
+                          />
+                          <TabButton 
+                            active={activeTab} 
+                            id="attractions" 
+                            label="Attractions" 
+                            icon={<FaMapMarkerAlt />} 
+                            onClick={() => handleTabChange('attractions')}
+                            buttonRef={el => tabRefs.current['attractions'] = el}
+                          />
+                          <TabButton 
+                            active={activeTab} 
+                            id="todo" 
+                            label="Things To Do" 
+                            icon={<FaHiking />} 
+                            onClick={() => handleTabChange('todo')}
+                            buttonRef={el => tabRefs.current['todo'] = el}
+                          />
+                          <TabButton 
+                            active={activeTab} 
+                            id="reach" 
+                            label="How to Reach" 
+                            icon={<FaPlane />} 
+                            onClick={() => handleTabChange('reach')}
+                            buttonRef={el => tabRefs.current['reach'] = el}
+                          />
                         </div>
                       </div>
 
