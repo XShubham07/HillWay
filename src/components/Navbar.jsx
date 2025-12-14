@@ -21,17 +21,27 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
 
-  // Scroll lock
+  // --- 🔒 SCROLL LOCK (Prevents background moving) ---
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "unset";
-    return () => { document.body.style.overflow = "unset"; };
+    if (open) {
+      document.body.style.overflow = "hidden";
+      document.body.style.position = "fixed"; // Forces lock on iOS
+      document.body.style.width = "100%";
+    } else {
+      document.body.style.overflow = "unset";
+      document.body.style.position = "static";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+      document.body.style.position = "static";
+    };
   }, [open]);
 
   // --- 🧭 NAVIGATION DATA ---
   const navLinks = [
     { path: "/", label: "Home", icon: <FaHome /> },
+    { path: "/tours", label: "All Tours", icon: <FaMountain /> }, // 2nd Priority
     { path: "/destinations", label: "Destinations", icon: <FaMapMarkedAlt /> },
-    { path: "/tours", label: "All Tours", icon: <FaMountain /> },
     { path: "/reviews", label: "Reviews", icon: <FaStar /> },
     { path: "/status", label: "Track Booking", icon: <FaSearch /> },
     { path: "/about", label: "About Us", icon: <FaInfo /> },
@@ -43,24 +53,22 @@ export default function Navbar() {
   return (
     <>
       <style>{`
-        /* Desktop Header Glass */
+        /* SHARED GLASS CLASS */
         .aqua-glass {
-          background: rgba(16, 42, 67, 0.65);
-          backdrop-filter: blur(25px) saturate(200%);
-          -webkit-backdrop-filter: blur(25px) saturate(200%);
+          background: rgba(16, 42, 67, 0.65) !important;
+          backdrop-filter: blur(25px) saturate(200%) !important;
+          -webkit-backdrop-filter: blur(25px) saturate(200%) !important;
           border-bottom: 1px solid rgba(255, 255, 255, 0.08);
           box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
         }
-        
-        /* 🌊 ENHANCED AQUAMORPHISM FOR MOBILE MENU 
-           Stronger blur, deeper transparency, frostier borders
-        */
-        .mobile-menu-glass {
-          background: rgba(16, 42, 67, 0.70); /* More transparency to let blur show */
-          backdrop-filter: blur(50px) saturate(180%); /* Heavy blur */
-          -webkit-backdrop-filter: blur(50px) saturate(180%);
-          border-top: 1px solid rgba(255, 255, 255, 0.2);
-          box-shadow: 0 -10px 60px rgba(0,0,0,0.6);
+
+        /* BOTTOM SHEET GLASS */
+        .mobile-sheet {
+           background: rgba(16, 42, 67, 0.95);
+           backdrop-filter: blur(30px) saturate(180%);
+           -webkit-backdrop-filter: blur(30px) saturate(180%);
+           border-top: 1px solid rgba(255, 255, 255, 0.2);
+           box-shadow: 0 -10px 50px rgba(0,0,0,0.7);
         }
       `}</style>
 
@@ -95,9 +103,26 @@ export default function Navbar() {
                     }}
                   >
                     {isActive && (
-                      <motion.div layoutId="active-bg" className="absolute inset-0 rounded-full -z-10" style={{ background: COLORS.gold, boxShadow: "0 0 15px rgba(217, 164, 65, 0.4)" }} />
+                      <motion.div 
+                        layoutId="active-bg" 
+                        className="absolute inset-0 rounded-full -z-10" 
+                        style={{ background: COLORS.gold, boxShadow: "0 0 15px rgba(217, 164, 65, 0.4)" }} 
+                      />
                     )}
-                    {link.label}
+                    <AnimatePresence mode="popLayout">
+                      {isActive && (
+                        <motion.span
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0, opacity: 0 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                          className="relative z-10 flex items-center justify-center"
+                        >
+                          {link.icon}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                    <motion.span layout className="relative z-10">{link.label}</motion.span>
                   </Link>
                 );
               })}
@@ -137,33 +162,32 @@ export default function Navbar() {
       </motion.header>
 
       {/* =======================
-          📱 MOBILE MENU (Bottom Sheet)
+          📱 MOBILE MENU (Bottom Sheet - FIXED)
       ======================== */}
       <AnimatePresence>
         {open && (
           <>
-            {/* Dark Backdrop */}
+            {/* Dark Overlay (Prevents clicking background) */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 z-[60] backdrop-blur-[4px]"
+              className="fixed inset-0 bg-black/80 z-[60] backdrop-blur-[4px]"
               onClick={() => setOpen(false)}
             />
 
-            {/* Menu Sheet */}
+            {/* Menu Sheet - Attached to Bottom */}
             <motion.div
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed bottom-0 left-0 right-0 z-[70] rounded-t-[2.5rem] overflow-hidden mobile-menu-glass flex flex-col"
-              style={{ maxHeight: '85vh' }} 
+              transition={{ type: "spring", stiffness: 400, damping: 35 }} // FAST SNAP
+              className="fixed bottom-0 left-0 right-0 z-[70] rounded-t-[2rem] overflow-hidden mobile-sheet flex flex-col"
             >
               
-              {/* Header */}
-              <div className="relative pt-4 pb-2 px-6 flex items-center justify-between border-b border-white/5">
-                <span className="text-xs font-bold text-white/40 tracking-widest uppercase">Navigation</span>
+              {/* Header inside Menu */}
+              <div className="relative pt-3 pb-2 px-6 flex items-center justify-between border-b border-white/5">
+                <span className="text-[10px] font-bold text-white/40 tracking-widest uppercase">Quick Menu</span>
                 <button 
                   onClick={() => setOpen(false)}
                   className="p-2 bg-white/5 rounded-full text-white/70 hover:bg-white/10"
@@ -172,7 +196,7 @@ export default function Navbar() {
                 </button>
               </div>
 
-              {/* Links List */}
+              {/* Links List - NO SCROLL (Compact) */}
               <div className="p-4 flex flex-col">
                 {navLinks.map((link, i) => {
                   const isActive = location.pathname === link.path;
@@ -181,40 +205,40 @@ export default function Navbar() {
                       <Link
                         to={link.path}
                         onClick={() => setOpen(false)}
-                        className={`flex items-center gap-4 px-5 py-3 rounded-2xl transition-all duration-200 ${
+                        className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 ${
                           isActive 
                             ? 'bg-[#D9A441] text-[#102A43] font-bold shadow-lg shadow-orange-500/20' 
                             : 'hover:bg-white/5 text-white font-medium'
                         }`}
                       >
-                        <span className={`text-lg ${isActive ? 'text-[#102A43]' : 'text-cyan-400'}`}>
+                        <span className={`text-lg w-6 flex justify-center ${isActive ? 'text-[#102A43]' : 'text-cyan-400'}`}>
                           {link.icon}
                         </span>
-                        <span className="text-base tracking-wide">{link.label}</span>
+                        <span className="text-sm tracking-wide">{link.label}</span>
                         
                         {/* Active Dot */}
-                        {isActive && <div className="ml-auto w-2 h-2 rounded-full bg-[#102A43]" />}
+                        {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#102A43]" />}
                       </Link>
 
-                      {/* Thin Separation Line (Don't show after last item) */}
+                      {/* Very Thin Separation Line */}
                       {i < navLinks.length - 1 && (
-                        <div className="h-[1px] bg-white/5 mx-5 my-0.5" />
+                        <div className="h-[1px] bg-white/5 ml-[3rem] mr-4 my-[2px]" />
                       )}
                     </div>
                   );
                 })}
 
                 {/* Separator before WhatsApp */}
-                <div className="h-[1px] bg-white/10 mx-5 my-3" />
+                <div className="h-[1px] bg-white/10 mx-5 my-2" />
 
-                {/* WhatsApp Button */}
+                {/* WhatsApp Button (Compact) */}
                 <a
                   href={whatsappLink}
                   target="_blank"
-                  className="flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-white shadow-lg active:scale-95 transition-transform bg-[#1F4F3C] border border-white/10 mx-2"
+                  className="flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white shadow-lg active:scale-95 transition-transform bg-[#1F4F3C] border border-white/10 mx-2"
                 >
-                  <FaWhatsapp size={20} />
-                  Chat on WhatsApp
+                  <FaWhatsapp size={18} />
+                  <span className="text-sm">Chat on WhatsApp</span>
                 </a>
               </div>
 

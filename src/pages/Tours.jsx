@@ -415,11 +415,7 @@ export default function Tours() {
           .tour-card-smooth { -webkit-tap-highlight-color: transparent; }
           .carousel-item { contain: layout style paint; }
           
-          /* Prevent scroll jank */
-          * {
-            -webkit-transform: translateZ(0);
-            transform: translateZ(0);
-          }
+          /* IMPORTANT: Removed global '*' transform which broke fixed positioning on Navbar */
         `}</style>
       </div>
     </div>
