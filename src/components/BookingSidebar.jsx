@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom"; // <--- Import Link
+import { Link } from "react-router-dom";
 import {
   FaUsers,
   FaChild,
@@ -24,7 +24,7 @@ import confetti from "canvas-confetti";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-// ... [Keep StatusPopup component exactly as is] ...
+// ... [StatusPopup component] ...
 const StatusPopup = ({ isOpen, onClose, data, type }) => {
   const [copied, setCopied] = useState(false);
 
@@ -80,7 +80,7 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
             className={`
               relative w-full max-w-sm overflow-hidden rounded-[2.5rem]
-              border shadow-2xl backdrop-blur-3xl text-center p-0
+              border shadow-2xl backdrop-blur-xl text-center p-0
               ${isSuccess
                 ? "bg-gradient-to-b from-[#D9A441]/20 to-[#0f172a]/95 border-[#D9A441]/50"
                 : "bg-gradient-to-b from-red-500/20 to-[#0f172a]/95 border-red-500/50"}
@@ -174,7 +174,7 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
   );
 };
 
-// ... [Keep QuantityControl and TickButton exactly as is] ...
+// ... [QuantityControl component] ...
 const QuantityControl = ({ label, subLabel, icon: Icon, value, onChange, min = 0 }) => (
   <div className="space-y-1.5">
     <label className="text-xs text-gray-300 flex justify-between items-center font-medium px-1">
@@ -203,6 +203,7 @@ const QuantityControl = ({ label, subLabel, icon: Icon, value, onChange, min = 0
   </div>
 );
 
+// ... [TickButton component] ...
 const TickButton = ({ label, icon: Icon, active, onClick, complimentary = false }) => (
   <button
     onClick={onClick}
@@ -243,7 +244,7 @@ export default function BookingSidebar({ tour = {} }) {
   const [open, setOpen] = useState(false);
   const [popupData, setPopupData] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [agreed, setAgreed] = useState(false); // <--- New State for Terms Checkbox
+  const [agreed, setAgreed] = useState(false);
 
   useEffect(() => {
     if (open) document.body.style.overflow = "hidden";
@@ -251,7 +252,6 @@ export default function BookingSidebar({ tour = {} }) {
     return () => { document.body.style.overflow = "unset"; };
   }, [open]);
 
-  // ... [Keep globalRates state and fetch effect] ...
   const [globalRates, setGlobalRates] = useState({
     meal: 500, tea: 60, bonfire: 500, cab: 3200,
     stdRoom: 1500, panoRoom: 2500, tourGuide: 1000, comfortSeat: 800
@@ -399,7 +399,7 @@ export default function BookingSidebar({ tour = {} }) {
     if (!form.travelDate) return alert("Please select a Journey Date");
     if (!form.name.trim()) return alert("Please enter your Name");
     if (!form.phone || form.phone.length !== 10) return alert("Please enter a valid 10-digit Phone Number");
-    if (!agreed) return alert("Please agree to the Terms & Conditions"); // <--- Added Validation
+    if (!agreed) return alert("Please agree to the Terms & Conditions");
 
     setSubmitting(true);
 
@@ -452,7 +452,7 @@ export default function BookingSidebar({ tour = {} }) {
       </div>
 
       <div className="space-y-3">
-        {/* ... [Keep form inputs (datepicker, name, phone, email) exactly as is] ... */}
+        {/* Date Picker - Styles Updated to match Name Input */}
         <div className="relative group">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
             <FaCalendarAlt className="text-[#D9A441] text-lg" />
@@ -463,12 +463,13 @@ export default function BookingSidebar({ tour = {} }) {
             minDate={new Date()}
             placeholderText="Select Journey Date"
             dateFormat="dd MMM yyyy"
-            className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-black/20 border border-white/10 text-white font-semibold outline-none transition-all focus:bg-black/30 focus:border-[#D9A441]/50 focus:ring-1 focus:ring-[#D9A441]/50 cursor-pointer placeholder-gray-400 text-sm"
+            className="w-full pl-12 pr-4 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white font-medium outline-none transition-all text-base sm:text-sm backdrop-blur-sm cursor-pointer placeholder-gray-500"
             calendarClassName="!bg-[#1e293b] !border-white/10 !text-white !font-sans !rounded-xl !shadow-2xl !p-3 custom-datepicker"
             dayClassName={() => "!text-gray-200 hover:!bg-[#D9A441] hover:!text-black !rounded-full"}
             monthClassName={() => "!text-[#D9A441] !font-bold"}
             weekDayClassName={() => "!text-gray-500"}
             popperClassName="!z-[9999]"
+            wrapperClassName="w-full"
           />
           <style>{`
                 .custom-datepicker .react-datepicker__header { background: transparent; border-bottom: 1px solid rgba(255,255,255,0.1); }
@@ -510,13 +511,13 @@ export default function BookingSidebar({ tour = {} }) {
         </div>
       </div>
 
-      {/* ... [Keep Adults/Kids quantity controls] ... */}
+      {/* Adults/Kids */}
       <div className="grid grid-cols-2 gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
         <QuantityControl label="Adults" subLabel="5+" icon={FaUsers} value={form.adults} onChange={(v) => handle('adults', v)} min={1} />
         <QuantityControl label="Kids" subLabel="Upto 5" icon={FaChild} value={form.children} onChange={(v) => handle('children', v)} min={0} />
       </div>
 
-      {/* ... [Keep Transport/RoomType/Rooms controls] ... */}
+      {/* Transport/RoomType */}
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-white/5 p-2 rounded-xl border border-white/5 flex flex-col justify-center">
@@ -575,7 +576,7 @@ export default function BookingSidebar({ tour = {} }) {
         </div>
       </div>
 
-      {/* ... [Keep Enhancements controls] ... */}
+      {/* Enhancements */}
       <div className="pt-2">
         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">Enhancements</p>
         <div className="grid grid-cols-2 gap-2">
@@ -589,7 +590,7 @@ export default function BookingSidebar({ tour = {} }) {
         </div>
       </div>
 
-      {/* ... [Keep Coupon Input] ... */}
+      {/* Coupon */}
       <div className="bg-black/20 border border-white/5 rounded-xl p-2.5 flex items-center gap-3 relative">
         <div className="p-1.5 bg-[#D9A441]/10 rounded text-[#D9A441]"><FaTicketAlt size={12} /></div>
         <div className="flex-1 flex gap-2 items-center">
@@ -623,7 +624,6 @@ export default function BookingSidebar({ tour = {} }) {
         transition={{ duration: 0.4 }}
         className="p-5 rounded-3xl bg-gradient-to-br from-[#D9A441]/10 via-black/20 to-transparent border border-[#D9A441]/20 shadow-lg backdrop-blur-md"
       >
-        {/* ... [Keep Price Display] ... */}
         <div className="flex justify-between items-start mb-6">
           <div className="flex flex-col">
             <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1">Estimated / Person</p>
@@ -670,7 +670,7 @@ export default function BookingSidebar({ tour = {} }) {
           </div>
         </div>
 
-        {/* ----------------- TERMS CHECKBOX ----------------- */}
+        {/* Terms Checkbox */}
         <div className="flex items-start gap-3 mb-4 px-1">
           <input
             type="checkbox"
@@ -686,7 +686,7 @@ export default function BookingSidebar({ tour = {} }) {
 
         <button
           onClick={handleBook}
-          disabled={submitting || !agreed} // <--- Added Disable Logic
+          disabled={submitting || !agreed}
           className="w-full bg-[#D9A441] hover:bg-[#fbbf24] text-black py-3.5 rounded-xl font-bold text-base shadow-[0_0_20px_rgba(217,164,65,0.15)] transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {submitting ? <><FaSpinner className="animate-spin" /> Processing...</> : "Confirm Booking"}
@@ -705,9 +705,10 @@ export default function BookingSidebar({ tour = {} }) {
       />
 
       <div className="hidden lg:block">
+        {/* Decreased blur for better desktop performance */}
         <div className="
           w-full p-6 rounded-3xl sticky top-24 
-          bg-[#0f172a]/40 backdrop-blur-3xl 
+          bg-[#0f172a]/40 backdrop-blur-md
           border border-white/10 shadow-2xl
         ">
           {contentJsx}
@@ -715,7 +716,7 @@ export default function BookingSidebar({ tour = {} }) {
       </div>
 
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[999]">
-        <div className="p-3 px-5 rounded-t-3xl flex items-center gap-4 border-t border-white/10 bg-[#0f172a]/60 backdrop-blur-xl shadow-2xl">
+        <div className="p-3 px-5 rounded-t-3xl flex items-center gap-4 border-t border-white/10 bg-[#0f172a]/60 backdrop-blur-lg shadow-2xl">
           <div className="flex-1">
             <p className="text-[9px] text-gray-400 uppercase font-bold tracking-widest mb-0.5">Starting From</p>
             <div className="flex items-baseline gap-2">
@@ -749,7 +750,8 @@ export default function BookingSidebar({ tour = {} }) {
             <motion.div
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed bottom-0 left-0 right-0 z-[2001] bg-[#0f172a]/80 backdrop-blur-3xl rounded-t-[2.5rem] border-t border-white/10 max-h-[85vh] overflow-y-auto shadow-2xl"
+              // Reduced blur from 3xl to xl for smoother mobile scrolling
+              className="fixed bottom-0 left-0 right-0 z-[2001] bg-[#0f172a]/80 backdrop-blur-lg rounded-t-[2.5rem] border-t border-white/10 max-h-[85vh] overflow-y-auto shadow-2xl"
             >
               <div className="sticky top-0 w-full flex justify-center pt-4 pb-2 z-10" onClick={() => setOpen(false)}>
                 <div className="w-12 h-1.5 rounded-full bg-white/20" />

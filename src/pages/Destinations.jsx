@@ -10,13 +10,11 @@ import { DESTINATION_DATA } from "../data/destinationsData";
 const CATEGORIES = ["All", "North Sikkim", "East Sikkim", "West Sikkim", "South Sikkim", "Darjeeling"];
 
 // --- PREMIUM LAZY IMAGE COMPONENT ---
-// Handles skeleton loading and smooth fade-in
 const PremiumImage = memo(({ src, alt, className }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [imgSrc, setImgSrc] = useState(null);
 
   useEffect(() => {
-    // Reset state when src changes
     setIsLoaded(false);
     const img = new Image();
     img.src = src;
@@ -28,14 +26,11 @@ const PremiumImage = memo(({ src, alt, className }) => {
 
   return (
     <div className={`relative overflow-hidden bg-emerald-900 ${className}`}>
-      {/* Skeleton Pulse */}
       <div 
         className={`absolute inset-0 bg-emerald-800 animate-pulse transition-opacity duration-500 ${isLoaded ? 'opacity-0' : 'opacity-100'}`} 
       />
-      
-      {/* Actual Image */}
       <img 
-        src={imgSrc || src} // Fallback to src to allow browser caching to work
+        src={imgSrc || src}
         alt={alt} 
         loading="lazy"
         decoding="async"
@@ -47,11 +42,10 @@ const PremiumImage = memo(({ src, alt, className }) => {
 PremiumImage.displayName = "PremiumImage";
 
 // --- SUB-COMPONENTS ---
-
 const TabButton = ({ active, id, label, icon, onClick }) => (
   <button 
     onClick={onClick}
-    className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs md:text-sm font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 ${
+    className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs md:text-sm font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 whitespace-nowrap flex-shrink-0 ${
       active === id 
         ? 'bg-[#D9A441] text-black shadow-lg shadow-yellow-500/20' 
         : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
@@ -67,7 +61,6 @@ const SectionHeading = ({ title, icon }) => (
   </h3>
 );
 
-// ATTRACTION CARD (Now with Image)
 const AttractionCard = ({ attr }) => (
   <div className="bg-white/5 p-4 rounded-2xl border border-white/5 hover:bg-white/10 hover:border-white/10 transition-colors h-full flex flex-col group overflow-hidden">
      <div className="h-48 w-full rounded-xl overflow-hidden mb-4 relative shadow-lg">
@@ -94,7 +87,6 @@ const TodoCard = ({ item }) => (
   </div>
 );
 
-// GROUPED ROW FOR "ALL ATTRACTIONS" TAB
 const GroupedAttractionRow = ({ dest }) => (
   <div className="mb-16">
     <div className="flex items-end gap-4 mb-8 pb-4 border-b border-white/10">
@@ -134,15 +126,14 @@ export default function Destinations() {
   const [activeTab, setActiveTab] = useState('guide'); 
   const navigate = useNavigate();
   const contentRef = useRef(null);
+  const categoryRefs = useRef({});
 
-  // Filter
   const filteredDestinations = useMemo(() => {
     return DESTINATION_DATA.filter(dest => 
       activeCategory === "All" || dest.region === activeCategory
     );
   }, [activeCategory]);
 
-  // Sync selection
   useEffect(() => {
     if (filteredDestinations.length > 0 && mainView === "destinations") {
       const exists = filteredDestinations.find(d => d.id === selectedId);
@@ -162,13 +153,26 @@ export default function Destinations() {
     }
   };
 
+  // Handle category change with auto-scroll
+  const handleCategoryChange = (cat) => {
+    setActiveCategory(cat);
+    // Scroll the clicked button into view
+    if (categoryRefs.current[cat]) {
+      categoryRefs.current[cat].scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'start'
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#022c22] text-white font-sans selection:bg-[#D9A441] selection:text-black pb-20">
       
-      <div className="relative z-10 pt-28 lg:pt-32 container mx-auto px-4 max-w-[1400px]">
+      <div className="relative z-10 pt-20 lg:pt-32 container mx-auto px-4 max-w-[1400px]">
 
          {/* MAIN VIEW TOGGLE */}
-         <div className="flex justify-center mb-12">
+         <div className="flex justify-center mb-6">
             <div className="bg-white/5 p-1.5 rounded-full flex gap-1 border border-white/10 shadow-2xl">
                <button 
                  onClick={() => setMainView("destinations")}
@@ -188,13 +192,15 @@ export default function Destinations() {
          {/* VIEW 1: DESTINATIONS DASHBOARD */}
          {mainView === "destinations" && (
            <>
-             <div className="sticky top-20 z-40 bg-[#022c22]/95 py-4 -mx-4 px-4 mb-8 border-b border-white/10 shadow-xl backdrop-blur-md">
-                <div className="flex justify-start lg:justify-center overflow-x-auto no-scrollbar gap-3 md:gap-4">
+             {/* FIXED CATEGORY BAR - No gap */}
+             <div className="sticky top-[64px] z-50 bg-[#022c22] py-4 -mx-4 px-4 mb-6 border-b border-white/10 shadow-2xl">
+                <div className="flex gap-3 md:gap-4 overflow-x-auto overflow-y-hidden scrollbar-hide scroll-smooth">
                    {CATEGORIES.map(cat => (
                       <button
                         key={cat}
-                        onClick={() => setActiveCategory(cat)}
-                        className={`whitespace-nowrap px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all border ${
+                        ref={el => categoryRefs.current[cat] = el}
+                        onClick={() => handleCategoryChange(cat)}
+                        className={`whitespace-nowrap px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all border flex-shrink-0 ${
                            activeCategory === cat 
                              ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.3)]' 
                              : 'bg-white/5 text-gray-400 border-transparent hover:bg-white/10 hover:text-white'
@@ -207,35 +213,37 @@ export default function Destinations() {
              </div>
 
              <div className="flex flex-col lg:flex-row gap-8">
-                {/* LIST SIDEBAR - Fixed Overscroll */}
+                {/* LIST SIDEBAR */}
                 <div 
-                  className="w-full lg:w-[350px] shrink-0 flex flex-col h-[auto] lg:h-[calc(100vh-180px)] lg:sticky lg:top-40"
+                  className="w-full lg:w-[350px] shrink-0 flex flex-col h-[auto] lg:h-[calc(100vh-200px)] lg:sticky lg:top-44"
                 >
-                   <h2 className="text-xs font-black uppercase tracking-[0.2em] text-[#D9A441] mb-4 pl-1">
+                   <h2 className="text-xs font-black uppercase tracking-[0.2em] text-[#D9A441] mb-5 pl-1">
                      {activeCategory === "All" ? "Select Location" : activeCategory} ({filteredDestinations.length})
                    </h2>
                    <div 
-                     className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-y-auto lg:pr-2 pb-4 lg:pb-20 no-scrollbar custom-scrollbar"
-                     style={{ overscrollBehavior: 'contain' }} // PREVENTS PARENT SCROLL
+                     className="flex lg:flex-col gap-4 overflow-x-auto overflow-y-auto lg:pr-2 pb-4 lg:pb-20 scrollbar-hide custom-scrollbar px-0.5 py-0.5"
+                     style={{ overscrollBehavior: 'contain' }}
                    >
                       {filteredDestinations.map(dest => (
                         <div 
                           key={dest.id}
                           onClick={() => handleDestChange(dest.id)}
-                          className={`flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all duration-200 border min-w-[280px] lg:min-w-0 ${
+                          className={`flex items-center gap-4 rounded-2xl cursor-pointer transition-all duration-300 min-w-[280px] lg:min-w-0 p-4 ${
                             selectedId === dest.id 
-                              ? 'bg-[#022c22] border-[#D9A441]/50 shadow-xl scale-[1.02] ring-1 ring-[#D9A441]/20' 
-                              : 'bg-white/5 border-transparent hover:bg-white/10 opacity-80 hover:opacity-100'
+                              ? 'bg-gradient-to-br from-[#022c22] to-emerald-900/20 border-2 border-[#D9A441] shadow-[0_0_30px_rgba(217,164,65,0.3)]' 
+                              : 'bg-white/5 border-2 border-white/10 hover:bg-white/10 hover:border-white/20 opacity-80 hover:opacity-100'
                           }`}
                         >
                            <div className="w-16 h-16 rounded-xl overflow-hidden shadow-md shrink-0 bg-emerald-900">
                               <PremiumImage src={dest.img} alt={dest.name} className="w-full h-full" />
                            </div>
                            <div className="flex-1 min-w-0">
-                              <h4 className={`font-bold text-lg truncate ${selectedId === dest.id ? 'text-white' : 'text-gray-300'}`}>{dest.name}</h4>
+                              <h4 className={`font-bold text-lg truncate transition-colors ${selectedId === dest.id ? 'text-white' : 'text-gray-300'}`}>{dest.name}</h4>
                               <p className="text-[10px] text-gray-500 uppercase truncate font-bold tracking-wider">{dest.region}</p>
                            </div>
-                           {selectedId === dest.id && <div className="w-2 h-2 rounded-full bg-[#D9A441] shadow-[0_0_10px_#D9A441]" />}
+                           {selectedId === dest.id && (
+                             <div className="w-3 h-3 rounded-full bg-[#D9A441] shadow-[0_0_15px_#D9A441] animate-pulse" />
+                           )}
                         </div>
                       ))}
                    </div>
@@ -268,11 +276,14 @@ export default function Destinations() {
 
                    {/* Tabs Content */}
                    <div className="p-6 lg:p-12 flex-1">
-                      <div className="flex flex-wrap gap-4 mb-10 border-b border-white/10 pb-6">
-                         <TabButton active={activeTab} id="guide" label="Tour Guide" icon={<FaInfoCircle />} onClick={() => setActiveTab('guide')} />
-                         <TabButton active={activeTab} id="attractions" label="Attractions" icon={<FaMapMarkerAlt />} onClick={() => setActiveTab('attractions')} />
-                         <TabButton active={activeTab} id="todo" label="Things To Do" icon={<FaHiking />} onClick={() => setActiveTab('todo')} />
-                         <TabButton active={activeTab} id="reach" label="How to Reach" icon={<FaPlane />} onClick={() => setActiveTab('reach')} />
+                      {/* HORIZONTAL SCROLLABLE TABS */}
+                      <div className="mb-10 border-b border-white/10 pb-6 -mx-6 px-6 lg:mx-0 lg:px-0">
+                        <div className="flex gap-3 overflow-x-auto overflow-y-hidden scrollbar-hide scroll-smooth snap-x snap-mandatory">
+                          <TabButton active={activeTab} id="guide" label="Tour Guide" icon={<FaInfoCircle />} onClick={() => setActiveTab('guide')} />
+                          <TabButton active={activeTab} id="attractions" label="Attractions" icon={<FaMapMarkerAlt />} onClick={() => setActiveTab('attractions')} />
+                          <TabButton active={activeTab} id="todo" label="Things To Do" icon={<FaHiking />} onClick={() => setActiveTab('todo')} />
+                          <TabButton active={activeTab} id="reach" label="How to Reach" icon={<FaPlane />} onClick={() => setActiveTab('reach')} />
+                        </div>
                       </div>
 
                       <div className="min-h-[400px]">
@@ -342,11 +353,17 @@ export default function Destinations() {
          )}
 
       </div>
+      
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { 
+          -ms-overflow-style: none; 
+          scrollbar-width: none; 
+          -webkit-overflow-scrolling: touch;
+        }
       `}</style>
     </div>
   );
