@@ -90,13 +90,13 @@ const getEmailTemplate = ({ title, message, booking, color = '#0891b2', showButt
           ` : ''}
 
           <p style="margin-top: 40px; font-size: 14px; color: #6b7280; text-align: center;">
-            Need help? Reply to this email or contact <a href="mailto:support@hillway.in" style="color: ${color}">support@hillway.in</a>
+            Need help?contact <a href="mailto:support@hillway.in" style="color: ${color}">support@hillway.in</a>
           </p>
         </div>
 
         <div class="footer">
           &copy; ${new Date().getFullYear()} HillWay Tours. All rights reserved.<br/>
-          Sikkim, India
+          Patna,Bihar
         </div>
       </div>
     </body>

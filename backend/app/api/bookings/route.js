@@ -7,7 +7,6 @@ import { NextResponse } from 'next/server';
 // Email Functions
 import { sendBookingConfirmation, sendStatusUpdate } from '@/lib/email';
 
-
 // ---------------------------------------------------------
 // POST: Create Booking
 // ---------------------------------------------------------
@@ -16,6 +15,7 @@ export async function POST(request) {
   try {
     const body = await request.json();
 
+    // Check for duplicate bookings to prevent spam
     const existingBooking = await Booking.findOne({
       phone: body.phone,
       tourTitle: body.tourTitle,
@@ -32,16 +32,19 @@ export async function POST(request) {
 
     const booking = await Booking.create(body);
 
-    // send email (non-blocking)
-    sendBookingConfirmation(booking);
+    // FIX: Added 'await' to ensure email sends before function closes
+    try {
+      await sendBookingConfirmation(booking);
+    } catch (emailError) {
+      console.error("Failed to send confirmation email:", emailError);
+      // Continue execution - don't fail the booking just because email failed
+    }
 
     return NextResponse.json({ success: true, data: booking }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 400 });
   }
 }
-
-
 
 // ---------------------------------------------------------
 // GET: Fetch All Bookings
@@ -55,8 +58,6 @@ export async function GET() {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
-
-
 
 // ---------------------------------------------------------
 // DELETE: Delete Booking
@@ -77,8 +78,6 @@ export async function DELETE(request) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
-
-
 
 // ---------------------------------------------------------
 // PUT: Update Status, Payment, Notes, Hotel Details
@@ -133,8 +132,7 @@ export async function PUT(request) {
     if (paymentType) updateData.paymentType = paymentType;
     if (paidAmount !== undefined) updateData.paidAmount = Number(paidAmount);
     if (adminNotes !== undefined) updateData.adminNotes = adminNotes;
-
-    if (hotelDetails) updateData.hotelDetails = hotelDetails; // added hotel details
+    if (hotelDetails) updateData.hotelDetails = hotelDetails;
 
     const updatedBooking = await Booking.findByIdAndUpdate(id, updateData, { new: true });
 
@@ -142,7 +140,12 @@ export async function PUT(request) {
     // Send Status Update Email when status changes
     // ---------------------------------------------------------
     if (oldBooking.status !== status) {
-      sendStatusUpdate(updatedBooking);
+      // FIX: Added 'await' here too for reliability
+      try {
+        await sendStatusUpdate(updatedBooking);
+      } catch (emailError) {
+        console.error("Failed to send status update email:", emailError);
+      }
     }
 
     return NextResponse.json({ success: true, data: updatedBooking });
