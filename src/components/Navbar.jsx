@@ -47,8 +47,8 @@ export default function Navbar() {
   ];
 
   const communityLinks = [
-    { path: "/reviews", label: "Reviews", icon: <FaStar /> },
-    { path: "/blog", label: "Blog", icon: <FaBlog /> },
+    { path: "/reviews", label: "Reviews", icon: <FaStar />, isInternal: true },
+    { path: "https://blog.hillway.in", label: "Blog", icon: <FaBlog />, isInternal: false },
   ];
 
   const whatsappLink = `https://wa.me/917004165004?text=Hi! I'm interested in booking a tour.`;
@@ -135,12 +135,12 @@ export default function Navbar() {
                 <button
                   className="relative px-6 py-2.5 rounded-full text-sm transition-colors duration-300 z-10 flex items-center gap-2 overflow-hidden"
                   style={{
-                    color: communityLinks.some(l => l.path === location.pathname) ? COLORS.navy : COLORS.stone,
+                    color: location.pathname === '/reviews' ? COLORS.navy : COLORS.stone,
                     fontFamily: "'Inter', sans-serif",
-                    fontWeight: communityLinks.some(l => l.path === location.pathname) ? 700 : 500,
+                    fontWeight: location.pathname === '/reviews' ? 700 : 500,
                   }}
                 >
-                  {communityLinks.some(l => l.path === location.pathname) && (
+                  {location.pathname === '/reviews' && (
                     <motion.div 
                       layoutId="active-bg" 
                       className="absolute inset-0 rounded-full -z-10" 
@@ -162,22 +162,39 @@ export default function Navbar() {
                       className="absolute top-full mt-2 right-0 bg-[#102A43]/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 overflow-hidden min-w-[180px]"
                     >
                       {communityLinks.map((link) => {
-                        const isActive = location.pathname === link.path;
+                        const isActive = link.isInternal && location.pathname === link.path;
+                        
+                        if (link.isInternal) {
+                          return (
+                            <Link
+                              key={link.path}
+                              to={link.path}
+                              className={`flex items-center gap-3 px-5 py-3 transition-all duration-200 ${
+                                isActive 
+                                  ? 'bg-[#D9A441] text-[#102A43] font-bold' 
+                                  : 'hover:bg-white/5 text-white font-medium'
+                              }`}
+                            >
+                              <span className={`text-base ${isActive ? 'text-[#102A43]' : 'text-cyan-400'}`}>
+                                {link.icon}
+                              </span>
+                              <span className="text-sm">{link.label}</span>
+                            </Link>
+                          );
+                        }
+
+                        // External link (Blog)
                         return (
-                          <Link
+                          <a
                             key={link.path}
-                            to={link.path}
-                            className={`flex items-center gap-3 px-5 py-3 transition-all duration-200 ${
-                              isActive 
-                                ? 'bg-[#D9A441] text-[#102A43] font-bold' 
-                                : 'hover:bg-white/5 text-white font-medium'
-                            }`}
+                            href={link.path}
+                            className="flex items-center gap-3 px-5 py-3 transition-all duration-200 hover:bg-white/5 text-white font-medium"
                           >
-                            <span className={`text-base ${isActive ? 'text-[#102A43]' : 'text-cyan-400'}`}>
+                            <span className="text-base text-cyan-400">
                               {link.icon}
                             </span>
                             <span className="text-sm">{link.label}</span>
-                          </Link>
+                          </a>
                         );
                       })}
                     </motion.div>
@@ -280,24 +297,45 @@ export default function Navbar() {
                     <span>Community</span>
                   </div>
                   {communityLinks.map((link, i) => {
-                    const isActive = location.pathname === link.path;
+                    const isActive = link.isInternal && location.pathname === link.path;
+                    
+                    if (link.isInternal) {
+                      return (
+                        <div key={link.path}>
+                          <Link
+                            to={link.path}
+                            onClick={() => setOpen(false)}
+                            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 ml-4 ${
+                              isActive 
+                                ? 'bg-[#D9A441] text-[#102A43] font-bold shadow-lg shadow-orange-500/20' 
+                                : 'hover:bg-white/5 text-white font-medium'
+                            }`}
+                          >
+                            <span className={`text-lg w-6 flex justify-center ${isActive ? 'text-[#102A43]' : 'text-cyan-400'}`}>
+                              {link.icon}
+                            </span>
+                            <span className="text-sm tracking-wide">{link.label}</span>
+                            {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#102A43]" />}
+                          </Link>
+                          {i < communityLinks.length - 1 && (
+                            <div className="h-[1px] bg-white/5 ml-[3rem] mr-4 my-[2px]" />
+                          )}
+                        </div>
+                      );
+                    }
+
+                    // External link (Blog)
                     return (
                       <div key={link.path}>
-                        <Link
-                          to={link.path}
-                          onClick={() => setOpen(false)}
-                          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 ml-4 ${
-                            isActive 
-                              ? 'bg-[#D9A441] text-[#102A43] font-bold shadow-lg shadow-orange-500/20' 
-                              : 'hover:bg-white/5 text-white font-medium'
-                          }`}
+                        <a
+                          href={link.path}
+                          className="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 ml-4 hover:bg-white/5 text-white font-medium"
                         >
-                          <span className={`text-lg w-6 flex justify-center ${isActive ? 'text-[#102A43]' : 'text-cyan-400'}`}>
+                          <span className="text-lg w-6 flex justify-center text-cyan-400">
                             {link.icon}
                           </span>
                           <span className="text-sm tracking-wide">{link.label}</span>
-                          {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#102A43]" />}
-                        </Link>
+                        </a>
                         {i < communityLinks.length - 1 && (
                           <div className="h-[1px] bg-white/5 ml-[3rem] mr-4 my-[2px]" />
                         )}
