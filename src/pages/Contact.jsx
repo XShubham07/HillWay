@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaSpinner, FaCheckCircle, FaPhoneAlt, FaEnvelope, FaWhatsapp, FaPaperPlane, FaHeadset } from 'react-icons/fa';
+import { FaSpinner, FaCheckCircle, FaPhoneAlt, FaEnvelope, FaWhatsapp, FaPaperPlane, FaHeadset, FaRocket } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Contact() {
@@ -19,6 +19,7 @@ export default function Contact() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   
   const [destinations, setDestinations] = useState([]);
   const [durations, setDurations] = useState([]);
@@ -60,6 +61,14 @@ export default function Contact() {
     };
 
     fetchTourData();
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
   const handleChange = (e) => {
@@ -138,382 +147,479 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen py-20 px-4 sm:px-6 lg:px-8" style={{
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+    <div className="min-h-screen py-16 px-4 relative overflow-hidden" style={{
+      background: 'linear-gradient(to bottom, #0A0E27, #1a1f3a)',
     }}>
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
-          initial={{ opacity: 0, y: -30 }}
+          className="absolute w-96 h-96 rounded-full opacity-20 blur-3xl"
+          style={{
+            background: 'radial-gradient(circle, #2E6F95, transparent)',
+            left: `${mousePosition.x / 20}px`,
+            top: `${mousePosition.y / 20}px`,
+          }}
+          animate={{
+            x: [0, 100, 0],
+            y: [0, -100, 0],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: 'linear'
+          }}
+        />
+        <motion.div
+          className="absolute w-96 h-96 rounded-full opacity-20 blur-3xl"
+          style={{
+            background: 'radial-gradient(circle, #D9A441, transparent)',
+            right: `${mousePosition.x / 30}px`,
+            bottom: `${mousePosition.y / 30}px`,
+          }}
+          animate={{
+            x: [0, -100, 0],
+            y: [0, 100, 0],
+          }}
+          transition={{
+            duration: 15,
+            repeat: Infinity,
+            ease: 'linear'
+          }}
+        />
+      </div>
+
+      <div className="max-w-6xl mx-auto relative z-10">
+        {/* Floating Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8 sm:mb-12"
+          className="text-center mb-16"
         >
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-3 sm:mb-4">
-            Let's Talk! 👋
-          </h1>
-          <p className="text-lg sm:text-xl text-white/90">
-            We're here to help plan your perfect adventure
-          </p>
+          <motion.h1 
+            className="text-5xl md:text-7xl font-bold mb-4"
+            style={{
+              background: 'linear-gradient(135deg, #2E6F95, #D9A441, #1F4F3C)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+            animate={{ 
+              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+            }}
+            transition={{
+              duration: 5,
+              repeat: Infinity,
+              ease: 'linear'
+            }}
+          >
+            Get in Touch
+          </motion.h1>
+          <p className="text-xl text-gray-300">We turn travel dreams into reality ✨</p>
         </motion.div>
 
-        {/* Quick Contact Buttons */}
+        {/* Interactive Contact Cards */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-3 gap-3 sm:gap-4 mb-8"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12"
         >
-          <a
-            href="tel:+919876543210"
-            className="flex flex-col items-center justify-center p-4 sm:p-6 bg-white/10 backdrop-blur-md rounded-2xl hover:bg-white/20 transition-all group"
-          >
-            <FaPhoneAlt className="text-2xl sm:text-3xl text-white mb-2 group-hover:scale-110 transition-transform" />
-            <span className="text-xs sm:text-sm text-white font-semibold">Call</span>
-          </a>
-          <a
-            href="https://wa.me/919876543210"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-col items-center justify-center p-4 sm:p-6 bg-white/10 backdrop-blur-md rounded-2xl hover:bg-white/20 transition-all group"
-          >
-            <FaWhatsapp className="text-2xl sm:text-3xl text-white mb-2 group-hover:scale-110 transition-transform" />
-            <span className="text-xs sm:text-sm text-white font-semibold">WhatsApp</span>
-          </a>
-          <a
-            href="mailto:enquiry@hillway.in"
-            className="flex flex-col items-center justify-center p-4 sm:p-6 bg-white/10 backdrop-blur-md rounded-2xl hover:bg-white/20 transition-all group"
-          >
-            <FaEnvelope className="text-2xl sm:text-3xl text-white mb-2 group-hover:scale-110 transition-transform" />
-            <span className="text-xs sm:text-sm text-white font-semibold">Email</span>
-          </a>
+          {[
+            { icon: FaPhoneAlt, label: 'Call Us', value: '+91 9876543210', href: 'tel:+919876543210', color: '#2E6F95' },
+            { icon: FaWhatsapp, label: 'WhatsApp', value: 'Chat Now', href: 'https://wa.me/919876543210', color: '#25D366' },
+            { icon: FaEnvelope, label: 'Email', value: 'enquiry@hillway.in', href: 'mailto:enquiry@hillway.in', color: '#D9A441' },
+          ].map((item, i) => (
+            <motion.a
+              key={i}
+              href={item.href}
+              target={item.label === 'WhatsApp' ? '_blank' : undefined}
+              rel={item.label === 'WhatsApp' ? 'noopener noreferrer' : undefined}
+              whileHover={{ scale: 1.05, y: -5 }}
+              className="relative group"
+            >
+              <div className="absolute inset-0 rounded-2xl opacity-50 blur-xl group-hover:opacity-100 transition-opacity" style={{ background: item.color }} />
+              <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-6 hover:border-white/40 transition-all">
+                <item.icon className="text-4xl mb-3" style={{ color: item.color }} />
+                <p className="text-sm text-gray-400 uppercase tracking-wider">{item.label}</p>
+                <p className="text-white font-bold">{item.value}</p>
+              </div>
+            </motion.a>
+          ))}
         </motion.div>
 
-        {/* Tab Selector */}
+        {/* Tabs with 3D effect */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="flex gap-2 sm:gap-3 mb-6 sm:mb-8 bg-white/10 backdrop-blur-md p-1.5 sm:p-2 rounded-2xl"
+          transition={{ delay: 0.3 }}
+          className="flex gap-4 mb-8 justify-center"
         >
-          <button
-            onClick={() => setActiveTab('enquiry')}
-            className={`flex-1 py-3 sm:py-4 px-4 sm:px-6 rounded-xl font-bold text-sm sm:text-base transition-all duration-300 ${
-              activeTab === 'enquiry'
-                ? 'bg-white text-purple-600 shadow-lg'
-                : 'text-white hover:bg-white/10'
-            }`}
-          >
-            Plan Trip
-          </button>
-          <button
-            onClick={() => setActiveTab('support')}
-            className={`flex-1 py-3 sm:py-4 px-4 sm:px-6 rounded-xl font-bold text-sm sm:text-base transition-all duration-300 ${
-              activeTab === 'support'
-                ? 'bg-white text-purple-600 shadow-lg'
-                : 'text-white hover:bg-white/10'
-            }`}
-          >
-            Get Support
-          </button>
+          {[
+            { id: 'enquiry', label: 'Plan Your Trip', icon: FaRocket },
+            { id: 'support', label: 'Get Support', icon: FaHeadset },
+          ].map((tab) => (
+            <motion.button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`relative px-8 py-4 rounded-2xl font-bold text-lg transition-all ${
+                activeTab === tab.id
+                  ? 'text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <div className={`absolute inset-0 rounded-2xl transition-all ${
+                activeTab === tab.id
+                  ? 'bg-gradient-to-r from-[#2E6F95] via-[#D9A441] to-[#1F4F3C] opacity-100 shadow-2xl'
+                  : 'bg-white/5 opacity-50'
+              }`} />
+              <span className="relative flex items-center gap-2">
+                <tab.icon />
+                {tab.label}
+              </span>
+            </motion.button>
+          ))}
         </motion.div>
 
-        {/* Form Container */}
+        {/* Main Form Card with Glass Effect */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 md:p-10"
+          transition={{ delay: 0.4 }}
+          className="relative"
         >
-          <AnimatePresence mode="wait">
-            {activeTab === 'enquiry' && (
-              <motion.form
-                key="enquiry"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                onSubmit={handleSubmit}
-                className="space-y-5"
-              >
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Your Name *</label>
-                  <input
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:bg-white focus:outline-none transition-all"
-                    placeholder="John Doe"
-                  />
-                </div>
+          <div className="absolute inset-0 bg-gradient-to-r from-[#2E6F95]/20 via-[#D9A441]/20 to-[#1F4F3C]/20 rounded-3xl blur-2xl" />
+          <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 rounded-3xl p-8 md:p-12 shadow-2xl">
+            <AnimatePresence mode="wait">
+              {activeTab === 'enquiry' && (
+                <motion.form
+                  key="enquiry"
+                  initial={{ opacity: 0, x: -50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 50 }}
+                  onSubmit={handleSubmit}
+                  className="space-y-6"
+                >
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                  >
+                    <label className="block text-sm font-bold text-[#D9A441] mb-2 uppercase tracking-wider">Your Name *</label>
+                    <input
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-4 py-4 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-[#D9A441] focus:outline-none transition-all backdrop-blur-xl"
+                      placeholder="Enter your full name"
+                    />
+                  </motion.div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <label className="block text-sm font-bold text-[#D9A441] mb-2 uppercase tracking-wider">Email *</label>
+                      <input
+                        name="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-4 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-[#D9A441] focus:outline-none transition-all backdrop-blur-xl"
+                        placeholder="your@email.com"
+                      />
+                    </motion.div>
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      <label className="block text-sm font-bold text-[#D9A441] mb-2 uppercase tracking-wider">Phone *</label>
+                      <input
+                        name="contact"
+                        type="tel"
+                        value={formData.contact}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-4 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-[#D9A441] focus:outline-none transition-all backdrop-blur-xl"
+                        placeholder="+91 XXXXXXXXXX"
+                      />
+                    </motion.div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
+                    >
+                      <label className="block text-sm font-bold text-[#D9A441] mb-2 uppercase tracking-wider">Destination *</label>
+                      <select
+                        name="destination"
+                        value={formData.destination}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-4 bg-white/5 border-2 border-white/10 rounded-xl text-white focus:border-[#D9A441] focus:outline-none transition-all backdrop-blur-xl"
+                      >
+                        <option value="" className="bg-[#0A0E27]">Choose your dream destination</option>
+                        {destinations.map((dest) => (
+                          <option key={dest} value={dest} className="bg-[#0A0E27]">{dest}</option>
+                        ))}
+                        <option value="Other" className="bg-[#0A0E27]">Custom Location</option>
+                      </select>
+                    </motion.div>
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 }}
+                    >
+                      <label className="block text-sm font-bold text-[#D9A441] mb-2 uppercase tracking-wider">Duration *</label>
+                      <select
+                        name="duration"
+                        value={formData.duration}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-4 bg-white/5 border-2 border-white/10 rounded-xl text-white focus:border-[#D9A441] focus:outline-none transition-all backdrop-blur-xl"
+                      >
+                        <option value="" className="bg-[#0A0E27]">How long?</option>
+                        {durations.map((dur) => (
+                          <option key={dur} value={dur} className="bg-[#0A0E27]">{dur}</option>
+                        ))}
+                        <option value="Flexible" className="bg-[#0A0E27]">Flexible</option>
+                      </select>
+                    </motion.div>
+                  </div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 }}
+                  >
+                    <label className="block text-sm font-bold text-[#D9A441] mb-2 uppercase tracking-wider">Adventure Type</label>
+                    <select
+                      name="adventureType"
+                      value={formData.adventureType}
+                      onChange={handleChange}
+                      className="w-full px-4 py-4 bg-white/5 border-2 border-white/10 rounded-xl text-white focus:border-[#D9A441] focus:outline-none transition-all backdrop-blur-xl"
+                    >
+                      <option value="" className="bg-[#0A0E27]">What excites you? (Optional)</option>
+                      {adventureTypes.map((type) => (
+                        <option key={type} value={type} className="bg-[#0A0E27]">
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                        </option>
+                      ))}
+                      <option value="All" className="bg-[#0A0E27]">Everything!</option>
+                    </select>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.7 }}
+                  >
+                    <label className="block text-sm font-bold text-[#D9A441] mb-2 uppercase tracking-wider">Anything Else?</label>
+                    <textarea
+                      name="notes"
+                      value={formData.notes}
+                      onChange={handleChange}
+                      rows="4"
+                      className="w-full px-4 py-4 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-[#D9A441] focus:outline-none transition-all resize-none backdrop-blur-xl"
+                      placeholder="Budget, preferences, special requests..."
+                    />
+                  </motion.div>
+
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="bg-red-500/20 border-2 border-red-500 text-red-200 px-4 py-3 rounded-xl font-semibold"
+                    >
+                      {error}
+                    </motion.div>
+                  )}
+
+                  {success && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="bg-green-500/20 border-2 border-green-500 text-green-200 px-4 py-3 rounded-xl font-semibold flex items-center gap-2"
+                    >
+                      <FaCheckCircle /> Awesome! We'll get back to you within 24 hours.
+                    </motion.div>
+                  )}
+
+                  <motion.button
+                    type="submit"
+                    disabled={submitting || loading}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full py-5 bg-gradient-to-r from-[#2E6F95] via-[#D9A441] to-[#1F4F3C] text-white font-bold rounded-xl shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-lg relative overflow-hidden group"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#1F4F3C] via-[#D9A441] to-[#2E6F95] opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <span className="relative flex items-center gap-3">
+                      {submitting ? (
+                        <>
+                          <FaSpinner className="animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <FaPaperPlane /> Let's Make It Happen!
+                        </>
+                      )}
+                    </span>
+                  </motion.button>
+                </motion.form>
+              )}
+
+              {activeTab === 'support' && (
+                <motion.form
+                  key="support"
+                  initial={{ opacity: 0, x: -50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 50 }}
+                  onSubmit={handleSubmit}
+                  className="space-y-6"
+                >
+                  <div className="bg-gradient-to-r from-[#2E6F95]/20 to-[#D9A441]/20 border-2 border-[#D9A441]/50 rounded-xl p-4 mb-6">
+                    <p className="text-white font-semibold flex items-center gap-2">
+                      <FaHeadset className="text-[#D9A441]" /> Quick help? Call <a href="tel:+919876543210" className="underline text-[#D9A441]">+91 9876543210</a>
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-[#D9A441] mb-2 uppercase tracking-wider">Name *</label>
+                      <input
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-4 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-[#D9A441] focus:outline-none transition-all backdrop-blur-xl"
+                        placeholder="Your name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-[#D9A441] mb-2 uppercase tracking-wider">Phone *</label>
+                      <input
+                        name="contact"
+                        type="tel"
+                        value={formData.contact}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-4 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-[#D9A441] focus:outline-none transition-all backdrop-blur-xl"
+                        placeholder="+91 XXXXXXXXXX"
+                      />
+                    </div>
+                  </div>
+
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Email *</label>
+                    <label className="block text-sm font-bold text-[#D9A441] mb-2 uppercase tracking-wider">Email *</label>
                     <input
                       name="email"
                       type="email"
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:bg-white focus:outline-none transition-all"
-                      placeholder="you@example.com"
+                      className="w-full px-4 py-4 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-[#D9A441] focus:outline-none transition-all backdrop-blur-xl"
+                      placeholder="your@email.com"
                     />
                   </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-[#D9A441] mb-2 uppercase tracking-wider">Booking ID</label>
+                      <input
+                        name="bookingRef"
+                        value={formData.bookingRef}
+                        onChange={handleChange}
+                        className="w-full px-4 py-4 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-[#D9A441] focus:outline-none transition-all backdrop-blur-xl"
+                        placeholder="HW12345"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-[#D9A441] mb-2 uppercase tracking-wider">Issue Type *</label>
+                      <select
+                        name="issueType"
+                        value={formData.issueType}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-4 bg-white/5 border-2 border-white/10 rounded-xl text-white focus:border-[#D9A441] focus:outline-none transition-all backdrop-blur-xl"
+                      >
+                        <option value="" className="bg-[#0A0E27]">What's wrong?</option>
+                        <option value="Payment" className="bg-[#0A0E27]">Payment Issue</option>
+                        <option value="Date Change" className="bg-[#0A0E27]">Date Change</option>
+                        <option value="Cancellation" className="bg-[#0A0E27]">Cancellation</option>
+                        <option value="Info Update" className="bg-[#0A0E27]">Update Info</option>
+                        <option value="General" className="bg-[#0A0E27]">General Query</option>
+                        <option value="Other" className="bg-[#0A0E27]">Other</option>
+                      </select>
+                    </div>
+                  </div>
+
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Phone *</label>
-                    <input
-                      name="contact"
-                      type="tel"
-                      value={formData.contact}
+                    <label className="block text-sm font-bold text-[#D9A441] mb-2 uppercase tracking-wider">Tell us more *</label>
+                    <textarea
+                      name="notes"
+                      value={formData.notes}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:bg-white focus:outline-none transition-all"
-                      placeholder="+91 XXXXXXXXXX"
+                      rows="5"
+                      className="w-full px-4 py-4 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-[#D9A441] focus:outline-none transition-all resize-none backdrop-blur-xl"
+                      placeholder="Describe your issue in detail..."
                     />
                   </div>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Destination *</label>
-                    <select
-                      name="destination"
-                      value={formData.destination}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:bg-white focus:outline-none transition-all"
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="bg-red-500/20 border-2 border-red-500 text-red-200 px-4 py-3 rounded-xl font-semibold"
                     >
-                      <option value="">Select destination</option>
-                      {destinations.map((dest) => (
-                        <option key={dest} value={dest}>{dest}</option>
-                      ))}
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Duration *</label>
-                    <select
-                      name="duration"
-                      value={formData.duration}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:bg-white focus:outline-none transition-all"
-                    >
-                      <option value="">Select duration</option>
-                      {durations.map((dur) => (
-                        <option key={dur} value={dur}>{dur}</option>
-                      ))}
-                      <option value="Flexible">Flexible</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Adventure Type</label>
-                  <select
-                    name="adventureType"
-                    value={formData.adventureType}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:bg-white focus:outline-none transition-all"
-                  >
-                    <option value="">Select type (Optional)</option>
-                    {adventureTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type.charAt(0).toUpperCase() + type.slice(1)}
-                      </option>
-                    ))}
-                    <option value="All">All Types</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Tell us more</label>
-                  <textarea
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleChange}
-                    rows="4"
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:bg-white focus:outline-none transition-all resize-none"
-                    placeholder="Budget, preferences, special requests..."
-                  />
-                </div>
-
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-red-50 border-2 border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium"
-                  >
-                    {error}
-                  </motion.div>
-                )}
-
-                {success && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="bg-green-50 border-2 border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2"
-                  >
-                    <FaCheckCircle /> Message sent! We'll reply within 24 hours.
-                  </motion.div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={submitting || loading}
-                  className="w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg"
-                >
-                  {submitting ? (
-                    <>
-                      <FaSpinner className="animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <FaPaperPlane /> Send Enquiry
-                    </>
+                      {error}
+                    </motion.div>
                   )}
-                </button>
-              </motion.form>
-            )}
 
-            {activeTab === 'support' && (
-              <motion.form
-                key="support"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                onSubmit={handleSubmit}
-                className="space-y-5"
-              >
-                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-xl p-4 mb-6">
-                  <p className="text-sm text-purple-900 font-semibold flex items-center gap-2">
-                    <FaHeadset /> Need quick help? Call us at <a href="tel:+919876543210" className="underline">+91 9876543210</a>
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Your Name *</label>
-                    <input
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:bg-white focus:outline-none transition-all"
-                      placeholder="John Doe"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Phone *</label>
-                    <input
-                      name="contact"
-                      type="tel"
-                      value={formData.contact}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:bg-white focus:outline-none transition-all"
-                      placeholder="+91 XXXXXXXXXX"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Email *</label>
-                  <input
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:bg-white focus:outline-none transition-all"
-                    placeholder="you@example.com"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Booking ID</label>
-                    <input
-                      name="bookingRef"
-                      value={formData.bookingRef}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:bg-white focus:outline-none transition-all"
-                      placeholder="HW12345 (if any)"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Issue Type *</label>
-                    <select
-                      name="issueType"
-                      value={formData.issueType}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:bg-white focus:outline-none transition-all"
+                  {success && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="bg-green-500/20 border-2 border-green-500 text-green-200 px-4 py-3 rounded-xl font-semibold flex items-center gap-2"
                     >
-                      <option value="">Select issue</option>
-                      <option value="Payment">Payment Issue</option>
-                      <option value="Date Change">Date Change</option>
-                      <option value="Cancellation">Cancellation</option>
-                      <option value="Info Update">Update Info</option>
-                      <option value="General">General Query</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Describe Your Issue *</label>
-                  <textarea
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleChange}
-                    required
-                    rows="5"
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:bg-white focus:outline-none transition-all resize-none"
-                    placeholder="Please provide details about your booking issue..."
-                  />
-                </div>
-
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-red-50 border-2 border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium"
-                  >
-                    {error}
-                  </motion.div>
-                )}
-
-                {success && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="bg-green-50 border-2 border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2"
-                  >
-                    <FaCheckCircle /> Support request received! We'll respond within 2 hours.
-                  </motion.div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg"
-                >
-                  {submitting ? (
-                    <>
-                      <FaSpinner className="animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <FaHeadset /> Submit Request
-                    </>
+                      <FaCheckCircle /> Got it! Our team will respond within 2 hours.
+                    </motion.div>
                   )}
-                </button>
-              </motion.form>
-            )}
-          </AnimatePresence>
+
+                  <motion.button
+                    type="submit"
+                    disabled={submitting}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full py-5 bg-gradient-to-r from-[#2E6F95] via-[#D9A441] to-[#1F4F3C] text-white font-bold rounded-xl shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-lg relative overflow-hidden group"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#1F4F3C] via-[#D9A441] to-[#2E6F95] opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <span className="relative flex items-center gap-3">
+                      {submitting ? (
+                        <>
+                          <FaSpinner className="animate-spin" />
+                          Submitting...
+                        </>
+                      ) : (
+                        <>
+                          <FaHeadset /> Get Help Now
+                        </>
+                      )}
+                    </span>
+                  </motion.button>
+                </motion.form>
+              )}
+            </AnimatePresence>
+          </div>
         </motion.div>
       </div>
     </div>
