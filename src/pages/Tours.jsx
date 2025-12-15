@@ -237,7 +237,7 @@ const Mobile3DCarousel = ({ items, onView, isMobile }) => {
 };
 
 // -----------------------------------------
-// 5. NEW DYNAMIC FILTER SECTION
+// 5. FILTER BAR
 // -----------------------------------------
 const AVAILABLE_TAGS = ["All", "Group", "Couple", "Honeymoon", "Adventure", "Romantic", "Family", "Solo"];
 
@@ -304,7 +304,7 @@ const FilterSection = ({ activeTag, setActiveTag, activeLocation, setActiveLocat
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 shadow-xl">
+            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 shadow-xl mt-4">
               
               {/* LOCATION PILLS */}
               {activeMenu === 'location' && (
@@ -363,15 +363,13 @@ export default function Tours() {
   // Filter States
   const [activeTag, setActiveTag] = useState("All");
   const [activeLocation, setActiveLocation] = useState("All");
+  const [locations, setLocations] = useState([]);
 
   // AUTO-SELECT LOCATION FROM REDIRECT
   useEffect(() => {
     if (locationState.state && locationState.state.location) {
       setActiveLocation(locationState.state.location);
-      // Clear state to avoid persistent selection on refresh if desired, 
-      // but keeping it allows "All" button on destinations to work if passed correctly.
     } else {
-      // Default to All if no state passed
       setActiveLocation("All");
     }
   }, [locationState]);
@@ -379,7 +377,18 @@ export default function Tours() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   useEffect(() => {
-    fetch('https://admin.hillway.in/api/tours')
+    // Construct query parameters for filtering
+    let url = 'https://admin.hillway.in/api/tours';
+    const params = new URLSearchParams();
+    if (activeTag !== "All") params.append('tag', activeTag);
+    if (activeLocation !== "All") params.append('location', activeLocation);
+    
+    if(params.toString()) {
+        url += `?${params.toString()}`;
+    }
+
+    setLoading(true);
+    fetch(url)
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
@@ -391,9 +400,22 @@ export default function Tours() {
             img: t.img,
             summary: t.subtitle,
             tags: t.tags || [],
-            location: t.location || "Sikkim"
+            location: t.location || "Sikkim" 
           }));
           setList(formatted);
+          
+          // Only update locations if we are in the default "All" view to capture the full list
+          // This prevents the location list from shrinking when a filter is applied
+           if(activeLocation === 'All' && activeTag === 'All' && locations.length === 0) {
+               const uniqueLocations = [...new Set(data.data.map(t => t.location).filter(l => l))];
+               setLocations(uniqueLocations.sort());
+           } else if (locations.length === 0) {
+               // Fallback: If initial load has a filter, we might miss some locations. 
+               // In a real app, you'd fetch "all locations" from a separate endpoint.
+               // For now, we just add the current ones.
+               const uniqueLocations = [...new Set(data.data.map(t => t.location).filter(l => l))];
+               setLocations(uniqueLocations.sort());
+           }
         }
         setLoading(false);
       })
@@ -401,7 +423,7 @@ export default function Tours() {
         console.error(err);
         setLoading(false);
       });
-  }, []);
+  }, [activeTag, activeLocation]); // Refetch when filters change
 
   useEffect(() => {
     let timeoutId = null;
@@ -415,21 +437,6 @@ export default function Tours() {
 
   const isMobile = windowWidth < 1024;
   const onView = (p) => navigate(`/tours/${p.id}`);
-
-  // Derived unique locations
-  const availableLocations = useMemo(() => {
-    const locs = list.map(t => t.location).filter(Boolean);
-    return [...new Set(locs)].sort();
-  }, [list]);
-
-  // Filter Logic
-  const filteredList = useMemo(() => {
-    return list.filter(tour => {
-      const tagMatch = activeTag === "All" || tour.tags.some(t => t.toUpperCase() === activeTag.toUpperCase());
-      const locationMatch = activeLocation === "All" || tour.location === activeLocation;
-      return tagMatch && locationMatch;
-    });
-  }, [list, activeTag, activeLocation]);
 
   return (
     <div className="relative min-h-screen" style={{ isolation: 'isolate' }}>
@@ -447,13 +454,13 @@ export default function Tours() {
             <h1 className="text-4xl md:text-5xl font-black text-white drop-shadow-lg tracking-tight font-montserrat mb-2">Explore Packages</h1>
             <p className="text-emerald-100/80 mt-2 text-sm md:text-base font-medium mb-10">Handpicked adventures designed for you</p>
 
-            {/* TWO BUTTON FILTER MENU */}
+            {/* FILTER SECTION */}
             <FilterSection 
-              activeTag={activeTag} 
-              setActiveTag={setActiveTag} 
-              activeLocation={activeLocation}
-              setActiveLocation={setActiveLocation}
-              locations={availableLocations}
+                activeTag={activeTag} 
+                setActiveTag={setActiveTag} 
+                locations={locations} 
+                activeLocation={activeLocation} 
+                setActiveLocation={setActiveLocation} 
             />
           </motion.div>
 
@@ -468,18 +475,18 @@ export default function Tours() {
                   {[1, 2, 3, 4, 5, 6].map((i) => <TourCardSkeleton key={i} style={{ width: '100%' }} />)}
                 </div>
               )
-            ) : filteredList.length === 0 ? (
+            ) : list.length === 0 ? (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 text-white/60 font-bold text-lg border border-white/10 rounded-3xl bg-white/5 backdrop-blur-sm">
                 No tours found for "{activeTag}" in "{activeLocation}"
               </motion.div>
             ) : isMobile ? (
               <div style={{ margin: '0 -16px' }}>
-                <Mobile3DCarousel items={filteredList} onView={onView} isMobile={isMobile} />
+                <Mobile3DCarousel items={list} onView={onView} isMobile={isMobile} />
               </div>
             ) : (
               <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <AnimatePresence mode="popLayout">
-                  {filteredList.map((tour, idx) => (
+                  {list.map((tour, idx) => (
                     <TourCard key={tour.id} tour={tour} onView={onView} index={idx} style={{ width: '100%', minWidth: 0 }} />
                   ))}
                 </AnimatePresence>
@@ -489,7 +496,7 @@ export default function Tours() {
 
           {!loading && (
             <div style={{ marginTop: '32px', textAlign: 'center', color: '#9ca3af', fontSize: '13px', fontWeight: 500 }}>
-              Showing {filteredList.length} tours
+              Showing {list.length} tours
             </div>
           )}
         </div>

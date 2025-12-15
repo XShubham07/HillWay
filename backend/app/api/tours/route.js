@@ -2,17 +2,30 @@ import dbConnect from '@/lib/db';
 import Tour from '@/models/Tour';
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request) {
   await dbConnect();
+  const { searchParams } = new URL(request.url);
+  const tag = searchParams.get('tag');
+  const location = searchParams.get('location');
+
   try {
-    const tours = await Tour.find({});
-    // Agar tours mil gaye, toh success
+    const query = {};
+    
+    // Filter by Tag
+    if (tag && tag !== 'All') {
+      query.tags = { $in: [tag] }; 
+    }
+
+    // Filter by Location
+    if (location && location !== 'All') {
+      // Create a case-insensitive regex for location matching
+      query.location = { $regex: new RegExp(`^${location}$`, 'i') };
+    }
+
+    const tours = await Tour.find(query);
     return NextResponse.json({ success: true, data: tours });
   } catch (error) {
-    // 👇 (ERROR LOG)
     console.error("❌ API ERROR:", error.message); 
-    console.error(error); // Pura error detail
-
     return NextResponse.json({ success: false, error: error.message }, { status: 400 });
   }
 }
