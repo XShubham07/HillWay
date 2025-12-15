@@ -82,7 +82,7 @@ export default function Navbar() {
         <div className="aqua-glass transition-all duration-300">
           <div className="max-w-7xl mx-auto px-6 py-3.5 flex justify-between items-center">
             
-            <a href="https://hillway.in" className="text-3xl font-extrabold text-white tracking-tight drop-shadow-md font-montserrat">
+            <a href="https://hillway.in" className="text-3xl font-extrabold text-white tracking-tight drop-shadow-md" style={{ fontFamily: "'Montserrat', sans-serif" }}>
               HillWay
             </a>
 
@@ -91,9 +91,10 @@ export default function Navbar() {
                 <a
                   key={link.path}
                   href={link.path}
-                  className="relative px-6 py-2.5 rounded-full text-sm transition-colors duration-300 z-10 flex items-center gap-2 overflow-hidden font-inter"
+                  className="relative px-6 py-2.5 rounded-full text-sm transition-colors duration-300 z-10 flex items-center gap-2 overflow-hidden"
                   style={{
                     color: COLORS.stone,
+                    fontFamily: "'Inter', sans-serif",
                     fontWeight: 500,
                   }}
                 >
@@ -108,9 +109,10 @@ export default function Navbar() {
                 onMouseLeave={() => setCommunityOpen(false)}
               >
                 <button
-                  className="relative px-6 py-2.5 rounded-full text-sm transition-colors duration-300 z-10 flex items-center gap-2 overflow-hidden font-inter"
+                  className="relative px-6 py-2.5 rounded-full text-sm transition-colors duration-300 z-10 flex items-center gap-2 overflow-hidden"
                   style={{
                     color: pathname === '/' ? COLORS.navy : COLORS.stone,
+                    fontFamily: "'Inter', sans-serif",
                     fontWeight: pathname === '/' ? 700 : 500,
                   }}
                 >
@@ -133,7 +135,12 @@ export default function Navbar() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute top-full mt-2 right-0 bg-[#102A43]/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 overflow-hidden min-w-[180px]"
+                      className="absolute top-full mt-2 right-0 aqua-glass rounded-2xl shadow-2xl overflow-hidden min-w-[180px]"
+                      style={{
+                        background: 'rgba(16, 42, 67, 0.95)',
+                        backdropFilter: 'blur(30px) saturate(180%)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                      }}
                     >
                       {communityLinks.map((link) => {
                         const isActive = !link.isExternal && pathname === link.path
@@ -192,7 +199,7 @@ export default function Navbar() {
       >
         <div className="aqua-glass">
           <div className="flex justify-between items-center px-4 py-3">
-            <a href="https://hillway.in" className="text-xl font-extrabold text-white tracking-tight font-montserrat">
+            <a href="https://hillway.in" className="text-xl font-extrabold text-white tracking-tight" style={{ fontFamily: "'Montserrat', sans-serif" }}>
               HillWay
             </a>
 
