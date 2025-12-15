@@ -138,9 +138,7 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen py-24 px-4 sm:px-6 lg:px-8" style={{
-      background: 'linear-gradient(135deg, #064e3b 0%, #047857 50%, #059669 100%)'
-    }}>
+    <div className="min-h-screen py-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         {/* HERO SECTION */}
         <motion.div 
@@ -310,11 +308,11 @@ export default function Contact() {
                           required
                           className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#2E6F95] focus:border-transparent transition-all"
                         >
-                          <option value="" className="bg-[#064e3b]">Select destination</option>
+                          <option value="" className="bg-[#022c22]">Select destination</option>
                           {destinations.map((dest) => (
-                            <option key={dest} value={dest} className="bg-[#064e3b]">{dest}</option>
+                            <option key={dest} value={dest} className="bg-[#022c22]">{dest}</option>
                           ))}
-                          <option value="Other" className="bg-[#064e3b]">Other / Custom</option>
+                          <option value="Other" className="bg-[#022c22]">Other / Custom</option>
                         </select>
                       </div>
 
@@ -327,11 +325,11 @@ export default function Contact() {
                           required
                           className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#2E6F95] focus:border-transparent transition-all"
                         >
-                          <option value="" className="bg-[#064e3b]">Select duration</option>
+                          <option value="" className="bg-[#022c22]">Select duration</option>
                           {durations.map((dur) => (
-                            <option key={dur} value={dur} className="bg-[#064e3b]">{dur}</option>
+                            <option key={dur} value={dur} className="bg-[#022c22]">{dur}</option>
                           ))}
-                          <option value="Flexible" className="bg-[#064e3b]">Flexible</option>
+                          <option value="Flexible" className="bg-[#022c22]">Flexible</option>
                         </select>
                       </div>
                     </div>
@@ -344,13 +342,13 @@ export default function Contact() {
                         onChange={handleChange}
                         className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#2E6F95] focus:border-transparent transition-all"
                       >
-                        <option value="" className="bg-[#064e3b]">Select type (Optional)</option>
+                        <option value="" className="bg-[#022c22]">Select type (Optional)</option>
                         {adventureTypes.map((type) => (
-                          <option key={type} value={type} className="bg-[#064e3b]">
+                          <option key={type} value={type} className="bg-[#022c22]">
                             {type.charAt(0).toUpperCase() + type.slice(1)}
                           </option>
                         ))}
-                        <option value="All" className="bg-[#064e3b]">All Types</option>
+                        <option value="All" className="bg-[#022c22]">All Types</option>
                       </select>
                     </div>
 
@@ -483,13 +481,13 @@ export default function Contact() {
                         required
                         className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#2E6F95] focus:border-transparent transition-all"
                       >
-                        <option value="" className="bg-[#064e3b]">Select issue type</option>
-                        <option value="Payment" className="bg-[#064e3b]">Payment Issue</option>
-                        <option value="Date Change" className="bg-[#064e3b]">Date Change Request</option>
-                        <option value="Traveler Info" className="bg-[#064e3b]">Update Traveler Information</option>
-                        <option value="Cancellation" className="bg-[#064e3b]">Cancellation Request</option>
-                        <option value="General Query" className="bg-[#064e3b]">General Query</option>
-                        <option value="Other" className="bg-[#064e3b]">Other</option>
+                        <option value="" className="bg-[#022c22]">Select issue type</option>
+                        <option value="Payment" className="bg-[#022c22]">Payment Issue</option>
+                        <option value="Date Change" className="bg-[#022c22]">Date Change Request</option>
+                        <option value="Traveler Info" className="bg-[#022c22]">Update Traveler Information</option>
+                        <option value="Cancellation" className="bg-[#022c22]">Cancellation Request</option>
+                        <option value="General Query" className="bg-[#022c22]">General Query</option>
+                        <option value="Other" className="bg-[#022c22]">Other</option>
                       </select>
                     </div>
 
