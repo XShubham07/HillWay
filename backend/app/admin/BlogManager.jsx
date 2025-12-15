@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaSave, FaTimes, FaEye, FaImage } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaSave, FaTimes, FaEye, FaImage, FaUpload } from 'react-icons/fa';
 
 export default function BlogManager() {
   const [blogs, setBlogs] = useState([]);
@@ -16,6 +16,10 @@ export default function BlogManager() {
     content: ''
   });
   const [tagInput, setTagInput] = useState('');
+  
+  // -- UPLOAD STATE --
+  const [coverFile, setCoverFile] = useState(null);
+  const [uploadingCover, setUploadingCover] = useState(false);
 
   const categories = ['Travel Tips', 'Destination Guides', 'Trekking', 'Local Culture', 'Adventure Tips'];
 
@@ -33,6 +37,47 @@ export default function BlogManager() {
   useEffect(() => {
     fetchBlogs();
   }, []);
+
+  // -- UPLOAD HANDLER --
+  const handleUploadCover = async () => {
+    if (!coverFile) {
+      alert('Please choose an image file first');
+      return;
+    }
+
+    try {
+      setUploadingCover(true);
+      const formData = new FormData();
+      formData.append('file', coverFile);
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData, // FormData automatically sets multipart/form-data headers
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        console.error('Upload failed:', data);
+        alert(data.error || 'Image upload failed');
+        return;
+      }
+
+      // Success - use the returned URL
+      setCurrentBlog(prev => ({
+        ...prev,
+        coverImage: data.url
+      }));
+
+      setCoverFile(null); // Clear file input
+      alert('Image uploaded successfully!');
+    } catch (err) {
+      console.error('Upload error:', err);
+      alert('Error uploading image');
+    } finally {
+      setUploadingCover(false);
+    }
+  };
 
   const handleSaveBlog = async () => {
     if (!currentBlog.title || !currentBlog.content || !currentBlog.excerpt) {
@@ -85,6 +130,7 @@ export default function BlogManager() {
 
   const handleEditBlog = (blog) => {
     setCurrentBlog({ ...blog });
+    setCoverFile(null); // Reset file input when editing new post
     setIsEditing(true);
   };
 
@@ -100,6 +146,7 @@ export default function BlogManager() {
       content: ''
     });
     setTagInput('');
+    setCoverFile(null);
   };
 
   const addTag = () => {
@@ -198,22 +245,79 @@ export default function BlogManager() {
                 </div>
               </div>
 
-              {/* Cover Image */}
-              <div>
-                <label className="block text-sm font-bold text-gray-300 mb-2 flex items-center gap-2">
-                  <FaImage /> Cover Image URL
+              {/* --- COVER IMAGE SECTION --- */}
+              <div className="bg-black/20 p-4 rounded-xl border border-white/5">
+                <label className="block text-sm font-bold text-gray-300 mb-3 flex items-center gap-2">
+                  <FaImage /> Cover Image
                 </label>
+
+                {/* URL Input */}
                 <input
                   type="url"
-                  className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
-                  placeholder="https://images.unsplash.com/..."
+                  className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white focus:border-cyan-500 outline-none mb-3 text-sm"
+                  placeholder="Paste image URL here..."
                   value={currentBlog.coverImage}
                   onChange={(e) => setCurrentBlog({ ...currentBlog, coverImage: e.target.value })}
                 />
+                
+                <div className="flex items-center gap-2 mb-3 text-xs text-gray-400 font-bold uppercase tracking-wider">
+                  <span className="w-full h-[1px] bg-gray-700"></span>
+                  <span>OR</span>
+                  <span className="w-full h-[1px] bg-gray-700"></span>
+                </div>
+
+                {/* File Upload */}
+                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center mb-3">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) setCoverFile(file);
+                    }}
+                    className="text-xs text-gray-300 file:mr-3 file:px-4 file:py-2.5 file:rounded-lg file:border-0 file:bg-cyan-900/30 file:text-cyan-400 file:text-xs file:font-bold file:border-cyan-500/30 hover:file:bg-cyan-800/30 cursor-pointer w-full sm:w-auto"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleUploadCover}
+                    disabled={uploadingCover || !coverFile}
+                    className={`px-4 py-2.5 rounded-lg text-xs font-bold flex items-center gap-2 shadow-md transition whitespace-nowrap ${
+                      uploadingCover || !coverFile
+                        ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                        : 'bg-green-600 hover:bg-green-700 text-white'
+                    }`}
+                  >
+                    {uploadingCover ? (
+                      <span className="animate-pulse">Uploading...</span>
+                    ) : (
+                      <>
+                        <FaUpload /> Upload Image
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Preview */}
                 {currentBlog.coverImage && (
-                  <img src={currentBlog.coverImage} alt="Preview" className="mt-3 w-full h-48 object-cover rounded-lg" />
+                  <div className="mt-4 relative group">
+                    <img
+                      src={currentBlog.coverImage}
+                      alt="Cover Preview"
+                      className="w-full h-48 object-cover rounded-lg border border-gray-600 shadow-lg"
+                    />
+                    <div className="absolute top-2 right-2">
+                       <button 
+                         onClick={() => setCurrentBlog({...currentBlog, coverImage: ''})}
+                         className="bg-red-500/80 hover:bg-red-600 text-white p-1.5 rounded-full backdrop-blur-sm transition"
+                         title="Remove Image"
+                       >
+                         <FaTimes size={12} />
+                       </button>
+                    </div>
+                  </div>
                 )}
               </div>
+              {/* --- END COVER IMAGE SECTION --- */}
 
               {/* Tags */}
               <div>
@@ -254,20 +358,21 @@ export default function BlogManager() {
                 <label className="block text-sm font-bold text-gray-300 mb-2">Content (Markdown supported) *</label>
                 <textarea
                   rows={16}
-                  className="w-full bg-black/30 border border-gray-600 rounded-lg p-4 text-white font-mono text-sm focus:border-cyan-500 outline-none"
-                  placeholder="Write your blog content here...\n\n## Heading\n\nYour paragraph text...\n\n- List item\n- Another item"
+                  className="w-full bg-black/30 border border-gray-600 rounded-lg p-4 text-white font-mono text-sm focus:border-cyan-500 outline-none leading-relaxed"
+                  placeholder={`Write your blog content here...\n\n# Heading 1\n## Heading 2\n\nYour paragraph text...\n\n- List item 1\n- List item 2\n\n![Image Alt](https://image-url.com)`}
                   value={currentBlog.content}
                   onChange={(e) => setCurrentBlog({ ...currentBlog, content: e.target.value })}
                 />
+                <p className="text-xs text-gray-500 mt-2 text-right">Supports Markdown formatting</p>
               </div>
 
               {/* Actions */}
-              <div className="flex gap-4">
+              <div className="flex gap-4 pt-4 border-t border-gray-700">
                 <button
                   onClick={handleSaveBlog}
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 shadow-lg transition"
                 >
-                  <FaSave /> {currentBlog._id ? 'Update Blog' : 'Publish Blog'}
+                  <FaSave /> {currentBlog._id ? 'Update Blog Post' : 'Publish Blog Post'}
                 </button>
                 <button
                   onClick={() => setIsEditing(false)}
@@ -300,7 +405,7 @@ export default function BlogManager() {
                 <img
                   src={blog.coverImage}
                   alt={blog.title}
-                  className="w-full md:w-48 h-32 object-cover rounded-xl"
+                  className="w-full md:w-48 h-32 object-cover rounded-xl bg-black/20"
                 />
               )}
 
@@ -310,7 +415,7 @@ export default function BlogManager() {
                   <div>
                     <h3 className="text-xl font-bold text-white mb-1">{blog.title}</h3>
                     <div className="flex flex-wrap items-center gap-3 text-sm text-gray-400">
-                      <span className="bg-cyan-900/30 text-cyan-400 px-2 py-1 rounded text-xs border border-cyan-500/30">
+                      <span className="bg-cyan-900/30 text-cyan-400 px-2 py-1 rounded text-xs border border-cyan-500/30 uppercase font-bold tracking-wider">
                         {blog.category}
                       </span>
                       <span>{new Date(blog.date).toLocaleDateString()}</span>
@@ -329,24 +434,24 @@ export default function BlogManager() {
                   </div>
                 )}
 
-                <div className="flex gap-3">
+                <div className="flex gap-3 mt-auto">
                   <a
-                    href={`https://blog.hillway.in/${blog.slug}`}
+                    href={`https://blogs.hillway.in/${blog.slug}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition"
+                    className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 rounded-lg text-sm font-bold flex items-center gap-2 transition"
                   >
                     <FaEye /> Preview
                   </a>
                   <button
                     onClick={() => handleEditBlog(blog)}
-                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition"
+                    className="px-4 py-2 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 border border-cyan-500/30 rounded-lg text-sm font-bold flex items-center gap-2 transition"
                   >
                     <FaEdit /> Edit
                   </button>
                   <button
                     onClick={() => handleDeleteBlog(blog._id, blog.slug)}
-                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition"
+                    className="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 rounded-lg text-sm font-bold flex items-center gap-2 transition"
                   >
                     <FaTrash /> Delete
                   </button>

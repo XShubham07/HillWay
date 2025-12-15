@@ -88,7 +88,8 @@ export default function Navbar() {
             </Link>
 
             <div className="flex items-center gap-1">
-              {navLinks.map((link) => {
+              {/* First three links */}
+              {navLinks.slice(0, 3).map((link) => {
                 const isActive = location.pathname === link.path;
                 return (
                   <Link
@@ -126,7 +127,7 @@ export default function Navbar() {
                 );
               })}
 
-              {/* COMMUNITY DROPDOWN */}
+              {/* COMMUNITY DROPDOWN (now 4th) */}
               <div 
                 className="relative"
                 onMouseEnter={() => setCommunityOpen(true)}
@@ -201,6 +202,45 @@ export default function Navbar() {
                   )}
                 </AnimatePresence>
               </div>
+
+              {/* Remaining links (after community) */}
+              {navLinks.slice(3).map((link) => {
+                const isActive = location.pathname === link.path;
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className="relative px-6 py-2.5 rounded-full text-sm transition-colors duration-300 z-10 flex items-center gap-2 overflow-hidden"
+                    style={{
+                      color: isActive ? COLORS.navy : COLORS.stone,
+                      fontFamily: "'Inter', sans-serif",
+                      fontWeight: isActive ? 700 : 500,
+                    }}
+                  >
+                    {isActive && (
+                      <motion.div 
+                        layoutId="active-bg" 
+                        className="absolute inset-0 rounded-full -z-10" 
+                        style={{ background: COLORS.gold, boxShadow: "0 0 15px rgba(217, 164, 65, 0.4)" }} 
+                      />
+                    )}
+                    <AnimatePresence mode="popLayout">
+                      {isActive && (
+                        <motion.span
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0, opacity: 0 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                          className="relative z-10 flex items-center justify-center"
+                        >
+                          {link.icon}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                    <motion.span layout className="relative z-10">{link.label}</motion.span>
+                  </Link>
+                );
+              })}
             </div>
 
             <a href={whatsappLink} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-6 py-2.5 text-white font-semibold rounded-full shadow-lg bg-[#1F4F3C] border border-white/10 hover:scale-105 transition-transform">
@@ -264,7 +304,7 @@ export default function Navbar() {
               </div>
 
               <div className="p-4 flex flex-col">
-                {navLinks.map((link, i) => {
+                {navLinks.slice(0, 3).map((link, i) => {
                   const isActive = location.pathname === link.path;
                   return (
                     <div key={link.path}>
@@ -290,7 +330,7 @@ export default function Navbar() {
                   );
                 })}
 
-                {/* Community Section */}
+                {/* Community Section (placed after first 3) */}
                 <div className="mt-2">
                   <div className="flex items-center gap-2 px-4 py-2 text-white/60 text-xs font-bold uppercase tracking-wider">
                     <FaUsers className="text-cyan-400" />
@@ -343,6 +383,33 @@ export default function Navbar() {
                     );
                   })}
                 </div>
+
+                {/* Remaining links (after community) */}
+                {navLinks.slice(3).map((link, i) => {
+                  const isActive = location.pathname === link.path;
+                  return (
+                    <div key={link.path}>
+                      <Link
+                        to={link.path}
+                        onClick={() => setOpen(false)}
+                        className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 ml-0 ${
+                          isActive 
+                            ? 'bg-[#D9A441] text-[#102A43] font-bold shadow-lg shadow-orange-500/20' 
+                            : 'hover:bg-white/5 text-white font-medium'
+                        }`}
+                      >
+                        <span className={`text-lg w-6 flex justify-center ${isActive ? 'text-[#102A43]' : 'text-cyan-400'}`}>
+                          {link.icon}
+                        </span>
+                        <span className="text-sm tracking-wide">{link.label}</span>
+                        {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#102A43]" />}
+                      </Link>
+                      {i < navLinks.slice(3).length - 1 && (
+                        <div className="h-[1px] bg-white/5 ml-[3rem] mr-4 my-[2px]" />
+                      )}
+                    </div>
+                  );
+                })}
 
                 <div className="h-[1px] bg-white/10 mx-5 my-2" />
 
