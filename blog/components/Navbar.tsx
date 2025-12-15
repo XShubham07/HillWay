@@ -87,7 +87,8 @@ export default function Navbar() {
             </a>
 
             <div className="flex items-center gap-1">
-              {navLinks.map((link) => (
+              {/* First three links */}
+              {navLinks.slice(0, 3).map((link) => (
                 <a
                   key={link.path}
                   href={link.path}
@@ -181,6 +182,22 @@ export default function Navbar() {
                   )}
                 </AnimatePresence>
               </div>
+
+              {/* Remaining links (after community) */}
+              {navLinks.slice(3).map((link) => (
+                <a
+                  key={link.path}
+                  href={link.path}
+                  className="relative px-6 py-2.5 rounded-full text-sm transition-colors duration-300 z-10 flex items-center gap-2 overflow-hidden"
+                  style={{
+                    color: COLORS.stone,
+                    fontFamily: "'Inter', sans-serif",
+                    fontWeight: 500,
+                  }}
+                >
+                  <span className="relative z-10">{link.label}</span>
+                </a>
+              ))}
             </div>
 
             <a href={whatsappLink} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-6 py-2.5 text-white font-semibold rounded-full shadow-lg bg-[#1F4F3C] border border-white/10 hover:scale-105 transition-transform">
@@ -244,7 +261,7 @@ export default function Navbar() {
               </div>
 
               <div className="p-4 flex flex-col">
-                {navLinks.map((link, i) => (
+                {navLinks.slice(0, 3).map((link, i) => (
                   <div key={link.path}>
                     <a
                       href={link.path}
@@ -314,6 +331,25 @@ export default function Navbar() {
                     )
                   })}
                 </div>
+
+                {/* Remaining links (after community) */}
+                {navLinks.slice(3).map((link, i) => (
+                  <div key={link.path}>
+                    <a
+                      href={link.path}
+                      onClick={() => setOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 hover:bg-white/5 text-white font-medium"
+                    >
+                      <span className="text-lg w-6 flex justify-center text-cyan-400">
+                        {link.icon}
+                      </span>
+                      <span className="text-sm tracking-wide">{link.label}</span>
+                    </a>
+                    {i < navLinks.slice(3).length - 1 && (
+                      <div className="h-[1px] bg-white/5 ml-[3rem] mr-4 my-[2px]" />
+                    )}
+                  </div>
+                ))}
 
                 <div className="h-[1px] bg-white/10 mx-5 my-2" />
 

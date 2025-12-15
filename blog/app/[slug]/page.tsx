@@ -1,141 +1,128 @@
-import { notFound } from 'next/navigation'
-import { getPostBySlug, getAllPosts } from '@/lib/posts'
-import { format } from 'date-fns'
-import Image from 'next/image'
 import Link from 'next/link'
-import type { Metadata } from 'next'
+import Navbar from '../../components/Navbar'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import { notFound } from 'next/navigation'
 
-interface PostPageProps {
-  params: {
-    slug: string
+interface Post {
+  _id: string
+  slug: string
+  title: string
+  date: string
+  author: string
+  excerpt: string
+  category: string
+  coverImage: string
+  tags: string[]
+  content: string
+}
+
+// Fetch a single post by slug
+async function getPost(slug: string): Promise<Post | null> {
+  try {
+    // Fetch all posts to find the right one (since our API doesn't support slug lookup directly yet)
+    // Or ideally, update backend API to support /api/blogs?slug=xyz
+    const res = await fetch('https://admin.hillway.in/api/blogs', { 
+      next: { revalidate: 600 } 
+    })
+    
+    if (!res.ok) return null
+
+    const json = await res.json()
+    if (!json.success || !Array.isArray(json.data)) return null
+
+    const post = json.data.find((p: Post) => p.slug === slug)
+    return post || null
+  } catch (error) {
+    console.error('Error fetching post:', error)
+    return null
   }
 }
 
+// Generate static params for all blog posts
 export async function generateStaticParams() {
-  const posts = await getAllPosts()
-  return posts.map((post) => ({
-    slug: post.slug,
-  }))
-}
+  try {
+    const res = await fetch('https://admin.hillway.in/api/blogs')
+    const json = await res.json()
+    
+    if (!json.success || !Array.isArray(json.data)) return []
 
-export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
-  const post = await getPostBySlug(params.slug)
-  
-  if (!post) {
-    return {
-      title: 'Post Not Found',
-    }
-  }
-
-  return {
-    title: `${post.title} | HillWay Blog`,
-    description: post.excerpt,
-    openGraph: {
-      title: post.title,
-      description: post.excerpt,
-      type: 'article',
-      publishedTime: post.date,
-      authors: [post.author || 'HillWay Team'],
-      images: post.coverImage ? [{
-        url: post.coverImage,
-        width: 1200,
-        height: 630,
-        alt: post.title,
-      }] : [],
-    },
+    return json.data.map((post: Post) => ({
+      slug: post.slug,
+    }))
+  } catch (error) {
+    return []
   }
 }
 
-export default async function PostPage({ params }: PostPageProps) {
-  const post = await getPostBySlug(params.slug)
+export default async function BlogPost({ params }: { params: { slug: string } }) {
+  const post = await getPost(params.slug)
 
   if (!post) {
     notFound()
   }
 
   return (
-    <article className="min-h-screen py-24 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        <Link href="/" className="inline-flex items-center gap-2 text-white/60 hover:text-[#D9A441] transition-colors mb-8 group">
-          <span className="group-hover:-translate-x-1 transition-transform">←</span> Back to Blog
-        </Link>
-
-        <header className="mb-12">
-          <div className="flex flex-wrap items-center gap-3 mb-6">
-            {post.category && (
-              <span className="px-3 py-1 bg-[#D9A441]/10 border border-[#D9A441]/30 text-[#D9A441] text-sm font-bold uppercase tracking-wider rounded-full">
-                {post.category}
-              </span>
-            )}
-            <span className="text-white/40 text-sm">{format(new Date(post.date), 'MMMM dd, yyyy')}</span>
-            {post.readingTime && (
-              <>
-                <span className="text-white/20">•</span>
-                <span className="text-white/40 text-sm">{post.readingTime}</span>
-              </>
-            )}
+    <main className="min-h-screen bg-[#021a1f]">
+      <Navbar />
+      
+      <article className="max-w-3xl mx-auto py-32 px-6">
+        {/* Header */}
+        <header className="mb-12 text-center">
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <span className="bg-cyan-900/40 text-cyan-300 px-3 py-1 rounded-full text-xs font-bold border border-cyan-500/30 uppercase tracking-wider">
+              {post.category}
+            </span>
+            <span className="text-gray-400 text-sm">
+              {new Date(post.date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </span>
           </div>
 
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-montserrat font-extrabold text-white mb-6 leading-tight">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6 font-montserrat leading-tight">
             {post.title}
           </h1>
 
-          {post.excerpt && (
-            <p className="text-xl text-white/70 mb-8">{post.excerpt}</p>
-          )}
-
-          {post.author && (
-            <div className="flex items-center gap-3 text-sm text-white/60">
-              <span>By</span>
-              <span className="font-medium text-white">{post.author}</span>
-            </div>
-          )}
+          <div className="flex items-center justify-center gap-2 text-gray-400 text-sm">
+            <span>By <span className="text-white font-medium">{post.author}</span></span>
+          </div>
         </header>
 
+        {/* Cover Image */}
         {post.coverImage && (
-          <div className="relative w-full h-96 mb-12 rounded-2xl overflow-hidden">
-            <Image
-              src={post.coverImage}
+          <div className="mb-12 relative aspect-video rounded-2xl overflow-hidden border border-gray-700/50 shadow-2xl">
+            <img 
+              src={post.coverImage} 
               alt={post.title}
-              fill
-              className="object-cover"
-              priority
+              className="object-cover w-full h-full"
             />
           </div>
         )}
 
-        <div 
-          className="prose prose-invert prose-lg max-w-none"
-          dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br />') }}
-        />
+        {/* Content */}
+        <div className="prose prose-invert prose-lg max-w-none prose-headings:font-montserrat prose-headings:text-white prose-p:text-gray-300 prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-strong:text-white prose-code:text-cyan-300 prose-pre:bg-[#0e2932] prose-pre:border prose-pre:border-gray-700/50">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {post.content}
+          </ReactMarkdown>
+        </div>
 
+        {/* Tags */}
         {post.tags && post.tags.length > 0 && (
-          <div className="mt-12 pt-8 border-t border-white/10">
-            <h3 className="text-sm font-bold text-white/60 uppercase tracking-wider mb-4">Tags</h3>
+          <div className="mt-16 pt-8 border-t border-gray-800">
+            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Tags</h3>
             <div className="flex flex-wrap gap-2">
-              {post.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-3 py-1 bg-white/5 border border-white/10 text-white/60 text-sm rounded-full"
-                >
+              {post.tags.map(tag => (
+                <span key={tag} className="text-sm text-cyan-400 hover:text-cyan-300 cursor-pointer">
                   #{tag}
                 </span>
               ))}
             </div>
           </div>
         )}
-
-        <div className="mt-16 p-8 bg-gradient-to-br from-[#D9A441]/10 to-[#1F4F3C]/10 border border-[#D9A441]/20 rounded-2xl text-center">
-          <h3 className="text-2xl font-bold text-white mb-4">Ready for Your Own Adventure?</h3>
-          <p className="text-white/70 mb-6">Explore our curated tours and start planning your Himalayan journey today.</p>
-          <a
-            href="https://hillway.in/tours"
-            className="inline-block px-8 py-3 bg-gradient-to-r from-[#D9A441] to-[#FFD700] text-[#022c22] font-bold rounded-full hover:shadow-lg hover:shadow-[#D9A441]/30 transition-all"
-          >
-            Browse Tours
-          </a>
-        </div>
-      </div>
-    </article>
+      </article>
+    </main>
   )
 }
