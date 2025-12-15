@@ -27,6 +27,11 @@ const EnquirySchema = new mongoose.Schema({
     required: [true, 'Duration is required'],
     trim: true
   },
+  adventureType: {
+    type: String,
+    trim: true,
+    default: ''
+  },
   notes: {
     type: String,
     trim: true,

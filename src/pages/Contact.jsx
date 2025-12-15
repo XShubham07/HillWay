@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaSpinner, FaCheckCircle } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -9,11 +9,61 @@ export default function Contact() {
     contact: '',
     destination: '',
     duration: '',
+    adventureType: '',
     notes: ''
   });
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  
+  // Dynamic options from tours
+  const [destinations, setDestinations] = useState([]);
+  const [durations, setDurations] = useState([]);
+  const [adventureTypes, setAdventureTypes] = useState([]);
+
+  // Fetch tours data to populate dropdowns
+  useEffect(() => {
+    const fetchTourData = async () => {
+      try {
+        const response = await fetch('https://admin.hillway.in/api/tours');
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+          const tours = data.data;
+          
+          // Extract unique locations
+          const uniqueLocations = [...new Set(tours.map(tour => tour.location).filter(Boolean))];
+          setDestinations(uniqueLocations.sort());
+          
+          // Extract unique durations (formatted as 2N/3D, 3N/4D, etc.)
+          const uniqueDurations = [...new Set(tours.map(tour => {
+            if (tour.nights) {
+              const nights = tour.nights;
+              const days = nights + 1;
+              return `${nights}N/${days}D`;
+            }
+            return null;
+          }).filter(Boolean))];
+          setDurations(uniqueDurations.sort((a, b) => {
+            const aNights = parseInt(a.split('N')[0]);
+            const bNights = parseInt(b.split('N')[0]);
+            return aNights - bNights;
+          }));
+          
+          // Extract unique tags/adventure types
+          const allTags = tours.flatMap(tour => tour.tags || []);
+          const uniqueTags = [...new Set(allTags)].filter(Boolean);
+          setAdventureTypes(uniqueTags.sort());
+        }
+      } catch (err) {
+        console.error('Failed to fetch tour data:', err);
+      }
+      setLoading(false);
+    };
+
+    fetchTourData();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -48,6 +98,7 @@ export default function Contact() {
           contact: '',
           destination: '',
           duration: '',
+          adventureType: '',
           notes: ''
         });
         setTimeout(() => setSuccess(false), 5000);
@@ -120,6 +171,13 @@ export default function Contact() {
             <br />
             our travel experts respond faster than mountain winds ⚡
           </p>
+
+          {loading && (
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <FaSpinner className="animate-spin" />
+              Loading destinations...
+            </div>
+          )}
         </div>
 
         {/* RIGHT CONTACT FORM */}
@@ -174,7 +232,8 @@ export default function Contact() {
             placeholder="Contact Number *"
           />
 
-          <input
+          {/* DESTINATION DROPDOWN */}
+          <select
             name="destination"
             value={formData.destination}
             onChange={handleChange}
@@ -185,11 +244,16 @@ export default function Contact() {
               border border-white/20
               focus:outline-none focus:ring-2 focus:ring-[#2E6F95]
               backdrop-blur-xl
-              placeholder-gray-300
             "
-            placeholder="Preferred Destination *"
-          />
+          >
+            <option value="" className="bg-[#102A43] text-gray-300">Select Preferred Destination *</option>
+            {destinations.map((dest) => (
+              <option key={dest} value={dest} className="bg-[#102A43]">{dest}</option>
+            ))}
+            <option value="Other" className="bg-[#102A43]">Other / Custom Location</option>
+          </select>
 
+          {/* DURATION DROPDOWN */}
           <select
             name="duration"
             value={formData.duration}
@@ -204,11 +268,32 @@ export default function Contact() {
             "
           >
             <option value="" className="bg-[#102A43] text-gray-300">Select Trip Duration *</option>
-            <option value="1-2 Days" className="bg-[#102A43]">1-2 Days</option>
-            <option value="3-4 Days" className="bg-[#102A43]">3-4 Days</option>
-            <option value="5-7 Days" className="bg-[#102A43]">5-7 Days</option>
-            <option value="1-2 Weeks" className="bg-[#102A43]">1-2 Weeks</option>
-            <option value="2+ Weeks" className="bg-[#102A43]">2+ Weeks</option>
+            {durations.map((dur) => (
+              <option key={dur} value={dur} className="bg-[#102A43]">{dur}</option>
+            ))}
+            <option value="Flexible" className="bg-[#102A43]">Flexible / Custom Duration</option>
+          </select>
+
+          {/* ADVENTURE TYPE DROPDOWN */}
+          <select
+            name="adventureType"
+            value={formData.adventureType}
+            onChange={handleChange}
+            className="
+              w-full p-4 rounded-xl
+              bg-white/10 text-white 
+              border border-white/20
+              focus:outline-none focus:ring-2 focus:ring-[#2E6F95]
+              backdrop-blur-xl
+            "
+          >
+            <option value="" className="bg-[#102A43] text-gray-300">Select Adventure Type (Optional)</option>
+            {adventureTypes.map((type) => (
+              <option key={type} value={type} className="bg-[#102A43]">
+                {type.charAt(0).toUpperCase() + type.slice(1)}
+              </option>
+            ))}
+            <option value="All" className="bg-[#102A43]">All Types / Mixed</option>
           </select>
 
           <textarea
@@ -252,7 +337,7 @@ export default function Contact() {
 
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || loading}
             className="
               w-full py-4 rounded-xl text-white text-lg font-semibold
               bg-gradient-to-r from-[#2E6F95] to-[#1F4F3C]
