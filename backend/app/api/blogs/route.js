@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb';
+import clientPromise from '@/lib/db';
 import { ObjectId } from 'mongodb';
 import fs from 'fs';
 import path from 'path';
