@@ -17,14 +17,19 @@ const EnquirySchema = new mongoose.Schema({
     required: [true, 'Contact number is required'],
     trim: true
   },
+  // Type: enquiry or support
+  type: {
+    type: String,
+    enum: ['enquiry', 'support'],
+    default: 'enquiry'
+  },
+  // For enquiries
   destination: {
     type: String,
-    required: [true, 'Destination preference is required'],
     trim: true
   },
   duration: {
     type: String,
-    required: [true, 'Duration is required'],
     trim: true
   },
   adventureType: {
@@ -32,6 +37,18 @@ const EnquirySchema = new mongoose.Schema({
     trim: true,
     default: ''
   },
+  // For support
+  bookingRef: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  issueType: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  // Common fields
   notes: {
     type: String,
     trim: true,
