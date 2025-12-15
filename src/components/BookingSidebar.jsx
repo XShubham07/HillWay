@@ -454,6 +454,26 @@ export default function BookingSidebar({ tour = {} }) {
     setOtpError("");
     
     try {
+      // Check for existing bookings BEFORE sending OTP
+      const checkRes = await fetch('https://admin.hillway.in/api/bookings/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          phone: `+91 ${form.phone}`,
+          tourTitle: tour.title || "Custom Package"
+        })
+      });
+      
+      const checkData = await checkRes.json();
+      
+      if (checkData.exists) {
+        // Show existing booking popup
+        setPopupData({ type: 'duplicate', data: checkData.booking });
+        setOtpSending(false);
+        return;
+      }
+
+      // No existing booking found, proceed with OTP
       const res = await fetch('https://admin.hillway.in/api/otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -534,7 +554,7 @@ export default function BookingSidebar({ tour = {} }) {
             <p className="text-center text-gray-300 text-sm mb-3">
               Enter the code sent to <span className="text-[#D9A441]">{form.email}</span>
             </p>
-            <div className="flex justify-between gap-2 mb-2">
+            <div className="flex justify-center gap-2 sm:gap-3 mb-2 px-2">
               {otp.map((digit, i) => (
                 <input
                   key={i}
@@ -544,7 +564,7 @@ export default function BookingSidebar({ tour = {} }) {
                   value={digit}
                   onChange={(e) => handleOtpChange(i, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(i, e)}
-                  className="w-10 h-12 bg-black/40 border border-white/20 rounded-lg text-center text-xl font-bold text-white focus:border-[#D9A441] focus:outline-none transition-colors"
+                  className="w-10 h-12 sm:w-12 sm:h-14 bg-black/40 border border-white/20 rounded-lg text-center text-xl font-bold text-white focus:border-[#D9A441] focus:outline-none transition-colors"
                 />
               ))}
             </div>
@@ -577,7 +597,7 @@ export default function BookingSidebar({ tour = {} }) {
         disabled={otpSending || !agreed}
         className="w-full bg-[#D9A441] hover:bg-[#fbbf24] text-black py-3.5 rounded-xl font-bold text-base shadow-[0_0_20px_rgba(217,164,65,0.15)] transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
-        {otpSending ? <><FaSpinner className="animate-spin" /> Sending Code...</> : "Proceed to Book"}
+        {otpSending ? <><FaSpinner className="animate-spin" /> Checking...</> : "Proceed to Book"}
       </button>
     );
   };
