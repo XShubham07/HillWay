@@ -3,13 +3,14 @@ import { useState, useEffect } from 'react';
 import {
   FaBook, FaMapMarkerAlt, FaUserSecret, FaTicketAlt, FaCommentDots,
   FaTag, FaSignOutAlt, FaBars, FaTimes, FaPaperPlane, FaTrash,
-  FaPlus, FaChartPie, FaClock, FaUserTie, FaBed, FaMobileAlt, FaEnvelope, FaStar, FaQuestionCircle
+  FaPlus, FaChartPie, FaClock, FaUserTie, FaBed, FaMobileAlt, FaEnvelope, FaStar, FaQuestionCircle, FaBlog
 } from 'react-icons/fa';
 
 // --- SUB-COMPONENTS ---
 import BookingManager from './BookingManager';
 import TourManager from './TourManager';
 import EnquiryManager from './EnquiryManager';
+import BlogManager from './BlogManager';
 
 export default function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('bookings');
@@ -123,6 +124,7 @@ export default function AdminDashboard({ onLogout }) {
             { id: 'bookings', label: 'Bookings', icon: <FaBook /> },
             { id: 'enquiries', label: 'Enquiries', icon: <FaQuestionCircle />, color: 'purple' },
             { id: 'tours', label: 'Manage Tours', icon: <FaMapMarkerAlt /> },
+            { id: 'blogs', label: 'Blog Posts', icon: <FaBlog />, color: 'orange' },
             { id: 'agents', label: 'Agents', icon: <FaUserSecret />, color: 'purple' },
             { id: 'coupons', label: 'Coupons', icon: <FaTicketAlt /> },
             { id: 'reviews', label: 'Reviews', icon: <FaCommentDots /> },
@@ -156,7 +158,10 @@ export default function AdminDashboard({ onLogout }) {
           <TourManager tours={tours} globalPrices={globalPrices} refreshData={fetchData} />
         )}
 
-        {/* 4. OTHER TABS (INLINE) */}
+        {/* 4. BLOG MANAGER */}
+        {activeTab === 'blogs' && <BlogManager />}
+
+        {/* 5. OTHER TABS (INLINE) */}
         {activeTab === 'reviews' && (
           <div className="max-w-6xl mx-auto">
             <h1 className="text-3xl font-bold text-white mb-6">User Reviews</h1>
