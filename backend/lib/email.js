@@ -4,8 +4,10 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // --- CONFIGURATION ---
-// UPDATED: Default sender is now noreply@hillway.in
-const DEFAULT_SENDER = 'HillWay Tours <noreply@hillway.in>';
+// OTP emails come from noreply@hillway.in
+const OTP_SENDER = 'HillWay Tours <noreply@hillway.in>';
+// Booking confirmations and updates come from bookings@hillway.in
+const BOOKINGS_SENDER = 'HillWay Bookings <bookings@hillway.in>';
 
 // --- REUSABLE EMAIL TEMPLATE GENERATOR ---
 const getEmailTemplate = ({ title, message, booking, color = '#0891b2', showButton = true }) => {
@@ -109,7 +111,7 @@ const getEmailTemplate = ({ title, message, booking, color = '#0891b2', showButt
           </div>
           ` : ''}
           <p style="margin-top: 40px; font-size: 14px; color: #6b7280; text-align: center;">
-            Need help? Reply to this email or contact <a href="mailto:support@hillway.in" style="color: ${color}">support@hillway.in</a>
+            Need help? Contact us at <a href="mailto:bookings@hillway.in" style="color: ${color}">bookings@hillway.in</a>
           </p>
         </div>
         <div class="footer">
@@ -122,13 +124,13 @@ const getEmailTemplate = ({ title, message, booking, color = '#0891b2', showButt
   `;
 };
 
-// --- 1. SEND OTP EMAIL (NEW) ---
+// --- 1. SEND OTP EMAIL ---
 export const sendOtpEmail = async (email, name, otp) => {
   if (!process.env.RESEND_API_KEY) return;
   
   try {
     await resend.emails.send({
-      from: DEFAULT_SENDER,
+      from: OTP_SENDER,
       to: email,
       subject: `${otp} is your verification code`,
       html: `
@@ -142,6 +144,13 @@ export const sendOtpEmail = async (email, name, otp) => {
           </div>
           
           <p style="color: #9ca3af; font-size: 13px; text-align: center; margin-top: 30px;">If you didn't request this, please ignore this email.</p>
+          
+          <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
+            <p style="color: #9ca3af; font-size: 11px; margin: 0;">
+              <strong>This is an automated message. Please do not reply to this email.</strong><br/>
+              For assistance, contact us at <a href="mailto:bookings@hillway.in" style="color: #0891b2;">bookings@hillway.in</a>
+            </p>
+          </div>
         </div>
       `
     });
@@ -164,7 +173,7 @@ export const sendBookingConfirmation = async (booking) => {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: DEFAULT_SENDER,
+      from: BOOKINGS_SENDER,
       to: booking.email,
       subject: `Booking Received - #HW-${refId}`,
       text: `Hi ${booking.name},\n\nWe have received your booking request for ${booking.tourTitle}.\nBooking ID: #HW-${refId}\nTotal Amount: ₹${booking.totalPrice}\n\nTrack Status: https://hillway.in/status?refId=${refId}`,
@@ -214,7 +223,7 @@ export const sendStatusUpdate = async (booking) => {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: DEFAULT_SENDER,
+      from: BOOKINGS_SENDER,
       to: booking.email,
       subject: subject,
       text: `Hi ${booking.name}, status updated to ${booking.status}. Track: https://hillway.in/status?refId=${refId}`,
@@ -240,7 +249,7 @@ export const sendAdminNewBookingAlert = async (booking) => {
 
   try {
     await resend.emails.send({
-      from: DEFAULT_SENDER,
+      from: BOOKINGS_SENDER,
       to: adminEmail,
       subject: `🔔 New Booking: ${booking.name} (${booking.tourTitle})`,
       text: `New Booking Received!\n\nName: ${booking.name}\nPhone: ${booking.phone}\nPackage: ${booking.tourTitle}\nTotal: ₹${booking.totalPrice}\n\nLogin to Admin Panel to confirm.`,
