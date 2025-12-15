@@ -8,6 +8,8 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const OTP_SENDER = 'HillWay Tours <noreply@hillway.in>';
 // Booking confirmations and updates come from bookings@hillway.in
 const BOOKINGS_SENDER = 'HillWay Bookings <bookings@hillway.in>';
+// Enquiry emails come from enquiry@hillway.in
+const ENQUIRY_SENDER = 'HillWay Enquiries <enquiry@hillway.in>';
 
 // --- REUSABLE EMAIL TEMPLATE GENERATOR ---
 const getEmailTemplate = ({ title, message, booking, color = '#0891b2', showButton = true }) => {
@@ -264,5 +266,189 @@ export const sendAdminNewBookingAlert = async (booking) => {
     console.log(`✅ Admin Alert sent to ${adminEmail}`);
   } catch (err) {
     console.error("❌ Admin Email Failed:", err);
+  }
+};
+
+// --- 5. SEND ENQUIRY CONFIRMATION TO USER ---
+export const sendEnquiryConfirmation = async (enquiry) => {
+  if (!process.env.RESEND_API_KEY) return;
+  if (!enquiry.email) return;
+
+  const enquiryId = enquiry._id.toString().slice(-6).toUpperCase();
+
+  try {
+    await resend.emails.send({
+      from: ENQUIRY_SENDER,
+      to: enquiry.email,
+      subject: 'We\'ve Received Your Enquiry - HillWay Tours',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f9fafb; margin: 0; padding: 0; }
+            .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; }
+            .header { background-color: #7c3aed; padding: 30px; text-align: center; }
+            .header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; }
+            .badge { display: inline-block; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 700; background-color: #ffffff; color: #7c3aed; margin-top: 8px; }
+            .content { padding: 30px; color: #374151; }
+            .greeting { font-size: 18px; margin-bottom: 20px; color: #111827; }
+            .message { font-size: 16px; line-height: 1.6; margin-bottom: 25px; color: #4b5563; }
+            .card { background-color: #f3f4f6; border-radius: 8px; padding: 20px; margin-bottom: 20px; border: 1px solid #e5e7eb; }
+            .card-title { margin-top: 0; color: #111827; font-size: 16px; font-weight: 700; border-bottom: 1px solid #d1d5db; padding-bottom: 10px; margin-bottom: 15px; }
+            .detail-row { margin-bottom: 12px; }
+            .label { color: #6b7280; font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px; }
+            .value { color: #111827; font-size: 15px; font-weight: 600; }
+            .footer { background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb; font-size: 12px; color: #9ca3af; }
+            .highlight { background-color: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>👋 Thank You for Reaching Out!</h1>
+              <div class="badge">#ENQ-${enquiryId}</div>
+            </div>
+            <div class="content">
+              <p class="greeting">Hi <strong>${enquiry.name}</strong>,</p>
+              <p class="message">
+                We've successfully received your enquiry! Our travel experts are reviewing your requirements and will get back to you within 24 hours with personalized recommendations and pricing.
+              </p>
+              
+              <div class="highlight">
+                <p style="margin: 0; color: #92400e; font-weight: 600; font-size: 14px;">
+                  ✨ <strong>What happens next?</strong><br/>
+                  Our team will analyze your preferences and create a customized travel plan just for you. We'll reach out via email or phone to discuss the details.
+                </p>
+              </div>
+
+              <div class="card">
+                <h3 class="card-title">Your Enquiry Details</h3>
+                <div class="detail-row">
+                  <span class="label">Preferred Destination</span>
+                  <span class="value">${enquiry.destination}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Trip Duration</span>
+                  <span class="value">${enquiry.duration}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Contact Number</span>
+                  <span class="value">${enquiry.contact}</span>
+                </div>
+                ${enquiry.notes ? `
+                <div class="detail-row">
+                  <span class="label">Additional Notes</span>
+                  <span class="value" style="font-weight: 400; font-style: italic;">${enquiry.notes}</span>
+                </div>
+                ` : ''}
+              </div>
+
+              <p style="font-size: 14px; color: #6b7280; text-align: center; margin-top: 30px;">
+                Need immediate assistance? <br/>
+                Contact us at <a href="mailto:enquiry@hillway.in" style="color: #7c3aed; font-weight: 600;">enquiry@hillway.in</a> or call <strong>+91-XXXXXXXXXX</strong>
+              </p>
+            </div>
+            <div class="footer">
+              &copy; ${new Date().getFullYear()} HillWay Tours. All rights reserved.<br/>
+              Sikkim, India
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+    });
+    console.log(`✅ Enquiry confirmation sent to ${enquiry.email}`);
+  } catch (err) {
+    console.error("❌ Enquiry Confirmation Email Failed:", err);
+  }
+};
+
+// --- 6. SEND ADMIN ENQUIRY ALERT ---
+export const sendAdminEnquiryAlert = async (enquiry) => {
+  if (!process.env.RESEND_API_KEY) return;
+
+  const adminEmail = 'admin@hillway.in';
+  const enquiryId = enquiry._id.toString().slice(-6).toUpperCase();
+
+  try {
+    await resend.emails.send({
+      from: ENQUIRY_SENDER,
+      to: adminEmail,
+      subject: `📩 New Enquiry: ${enquiry.name} - ${enquiry.destination}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f9fafb; margin: 0; padding: 0; }
+            .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; }
+            .header { background-color: #dc2626; padding: 30px; text-align: center; }
+            .header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; }
+            .badge { display: inline-block; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 700; background-color: #ffffff; color: #dc2626; margin-top: 8px; }
+            .content { padding: 30px; color: #374151; }
+            .card { background-color: #fef2f2; border-radius: 8px; padding: 20px; margin-bottom: 20px; border: 2px solid #fca5a5; }
+            .detail-row { display: flex; justify-content: space-between; margin-bottom: 10px; padding: 8px 0; border-bottom: 1px solid #fee2e2; }
+            .label { color: #991b1b; font-weight: 600; font-size: 14px; }
+            .value { color: #111827; font-weight: 600; font-size: 14px; text-align: right; }
+            .btn { background-color: #dc2626; color: #ffffff; padding: 12px 30px; border-radius: 6px; text-decoration: none; font-weight: 600; display: inline-block; margin-top: 20px; }
+            .footer { background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb; font-size: 12px; color: #9ca3af; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🔔 New Enquiry Received</h1>
+              <div class="badge">#ENQ-${enquiryId}</div>
+            </div>
+            <div class="content">
+              <p style="font-size: 16px; color: #4b5563; margin-bottom: 25px;">
+                A new customer has submitted an enquiry through the contact page. Please review and respond promptly.
+              </p>
+              
+              <div class="card">
+                <div class="detail-row">
+                  <span class="label">Customer Name</span>
+                  <span class="value">${enquiry.name}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Email</span>
+                  <span class="value">${enquiry.email}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Contact</span>
+                  <span class="value">${enquiry.contact}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Destination</span>
+                  <span class="value">${enquiry.destination}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Duration</span>
+                  <span class="value">${enquiry.duration}</span>
+                </div>
+                ${enquiry.notes ? `
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #fca5a5;">
+                  <span class="label" style="display: block; margin-bottom: 8px;">Additional Notes:</span>
+                  <p style="margin: 0; color: #111827; font-style: italic; background: #fff; padding: 10px; border-radius: 6px;">${enquiry.notes}</p>
+                </div>
+                ` : ''}
+              </div>
+
+              <div style="text-align: center;">
+                <a href="https://admin.hillway.in/enquiries" class="btn">View in Admin Panel</a>
+              </div>
+            </div>
+            <div class="footer">
+              Enquiry submitted on ${new Date(enquiry.createdAt).toLocaleString('en-IN', { dateStyle: 'long', timeStyle: 'short' })}
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+    });
+    console.log(`✅ Admin enquiry alert sent to ${adminEmail}`);
+  } catch (err) {
+    console.error("❌ Admin Enquiry Alert Failed:", err);
   }
 };
