@@ -1,9 +1,11 @@
 import dbConnect from '@/lib/db';
 import Enquiry from '@/models/Enquiry';
-import { sendEnquiryConfirmation, sendAdminEnquiryAlert } from '@/lib/email';
+import { sendEnquiryConfirmation, sendAdminEnquiryAlert, sendEnquiryResponse } from '@/lib/email';
 import { NextResponse } from 'next/server';
 
-// POST: Create new enquiry
+// ---------------------------------------------------------
+// POST: Create New Enquiry
+// ---------------------------------------------------------
 export async function POST(request) {
   await dbConnect();
   
@@ -40,19 +42,22 @@ export async function POST(request) {
     }
 
     return NextResponse.json(
-      { success: true, data: enquiry },
+      { success: true, data: enquiry, message: 'Enquiry submitted successfully' },
       { status: 201 }
     );
+
   } catch (error) {
     console.error('Enquiry creation error:', error);
     return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 400 }
+      { success: false, error: error.message || 'Failed to submit enquiry' },
+      { status: 500 }
     );
   }
 }
 
-// GET: Fetch all enquiries
+// ---------------------------------------------------------
+// GET: Fetch All Enquiries
+// ---------------------------------------------------------
 export async function GET() {
   await dbConnect();
   
@@ -67,7 +72,9 @@ export async function GET() {
   }
 }
 
-// PUT: Update enquiry status and notes
+// ---------------------------------------------------------
+// PUT: Update Enquiry Status or Admin Notes
+// ---------------------------------------------------------
 export async function PUT(request) {
   await dbConnect();
   
@@ -86,20 +93,21 @@ export async function PUT(request) {
     if (status) updateData.status = status;
     if (adminNotes !== undefined) updateData.adminNotes = adminNotes;
 
-    const enquiry = await Enquiry.findByIdAndUpdate(
+    const updatedEnquiry = await Enquiry.findByIdAndUpdate(
       id,
       updateData,
       { new: true }
     );
 
-    if (!enquiry) {
+    if (!updatedEnquiry) {
       return NextResponse.json(
         { success: false, error: 'Enquiry not found' },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ success: true, data: enquiry });
+    return NextResponse.json({ success: true, data: updatedEnquiry });
+
   } catch (error) {
     return NextResponse.json(
       { success: false, error: error.message },
@@ -108,7 +116,9 @@ export async function PUT(request) {
   }
 }
 
-// DELETE: Delete enquiry
+// ---------------------------------------------------------
+// DELETE: Delete Enquiry
+// ---------------------------------------------------------
 export async function DELETE(request) {
   await dbConnect();
   const { searchParams } = new URL(request.url);
@@ -117,13 +127,14 @@ export async function DELETE(request) {
   try {
     if (!id) {
       return NextResponse.json(
-        { success: false, error: 'Enquiry ID is required' },
+        { success: false, error: 'ID required' },
         { status: 400 }
       );
     }
 
     await Enquiry.findByIdAndDelete(id);
     return NextResponse.json({ success: true, data: {} });
+
   } catch (error) {
     return NextResponse.json(
       { success: false, error: error.message },
