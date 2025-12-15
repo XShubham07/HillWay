@@ -2,23 +2,38 @@ import dbConnect from '@/lib/db';
 import Booking from '@/models/Booking';
 import Coupon from '@/models/Coupon';
 import Agent from '@/models/Agent';
+import Otp from '@/models/Otp'; // IMPORTANT: You must create this model
 import { NextResponse } from 'next/server';
 
 // Email Functions
 import { sendBookingConfirmation, sendStatusUpdate, sendAdminNewBookingAlert } from '@/lib/email';
 
 // ---------------------------------------------------------
-// POST: Create Booking
+// POST: Create Booking (With OTP Verification)
 // ---------------------------------------------------------
 export async function POST(request) {
   await dbConnect();
   try {
     const body = await request.json();
+    const { otp, email, ...bookingData } = body; // Separate OTP
 
-    // Check for duplicate bookings to prevent spam
+    // --- 1. VERIFY OTP ---
+    if (!otp) {
+      return NextResponse.json({ success: false, error: "Verification code required" }, { status: 400 });
+    }
+
+    const validOtp = await Otp.findOne({ email, otp });
+    if (!validOtp) {
+      return NextResponse.json({ success: false, error: "Invalid or expired verification code" }, { status: 400 });
+    }
+
+    // --- 2. DELETE OTP (PREVENT REUSE) ---
+    await Otp.deleteOne({ _id: validOtp._id });
+
+    // --- 3. DUPLICATE CHECK ---
     const existingBooking = await Booking.findOne({
-      phone: body.phone,
-      tourTitle: body.tourTitle,
+      phone: bookingData.phone,
+      tourTitle: bookingData.tourTitle,
       status: { $ne: 'Cancelled' }
     });
 
@@ -30,9 +45,11 @@ export async function POST(request) {
       }, { status: 409 });
     }
 
-    const booking = await Booking.create(body);
+    // --- 4. CREATE BOOKING ---
+    // Make sure to add the email back into the object for creation
+    const booking = await Booking.create({ ...bookingData, email });
 
-    // FIX: Added 'await' to ensure email sends before function closes
+    // Send Emails in background
     try {
       await Promise.all([
         sendBookingConfirmation(booking),
@@ -40,7 +57,6 @@ export async function POST(request) {
       ]);
     } catch (emailError) {
       console.error("Failed to send emails:", emailError);
-      // Continue execution - don't fail the booking just because email failed
     }
 
     return NextResponse.json({ success: true, data: booking }, { status: 201 });
@@ -98,9 +114,7 @@ export async function PUT(request) {
     if (!oldBooking)
       return NextResponse.json({ success: false, error: "Booking not found" }, { status: 404 });
 
-    // ---------------------------------------------------------
     // Handle Coupon + Agent Commission
-    // ---------------------------------------------------------
     if (status === 'Confirmed' && oldBooking.status !== 'Confirmed') {
       if (oldBooking.couponCode) {
         const coupon = await Coupon.findOneAndUpdate(
@@ -127,9 +141,7 @@ export async function PUT(request) {
       }
     }
 
-    // ---------------------------------------------------------
     // Build Update Object
-    // ---------------------------------------------------------
     const updateData = { status };
 
     if (paymentType) updateData.paymentType = paymentType;
@@ -139,11 +151,8 @@ export async function PUT(request) {
 
     const updatedBooking = await Booking.findByIdAndUpdate(id, updateData, { new: true });
 
-    // ---------------------------------------------------------
-    // Send Status Update Email when status changes
-    // ---------------------------------------------------------
+    // Send Status Update Email
     if (oldBooking.status !== status) {
-      // FIX: Added 'await' here too for reliability
       try {
         await sendStatusUpdate(updatedBooking);
       } catch (emailError) {

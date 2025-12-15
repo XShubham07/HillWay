@@ -1,35 +1,20 @@
 import { useState, useEffect } from "react";
-import { createPortal } from "react-dom"; // IMPORTED PORTAL
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import {
-  FaUsers,
-  FaChild,
-  FaCheck,
-  FaPlus,
-  FaMinus,
-  FaTicketAlt,
-  FaSpinner,
-  FaTimes,
-  FaExclamationTriangle,
-  FaFire,
-  FaCouch,
-  FaUtensils,
-  FaCoffee,
-  FaHiking,
-  FaCalendarAlt,
-  FaLink,
-  FaCopy
+  FaUsers, FaChild, FaCheck, FaPlus, FaMinus, FaTicketAlt,
+  FaSpinner, FaTimes, FaExclamationTriangle, FaFire, FaCouch,
+  FaUtensils, FaCoffee, FaHiking, FaCalendarAlt, FaLink, FaCopy
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-// ... [StatusPopup component] ...
+// --- STATUS POPUP COMPONENT ---
 const StatusPopup = ({ isOpen, onClose, data, type }) => {
   const [copied, setCopied] = useState(false);
 
-  // --- SCROLL LOCK: Locks body when popup is open ---
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -44,12 +29,14 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
     };
   }, [isOpen]);
 
+  // Confetti Effect
   useEffect(() => {
     if (isOpen && type === 'success') {
       const count = 200;
       const defaults = {
-        origin: { y: 0.7 },
-        colors: ['#D9A441', '#ffffff', '#0891b2', '#F59E0B']
+        origin: { y: 0.5 },
+        colors: ['#D9A441', '#ffffff', '#0891b2', '#F59E0B'],
+        zIndex: 99995 
       };
 
       function fire(particleRatio, opts) {
@@ -62,9 +49,9 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
 
       fire(0.25, { spread: 26, startVelocity: 55 });
       fire(0.2, { spread: 60 });
-      fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
-      fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
-      fire(0.1, { spread: 120, startVelocity: 45 });
+      fire(0.35, { spread: 120, decay: 0.91, scalar: 0.8 });
+      fire(0.1, { spread: 150, startVelocity: 30, decay: 0.92, scalar: 1.2 });
+      fire(0.1, { spread: 180, startVelocity: 45 });
     }
   }, [isOpen, type]);
 
@@ -78,121 +65,122 @@ const StatusPopup = ({ isOpen, onClose, data, type }) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // --- PORTAL RENDER ---
-  // This moves the popup DOM to document.body, escaping any parent stacking contexts
   return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          // Ultra-high Z-index combined with Portal ensures top placement
-          className="fixed inset-0 z-[99999] flex items-center justify-center px-4"
-          style={{ background: "rgba(0, 0, 0, 0.85)", backdropFilter: "blur(8px)" }}
-        >
+        <>
           <motion.div
-            initial={{ scale: 0.8, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className={`
-              relative w-full max-w-sm overflow-hidden rounded-[2.5rem]
-              border shadow-2xl backdrop-blur-2xl text-center p-0
-              ${isSuccess
-                ? "bg-gradient-to-b from-[#D9A441]/20 to-[#0f172a]/95 border-[#D9A441]/50"
-                : "bg-gradient-to-b from-red-500/20 to-[#0f172a]/95 border-red-500/50"}
-            `}
-          >
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none" />
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 z-[99990] bg-black/85 backdrop-blur-md cursor-pointer"
+          />
 
-            <div className="relative p-8 z-10 flex flex-col items-center">
-              <button
-                onClick={onClose}
-                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition text-white/70"
-              >
-                <FaTimes size={14} />
-              </button>
+          <div className="fixed inset-0 z-[100000] flex items-center justify-center px-4 pointer-events-none">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              className={`
+                pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-[2.5rem]
+                border shadow-2xl backdrop-blur-2xl text-center p-0
+                ${isSuccess
+                  ? "bg-gradient-to-b from-[#D9A441]/20 to-[#0f172a]/95 border-[#D9A441]/50"
+                  : "bg-gradient-to-b from-red-500/20 to-[#0f172a]/95 border-red-500/50"}
+              `}
+            >
+              <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none" />
 
-              <div className="relative mb-6">
-                {isSuccess && <div className="absolute inset-0 bg-[#D9A441] blur-2xl opacity-40 animate-pulse rounded-full"></div>}
-                <motion.div
-                  initial={{ scale: 0, rotate: -45 }}
-                  animate={isSuccess ? { scale: [1, 1.1, 1], rotate: 0 } : { scale: 1, rotate: 0 }}
-                  transition={isSuccess 
-                    ? { scale: { repeat: Infinity, duration: 1.5, ease: "easeInOut" }, rotate: { type: "spring", stiffness: 200, delay: 0.1 } }
-                    : { type: "spring", stiffness: 200, delay: 0.1 }
+              <div className="relative p-8 z-10 flex flex-col items-center">
+                <button
+                  onClick={onClose}
+                  className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition text-white/70"
+                >
+                  <FaTimes size={14} />
+                </button>
+
+                <div className="relative mb-6">
+                  {isSuccess && <div className="absolute inset-0 bg-[#D9A441] blur-2xl opacity-40 animate-pulse rounded-full"></div>}
+                  <motion.div
+                    initial={{ scale: 0, rotate: -45 }}
+                    animate={isSuccess ? { scale: [1, 1.1, 1], rotate: 0 } : { scale: 1, rotate: 0 }}
+                    transition={isSuccess 
+                      ? { scale: { repeat: Infinity, duration: 1.5, ease: "easeInOut" }, rotate: { type: "spring", stiffness: 200, delay: 0.1 } }
+                      : { type: "spring", stiffness: 200, delay: 0.1 }
+                    }
+                    className={`
+                      relative w-24 h-24 rounded-full flex items-center justify-center shadow-2xl z-10
+                      ${isSuccess
+                        ? "bg-gradient-to-tr from-[#D9A441] to-[#fbbf24] text-black shadow-[#D9A441]/50"
+                        : "bg-gradient-to-tr from-red-500 to-red-400 text-white shadow-red-500/50"}
+                    `}
+                  >
+                    {isSuccess ? <FaCheck className="text-4xl drop-shadow-md" /> : <FaExclamationTriangle className="text-3xl" />}
+                  </motion.div>
+                </div>
+
+                <h3 className="text-2xl font-black text-white mb-2 tracking-tight">
+                  {isSuccess ? "Booking Confirmed!" : "Booking Found"}
+                </h3>
+
+                <div className="bg-black/40 rounded-xl px-4 py-2 mb-4 border border-white/10 shadow-inner">
+                  <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-0.5">Reference ID</p>
+                  <p className={`font-mono text-xl font-bold tracking-wider ${isSuccess ? "text-[#D9A441]" : "text-red-400"}`}>
+                    {refId}
+                  </p>
+                </div>
+
+                {isSuccess && (
+                  <div className="w-full mb-6">
+                    <div className="bg-white/5 rounded-lg p-3 border border-white/5 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+                          <FaLink size={10} />
+                        </div>
+                        <div className="text-left overflow-hidden">
+                          <p className="text-[10px] text-gray-400 font-bold uppercase">Tracking Link</p>
+                          <p className="text-[10px] text-gray-300 truncate w-32 opacity-70">{trackingLink}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleCopyLink}
+                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded-md transition flex items-center gap-1.5 shrink-0"
+                      >
+                        {copied ? <FaCheck /> : <FaCopy />} {copied ? "Copied" : "Copy"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <p className="text-gray-300 text-sm leading-relaxed mb-8 font-medium px-2">
+                  {isSuccess
+                    ? "We have received your request! Use the link above or your Reference ID to track your status."
+                    : `We found an existing booking for this tour with your number. Current Status: ${data?.status || 'Pending'}.`
                   }
+                </p>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={onClose}
                   className={`
-                    relative w-24 h-24 rounded-full flex items-center justify-center shadow-2xl z-10
+                    w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-all
                     ${isSuccess
-                      ? "bg-gradient-to-tr from-[#D9A441] to-[#fbbf24] text-black shadow-[#D9A441]/50"
-                      : "bg-gradient-to-tr from-red-500 to-red-400 text-white shadow-red-500/50"}
+                      ? "bg-gradient-to-r from-[#D9A441] to-[#fbbf24] text-black shadow-[#D9A441]/30"
+                      : "bg-white/10 text-white hover:bg-white/20 border border-white/10"}
                   `}
                 >
-                  {isSuccess ? <FaCheck className="text-4xl drop-shadow-md" /> : <FaExclamationTriangle className="text-3xl" />}
-                </motion.div>
+                  {isSuccess ? "Awesome!" : "Okay, thanks"}
+                </motion.button>
               </div>
-
-              <h3 className="text-2xl font-black text-white mb-2 tracking-tight">
-                {isSuccess ? "Booking Confirmed!" : "Booking Found"}
-              </h3>
-
-              <div className="bg-black/40 rounded-xl px-4 py-2 mb-4 border border-white/10 shadow-inner">
-                <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-0.5">Reference ID</p>
-                <p className={`font-mono text-xl font-bold tracking-wider ${isSuccess ? "text-[#D9A441]" : "text-red-400"}`}>
-                  {refId}
-                </p>
-              </div>
-
-              {isSuccess && (
-                <div className="w-full mb-6">
-                  <div className="bg-white/5 rounded-lg p-3 border border-white/5 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 overflow-hidden">
-                      <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
-                        <FaLink size={10} />
-                      </div>
-                      <div className="text-left overflow-hidden">
-                        <p className="text-[10px] text-gray-400 font-bold uppercase">Tracking Link</p>
-                        <p className="text-[10px] text-gray-300 truncate w-32 opacity-70">{trackingLink}</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={handleCopyLink}
-                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold rounded-md transition flex items-center gap-1.5 shrink-0"
-                    >
-                      {copied ? <FaCheck /> : <FaCopy />} {copied ? "Copied" : "Copy"}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              <p className="text-gray-300 text-sm leading-relaxed mb-8 font-medium px-2">
-                {isSuccess
-                  ? "We have received your request! Use the link above or your Reference ID to track your status."
-                  : `We found an existing booking for this tour with your number. Current Status: ${data?.status || 'Pending'}.`
-                }
-              </p>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={onClose}
-                className={`
-                  w-full py-4 rounded-2xl font-bold text-lg shadow-lg transition-all
-                  ${isSuccess
-                    ? "bg-gradient-to-r from-[#D9A441] to-[#fbbf24] text-black shadow-[#D9A441]/30"
-                    : "bg-white/10 text-white hover:bg-white/20 border border-white/10"}
-                `}
-              >
-                {isSuccess ? "Awesome!" : "Okay, thanks"}
-              </motion.button>
-            </div>
-          </motion.div>
-        </motion.div>
+            </motion.div>
+          </div>
+        </>
       )}
     </AnimatePresence>,
-    document.body // Portal Target
+    document.body
   );
 };
 
@@ -265,10 +253,17 @@ const TickButton = ({ label, icon: Icon, active, onClick, complimentary = false 
 export default function BookingSidebar({ tour = {} }) {
   const [open, setOpen] = useState(false);
   const [popupData, setPopupData] = useState(null);
+  
+  // OTP & Submission State
+  const [step, setStep] = useState('form'); // 'form' | 'otp'
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpError, setOtpError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
   const [agreed, setAgreed] = useState(false);
 
-  // --- Strict Scroll Locking for Mobile Sidebar ---
+  // Scroll Lock
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
@@ -432,14 +427,60 @@ export default function BookingSidebar({ tour = {} }) {
   const totalPersons = Math.max(1, Number(form.adults) + Number(form.children));
   const perHeadPrice = Math.round(discountedPrice / totalPersons);
 
-  const handleBook = async () => {
+  // --- OTP HELPERS ---
+  const handleOtpChange = (index, value) => {
+    if (isNaN(value)) return;
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+    if (value && index < 5) document.getElementById(`otp-${index + 1}`).focus();
+  };
+  
+  const handleKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      document.getElementById(`otp-${index - 1}`).focus();
+    }
+  };
+
+  // --- ACTIONS ---
+  const handleInitiateBooking = async () => {
     if (!form.travelDate) return alert("Please select a Journey Date");
     if (!form.name.trim()) return alert("Please enter your Name");
     if (!form.phone || form.phone.length !== 10) return alert("Please enter a valid 10-digit Phone Number");
     if (!form.email.trim()) return alert("Please enter your Email");
     if (!agreed) return alert("Please agree to the Terms & Conditions");
 
+    setOtpSending(true);
+    setOtpError("");
+    
+    try {
+      const res = await fetch('https://admin.hillway.in/api/otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email, name: form.name })
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setStep('otp');
+      } else {
+        alert(data.error || "Failed to send verification code");
+      }
+    } catch (err) {
+      alert("Connection failed. Please try again.");
+    }
+    setOtpSending(false);
+  };
+
+  const handleVerifyAndBook = async () => {
+    const code = otp.join("");
+    if (code.length !== 6) {
+      setOtpError("Please enter the complete 6-digit code");
+      return;
+    }
+
     setSubmitting(true);
+    setOtpError("");
 
     const bookingData = {
       ...form,
@@ -454,7 +495,8 @@ export default function BookingSidebar({ tour = {} }) {
         tea: form.tea,
         comfortSeat: form.comfortSeat,
         tourGuide: form.tourGuide
-      }
+      },
+      otp: code
     };
 
     try {
@@ -468,16 +510,76 @@ export default function BookingSidebar({ tour = {} }) {
       if (res.status === 409) {
         setPopupData({ type: 'duplicate', data: data.existingBooking });
         setOpen(false);
+        setStep('form');
+        setOtp(['', '', '', '', '', '']);
       } else if (data.success) {
         setPopupData({ type: 'success', data: data.data });
         setOpen(false);
+        setStep('form');
+        setOtp(['', '', '', '', '', '']);
       } else {
-        alert("Booking failed: " + data.error);
+        setOtpError(data.error || "Verification failed");
       }
     } catch (err) {
-      alert("Something went wrong. Please try again.");
+      setOtpError("Something went wrong. Please try again.");
     }
     setSubmitting(false);
+  };
+
+  const renderActionButtons = () => {
+    if (step === 'otp') {
+      return (
+        <div className="space-y-4">
+          <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+            <p className="text-center text-gray-300 text-sm mb-3">
+              Enter the code sent to <span className="text-[#D9A441]">{form.email}</span>
+            </p>
+            <div className="flex justify-between gap-2 mb-2">
+              {otp.map((digit, i) => (
+                <input
+                  key={i}
+                  id={`otp-${i}`}
+                  type="text"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleOtpChange(i, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(i, e)}
+                  className="w-10 h-12 bg-black/40 border border-white/20 rounded-lg text-center text-xl font-bold text-white focus:border-[#D9A441] focus:outline-none transition-colors"
+                />
+              ))}
+            </div>
+            {otpError && <p className="text-red-400 text-xs text-center font-bold animate-pulse">{otpError}</p>}
+          </div>
+
+          <div className="flex gap-3">
+             <button
+              onClick={() => setStep('form')}
+              disabled={submitting}
+              className="flex-1 py-3.5 rounded-xl font-bold text-sm bg-white/10 text-white hover:bg-white/20 transition"
+            >
+              Back
+            </button>
+            <button
+              onClick={handleVerifyAndBook}
+              disabled={submitting}
+              className="flex-[2] bg-[#D9A441] hover:bg-[#fbbf24] text-black py-3.5 rounded-xl font-bold text-base shadow-[0_0_20px_rgba(217,164,65,0.15)] transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {submitting ? <><FaSpinner className="animate-spin" /> Verifying...</> : "Verify & Book"}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <button
+        onClick={handleInitiateBooking}
+        disabled={otpSending || !agreed}
+        className="w-full bg-[#D9A441] hover:bg-[#fbbf24] text-black py-3.5 rounded-xl font-bold text-base shadow-[0_0_20px_rgba(217,164,65,0.15)] transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+      >
+        {otpSending ? <><FaSpinner className="animate-spin" /> Sending Code...</> : "Proceed to Book"}
+      </button>
+    );
   };
 
   const contentJsx = (
@@ -489,66 +591,68 @@ export default function BookingSidebar({ tour = {} }) {
         <p className="text-gray-400 text-xs mt-1">Instant confirmation & transparent pricing</p>
       </div>
 
-      <div className="space-y-3">
-        {/* Date Picker */}
-        <div className="relative group">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-            <FaCalendarAlt className="text-[#D9A441] text-lg" />
+      {step === 'form' && (
+        <div className="space-y-3">
+          {/* Date Picker */}
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+              <FaCalendarAlt className="text-[#D9A441] text-lg" />
+            </div>
+            <DatePicker
+              selected={form.travelDate}
+              onChange={(date) => handle("travelDate", date)}
+              onFocus={(e) => e.target.blur()} // Prevent Keyboard
+              minDate={new Date()}
+              placeholderText="Select Journey Date"
+              dateFormat="dd MMM yyyy"
+              className="w-full pl-12 pr-4 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white font-medium outline-none transition-all text-base sm:text-sm cursor-pointer placeholder-gray-500"
+              calendarClassName="!bg-[#1e293b] !border-white/10 !text-white !font-sans !rounded-xl !shadow-2xl !p-3 custom-datepicker"
+              dayClassName={() => "!text-gray-200 hover:!bg-[#D9A441] hover:!text-black !rounded-full"}
+              monthClassName={() => "!text-[#D9A441] !font-bold"}
+              weekDayClassName={() => "!text-gray-500"}
+              popperClassName="!z-[99999]"
+              wrapperClassName="w-full"
+            />
+            <style>{`
+                  .custom-datepicker .react-datepicker__header { background: transparent; border-bottom: 1px solid rgba(255,255,255,0.1); }
+                  .custom-datepicker .react-datepicker__current-month { color: white; margin-bottom: 10px; }
+                  .custom-datepicker .react-datepicker__day--selected { background-color: #D9A441 !important; color: black !important; font-weight: bold; }
+                  .custom-datepicker .react-datepicker__day--keyboard-selected { background-color: rgba(217, 164, 65, 0.3) !important; color: white !important; }
+                  .react-datepicker__triangle { display: none; }
+                  .react-datepicker-popper { z-index: 100000 !important; }
+              `}</style>
           </div>
-          <DatePicker
-            selected={form.travelDate}
-            onChange={(date) => handle("travelDate", date)}
-            onFocus={(e) => e.target.blur()} // Prevent Keyboard
-            minDate={new Date()}
-            placeholderText="Select Journey Date"
-            dateFormat="dd MMM yyyy"
-            className="w-full pl-12 pr-4 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white font-medium outline-none transition-all text-base sm:text-sm cursor-pointer placeholder-gray-500"
-            calendarClassName="!bg-[#1e293b] !border-white/10 !text-white !font-sans !rounded-xl !shadow-2xl !p-3 custom-datepicker"
-            dayClassName={() => "!text-gray-200 hover:!bg-[#D9A441] hover:!text-black !rounded-full"}
-            monthClassName={() => "!text-[#D9A441] !font-bold"}
-            weekDayClassName={() => "!text-gray-500"}
-            popperClassName="!z-[99999]"
-            wrapperClassName="w-full"
+
+          <input
+            type="text"
+            value={form.name}
+            onChange={(e) => handle("name", e.target.value)}
+            className="w-full px-4 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white placeholder-gray-500 outline-none transition-all text-base sm:text-sm"
+            placeholder="Full Name"
           />
-          <style>{`
-                .custom-datepicker .react-datepicker__header { background: transparent; border-bottom: 1px solid rgba(255,255,255,0.1); }
-                .custom-datepicker .react-datepicker__current-month { color: white; margin-bottom: 10px; }
-                .custom-datepicker .react-datepicker__day--selected { background-color: #D9A441 !important; color: black !important; font-weight: bold; }
-                .custom-datepicker .react-datepicker__day--keyboard-selected { background-color: rgba(217, 164, 65, 0.3) !important; color: white !important; }
-                .react-datepicker__triangle { display: none; }
-                .react-datepicker-popper { z-index: 100000 !important; }
-            `}</style>
-        </div>
 
-        <input
-          type="text"
-          value={form.name}
-          onChange={(e) => handle("name", e.target.value)}
-          className="w-full px-4 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white placeholder-gray-500 outline-none transition-all text-base sm:text-sm"
-          placeholder="Full Name"
-        />
-
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative w-full sm:flex-1">
-            <span className="absolute left-3 top-3.5 text-[#D9A441] font-bold text-xs">🇮🇳 +91</span>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative w-full sm:flex-1">
+              <span className="absolute left-3 top-3.5 text-[#D9A441] font-bold text-xs">🇮🇳 +91</span>
+              <input
+                type="tel"
+                value={form.phone}
+                onChange={handlePhoneChange}
+                maxLength={10}
+                className="w-full pl-14 pr-3 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white placeholder-gray-500 font-medium outline-none transition-all text-base sm:text-sm"
+                placeholder="Mobile Number"
+              />
+            </div>
             <input
-              type="tel"
-              value={form.phone}
-              onChange={handlePhoneChange}
-              maxLength={10}
-              className="w-full pl-14 pr-3 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white placeholder-gray-500 font-medium outline-none transition-all text-base sm:text-sm"
-              placeholder="Mobile Number"
+              type="email"
+              value={form.email}
+              onChange={(e) => handle("email", e.target.value)}
+              className="w-full sm:flex-[1.2] px-4 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white placeholder-gray-500 outline-none transition-all text-base sm:text-sm"
+              placeholder="Email"
             />
           </div>
-          <input
-            type="email"
-            value={form.email}
-            onChange={(e) => handle("email", e.target.value)}
-            className="w-full sm:flex-[1.2] px-4 py-3 rounded-xl bg-black/20 border border-white/5 focus:border-[#D9A441]/50 text-white placeholder-gray-500 outline-none transition-all text-base sm:text-sm"
-            placeholder="Email"
-          />
         </div>
-      </div>
+      )}
 
       {/* Adults/Kids */}
       <div className="grid grid-cols-2 gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
@@ -723,13 +827,7 @@ export default function BookingSidebar({ tour = {} }) {
           </label>
         </div>
 
-        <button
-          onClick={handleBook}
-          disabled={submitting || !agreed}
-          className="w-full bg-[#D9A441] hover:bg-[#fbbf24] text-black py-3.5 rounded-xl font-bold text-base shadow-[0_0_20px_rgba(217,164,65,0.15)] transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {submitting ? <><FaSpinner className="animate-spin" /> Processing...</> : "Confirm Booking"}
-        </button>
+        {renderActionButtons()}
       </motion.div>
     </div>
   );

@@ -3,6 +3,10 @@ import { Resend } from 'resend';
 // Initialize Resend with your API Key
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// --- CONFIGURATION ---
+// UPDATED: Default sender is now noreply@hillway.in
+const DEFAULT_SENDER = 'HillWay Tours <noreply@hillway.in>';
+
 // --- REUSABLE EMAIL TEMPLATE GENERATOR ---
 const getEmailTemplate = ({ title, message, booking, color = '#0891b2', showButton = true }) => {
   const refId = booking._id.toString().slice(-6).toUpperCase();
@@ -43,18 +47,15 @@ const getEmailTemplate = ({ title, message, booking, color = '#0891b2', showButt
     <body>
       <div class="container">
         
-        <!-- HEADER -->
         <div class="header">
           <h1>${title}</h1>
           <div class="status-badge">#HW-${refId}</div>
         </div>
 
-        <!-- BODY -->
         <div class="content">
           <p class="greeting">Hi <strong>${booking.name}</strong>,</p>
           <div class="message">${message}</div>
 
-          <!-- BOOKING DETAILS -->
           <div class="card">
             <h3 class="card-title">Booking Details</h3>
             <table style="width: 100%; border-collapse: collapse;">
@@ -73,7 +74,6 @@ const getEmailTemplate = ({ title, message, booking, color = '#0891b2', showButt
             </table>
           </div>
 
-          <!-- PRICE BREAKDOWN -->
           <div class="card" style="background-color: #ffffff;">
             <h3 class="card-title">Payment Summary</h3>
             <table style="width: 100%; border-collapse: collapse;">
@@ -111,7 +111,6 @@ const getEmailTemplate = ({ title, message, booking, color = '#0891b2', showButt
             </table>
           </div>
 
-          <!-- CTA BUTTON -->
           ${showButton ? `
           <div class="btn-container">
             <a href="${trackUrl}" class="btn">Track Booking Status</a>
@@ -123,7 +122,6 @@ const getEmailTemplate = ({ title, message, booking, color = '#0891b2', showButt
           </p>
         </div>
 
-        <!-- FOOTER -->
         <div class="footer">
           &copy; ${new Date().getFullYear()} HillWay Tours. All rights reserved.<br/>
           Sikkim, India
@@ -134,7 +132,37 @@ const getEmailTemplate = ({ title, message, booking, color = '#0891b2', showButt
   `;
 };
 
-// --- 1. SEND BOOKING RECEIVED EMAIL (INITIAL) ---
+// --- 1. SEND OTP EMAIL (NEW) ---
+export const sendOtpEmail = async (email, name, otp) => {
+  if (!process.env.RESEND_API_KEY) return;
+  
+  try {
+    await resend.emails.send({
+      from: DEFAULT_SENDER,
+      to: email,
+      subject: `${otp} is your verification code`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 500px; margin: 40px auto; padding: 30px; border: 1px solid #e5e7eb; border-radius: 16px; background-color: #ffffff;">
+          <h2 style="color: #0891b2; margin-top: 0; text-align: center;">Verify your Email</h2>
+          <p style="color: #374151; font-size: 16px;">Hi ${name},</p>
+          <p style="color: #4b5563; line-height: 1.5;">Please use the code below to complete your booking with HillWay Tours. This code is valid for 5 minutes.</p>
+          
+          <div style="background: #f0f9ff; padding: 24px; text-align: center; border-radius: 12px; border: 1px dashed #0891b2; margin: 25px 0;">
+            <span style="font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #0e7490; font-family: monospace;">${otp}</span>
+          </div>
+          
+          <p style="color: #9ca3af; font-size: 13px; text-align: center; margin-top: 30px;">If you didn't request this, please ignore this email.</p>
+        </div>
+      `
+    });
+    console.log(`✅ OTP sent to ${email}`);
+  } catch (err) {
+    console.error("❌ OTP Email Failed:", err);
+    throw new Error("Failed to send verification email");
+  }
+};
+
+// --- 2. SEND BOOKING RECEIVED EMAIL (INITIAL) ---
 export const sendBookingConfirmation = async (booking) => {
   if (!process.env.RESEND_API_KEY) {
     console.error("❌ RESEND_API_KEY is missing.");
@@ -142,12 +170,11 @@ export const sendBookingConfirmation = async (booking) => {
   }
   if (!booking.email) return;
 
-  const fromEmail = process.env.EMAIL_FROM || 'HillWay Tours <bookings@hillway.in>';
   const refId = booking._id.toString().slice(-6).toUpperCase();
 
   try {
     const { data, error } = await resend.emails.send({
-      from: fromEmail,
+      from: DEFAULT_SENDER,
       to: booking.email,
       subject: `Booking Received - #HW-${refId}`,
       text: `Hi ${booking.name},\n\nWe have received your booking request for ${booking.tourTitle}.\nBooking ID: #HW-${refId}\nTotal Amount: ₹${booking.totalPrice}\n\nTrack Status: https://hillway.in/status?refId=${refId}`,
@@ -169,11 +196,10 @@ export const sendBookingConfirmation = async (booking) => {
   }
 };
 
-// --- 2. SEND STATUS UPDATE (CONFIRMATION, CANCELLATION, ETC) ---
+// --- 3. SEND STATUS UPDATE (CONFIRMATION, CANCELLATION, ETC) ---
 export const sendStatusUpdate = async (booking) => {
   if (!process.env.RESEND_API_KEY || !booking.email) return;
 
-  const fromEmail = process.env.EMAIL_FROM || 'HillWay Tours <bookings@hillway.in>';
   const refId = booking._id.toString().slice(-6).toUpperCase();
   
   let title = 'Booking Status Update';
@@ -198,7 +224,7 @@ export const sendStatusUpdate = async (booking) => {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: fromEmail,
+      from: DEFAULT_SENDER,
       to: booking.email,
       subject: subject,
       text: `Hi ${booking.name}, status updated to ${booking.status}. Track: https://hillway.in/status?refId=${refId}`,
@@ -220,16 +246,15 @@ export const sendStatusUpdate = async (booking) => {
   }
 };
 
-// --- 3. SEND ADMIN ALERT ---
+// --- 4. SEND ADMIN ALERT ---
 export const sendAdminNewBookingAlert = async (booking) => {
   if (!process.env.RESEND_API_KEY) return;
 
-  const adminEmail = 'admin@hillway.in';
-  const fromEmail = process.env.EMAIL_FROM || 'HillWay Tours <bookings@hillway.in>';
+  const adminEmail = 'admin@hillway.in'; // Ensure this is receiving email
 
   try {
     await resend.emails.send({
-      from: fromEmail,
+      from: DEFAULT_SENDER,
       to: adminEmail,
       subject: `🔔 New Booking: ${booking.name} (${booking.tourTitle})`,
       text: `New Booking Received!\n\nName: ${booking.name}\nPhone: ${booking.phone}\nPackage: ${booking.tourTitle}\nTotal: ₹${booking.totalPrice}\n\nLogin to Admin Panel to confirm.`,

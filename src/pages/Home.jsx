@@ -243,7 +243,7 @@ export default function Home() {
             </motion.div>
 
             {featuredTours.length > 0 ? (
-               <PackageGrid list={featuredTours} onView={(p) => navigate(`/tours/${p.id}`)} />
+               <PackageGrid list={featuredTours} onView={(p) => navigate(`/tours/${p._id}`)} />
             ) : (
               <div className="h-48 flex items-center justify-center border border-dashed border-white/10 rounded-3xl">
                  <p className="text-emerald-400/50 uppercase tracking-widest animate-pulse text-sm">Loading Collection...</p>
