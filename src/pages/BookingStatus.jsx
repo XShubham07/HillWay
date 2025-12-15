@@ -100,7 +100,7 @@ export default function BookingStatus() {
   };
 
   return (
-    <div className="min-h-screen pt-32 pb-20 px-4 bg-[#0f172a] text-white font-inter selection:bg-[#D9A441] selection:text-black overflow-hidden relative">
+    <div className="min-h-screen pt-32 pb-20 px-4 text-white font-inter selection:bg-[#D9A441] selection:text-black overflow-hidden relative">
       {/* Background Elements */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] bg-cyan-900/20 blur-[120px] rounded-full animate-pulse duration-[10s]" />
