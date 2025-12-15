@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #D9A441;
+  --dark: #022c22;
+  --dark-light: #0a3d32;
+  --accent: #FFD700;
+}
+
+html {
+  background: var(--dark);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(217, 164, 65, 0.6) rgba(0, 0, 0, 0.3);
+}
+
+body {
+  background-color: var(--dark);
+  color: #fff;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(217, 164, 65, 0.15) 0%, transparent 60%),
+    radial-gradient(circle at 100% 30%, rgba(31, 79, 60, 0.15) 0%, transparent 50%);
+  z-index: -2;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%);
+  border-radius: 4px;
+}
+
+::selection {
+  background: var(--primary);
+  color: white;
+}
+
+.prose {
+  max-width: 65ch;
+  color: #e2e8f0;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  color: #fff;
+  font-weight: 700;
+}
+
+.prose a {
+  color: var(--primary);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.3s;
+}
+
+.prose a:hover {
+  border-bottom-color: var(--primary);
+}
+
+.prose code {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.prose pre {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.prose img {
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
