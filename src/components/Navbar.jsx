@@ -48,7 +48,7 @@ export default function Navbar() {
 
   const communityLinks = [
     { path: "/reviews", label: "Reviews", icon: <FaStar />, isInternal: true },
-    { path: "https://blog.hillway.in", label: "Blog", icon: <FaBlog />, isInternal: false },
+    { path: "https://blogs.hillway.in", label: "Blog", icon: <FaBlog />, isInternal: false },
   ];
 
   const whatsappLink = `https://wa.me/917004165004?text=Hi! I'm interested in booking a tour.`;
