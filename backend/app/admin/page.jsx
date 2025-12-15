@@ -3,12 +3,13 @@ import { useState, useEffect } from 'react';
 import {
   FaBook, FaMapMarkerAlt, FaUserSecret, FaTicketAlt, FaCommentDots,
   FaTag, FaSignOutAlt, FaBars, FaTimes, FaPaperPlane, FaTrash,
-  FaPlus, FaChartPie, FaClock, FaUserTie, FaBed, FaMobileAlt, FaEnvelope, FaStar
+  FaPlus, FaChartPie, FaClock, FaUserTie, FaBed, FaMobileAlt, FaEnvelope, FaStar, FaQuestionCircle
 } from 'react-icons/fa';
 
 // --- SUB-COMPONENTS ---
 import BookingManager from './BookingManager';
 import TourManager from './TourManager';
+import EnquiryManager from './EnquiryManager';
 
 export default function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('bookings');
@@ -120,6 +121,7 @@ export default function AdminDashboard({ onLogout }) {
         <nav className="flex-1 px-4 space-y-2 mt-6 overflow-y-auto">
           {[
             { id: 'bookings', label: 'Bookings', icon: <FaBook /> },
+            { id: 'enquiries', label: 'Enquiries', icon: <FaQuestionCircle />, color: 'purple' },
             { id: 'tours', label: 'Manage Tours', icon: <FaMapMarkerAlt /> },
             { id: 'agents', label: 'Agents', icon: <FaUserSecret />, color: 'purple' },
             { id: 'coupons', label: 'Coupons', icon: <FaTicketAlt /> },
@@ -146,18 +148,20 @@ export default function AdminDashboard({ onLogout }) {
           <BookingManager bookings={bookings} tours={tours} globalPrices={globalPrices} refreshData={fetchData} />
         )}
 
-        {/* 2. TOURS COMPONENT */}
+        {/* 2. ENQUIRIES COMPONENT */}
+        {activeTab === 'enquiries' && <EnquiryManager />}
+
+        {/* 3. TOURS COMPONENT */}
         {activeTab === 'tours' && (
           <TourManager tours={tours} globalPrices={globalPrices} refreshData={fetchData} />
         )}
 
-        {/* 3. OTHER TABS (INLINE) */}
+        {/* 4. OTHER TABS (INLINE) */}
         {activeTab === 'reviews' && (
           <div className="max-w-6xl mx-auto">
             <h1 className="text-3xl font-bold text-white mb-6">User Reviews</h1>
             <div className="grid gap-4">
               {allReviews.map((review, index) => (
-                // FIX: Used index in key to ensure uniqueness if API returns duplicate _ids
                 <div key={`${review._id}-${index}`} className="bg-[#1e293b] p-5 rounded-2xl border border-gray-700 shadow-md hover:border-gray-500 transition">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
                     <div className="flex items-center gap-2"><span className="bg-cyan-900/30 text-cyan-400 px-3 py-1 rounded-lg text-xs font-bold border border-cyan-500/30 uppercase tracking-wider">{review.tourTitle}</span><span className="text-gray-500 text-xs flex items-center gap-1"><FaClock size={10} /> {review.date}</span></div>
