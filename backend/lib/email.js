@@ -46,16 +46,13 @@ const getEmailTemplate = ({ title, message, booking, color = '#0891b2', showButt
     </head>
     <body>
       <div class="container">
-        
         <div class="header">
           <h1>${title}</h1>
           <div class="status-badge">#HW-${refId}</div>
         </div>
-
         <div class="content">
           <p class="greeting">Hi <strong>${booking.name}</strong>,</p>
           <div class="message">${message}</div>
-
           <div class="card">
             <h3 class="card-title">Booking Details</h3>
             <table style="width: 100%; border-collapse: collapse;">
@@ -73,7 +70,6 @@ const getEmailTemplate = ({ title, message, booking, color = '#0891b2', showButt
               </tr>
             </table>
           </div>
-
           <div class="card" style="background-color: #ffffff;">
             <h3 class="card-title">Payment Summary</h3>
             <table style="width: 100%; border-collapse: collapse;">
@@ -86,18 +82,15 @@ const getEmailTemplate = ({ title, message, booking, color = '#0891b2', showButt
                 <td style="padding: 5px 0; color: #4b5563;">Children (${booking.children})</td>
                 <td style="padding: 5px 0; text-align: right;">-</td>
               </tr>` : ''}
-              
               ${discount > 0 ? `
               <tr>
                 <td style="padding: 5px 0; color: #16a34a;">Coupon Discount</td>
                 <td style="padding: 5px 0; text-align: right; color: #16a34a;">- ₹${discount.toLocaleString('en-IN')}</td>
               </tr>` : ''}
-
               <tr>
                 <td style="padding-top: 12px; font-weight: 700; color: #111827; border-top: 1px dashed #e5e7eb;">Total Amount</td>
                 <td style="padding-top: 12px; font-weight: 700; color: #111827; text-align: right; border-top: 1px dashed #e5e7eb; font-size: 16px;">₹${booking.totalPrice.toLocaleString('en-IN')}</td>
               </tr>
-              
               ${booking.status === 'Confirmed' || booking.paymentType === 'Partial' ? `
               <tr>
                 <td style="padding: 5px 0; color: #059669; font-weight: 600;">Amount Paid</td>
@@ -110,18 +103,15 @@ const getEmailTemplate = ({ title, message, booking, color = '#0891b2', showButt
               ` : ''}
             </table>
           </div>
-
           ${showButton ? `
           <div class="btn-container">
             <a href="${trackUrl}" class="btn">Track Booking Status</a>
           </div>
           ` : ''}
-
           <p style="margin-top: 40px; font-size: 14px; color: #6b7280; text-align: center;">
             Need help? Reply to this email or contact <a href="mailto:support@hillway.in" style="color: ${color}">support@hillway.in</a>
           </p>
         </div>
-
         <div class="footer">
           &copy; ${new Date().getFullYear()} HillWay Tours. All rights reserved.<br/>
           Sikkim, India
@@ -162,7 +152,7 @@ export const sendOtpEmail = async (email, name, otp) => {
   }
 };
 
-// --- 2. SEND BOOKING RECEIVED EMAIL (INITIAL) ---
+// --- 2. SEND BOOKING RECEIVED EMAIL ---
 export const sendBookingConfirmation = async (booking) => {
   if (!process.env.RESEND_API_KEY) {
     console.error("❌ RESEND_API_KEY is missing.");
@@ -182,7 +172,7 @@ export const sendBookingConfirmation = async (booking) => {
         title: 'Booking Received',
         message: `Thank you for choosing HillWay! We have received your booking request. Our team is currently reviewing availability and will confirm your slot shortly.`,
         booking: booking,
-        color: '#0891b2' // Blue for "Received"
+        color: '#0891b2'
       })
     });
 
@@ -196,7 +186,7 @@ export const sendBookingConfirmation = async (booking) => {
   }
 };
 
-// --- 3. SEND STATUS UPDATE (CONFIRMATION, CANCELLATION, ETC) ---
+// --- 3. SEND STATUS UPDATE ---
 export const sendStatusUpdate = async (booking) => {
   if (!process.env.RESEND_API_KEY || !booking.email) return;
 
@@ -236,11 +226,7 @@ export const sendStatusUpdate = async (booking) => {
       })
     });
 
-    if (error) {
-      console.error("❌ Resend Error:", error);
-      return;
-    }
-    console.log(`✅ Status Update email sent to ${booking.email}`);
+    if (error) console.error("❌ Resend Error:", error);
   } catch (err) {
     console.error("❌ Unexpected Email Error:", err);
   }
@@ -250,7 +236,7 @@ export const sendStatusUpdate = async (booking) => {
 export const sendAdminNewBookingAlert = async (booking) => {
   if (!process.env.RESEND_API_KEY) return;
 
-  const adminEmail = 'admin@hillway.in'; // Ensure this is receiving email
+  const adminEmail = 'admin@hillway.in'; 
 
   try {
     await resend.emails.send({
