@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaTicketAlt, FaMoneyBillWave, FaChartLine, FaSignOutAlt, FaClipboardList, FaCheck } from "react-icons/fa";
+import { FaTicketAlt, FaMoneyBillWave, FaChartLine, FaSignOutAlt, FaClipboardList, FaCheck, FaBlog } from "react-icons/fa";
 
 export default function AgentDashboard() {
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ export default function AgentDashboard() {
     }
 
     const user = JSON.parse(userStr);
-    if (user.role !== 'agent') {
+    if (user.role !== 'agent' && user.role !== 'admin') {
       alert("Unauthorized access");
       navigate('/login');
       return;
@@ -26,7 +26,6 @@ export default function AgentDashboard() {
     setAgent(user);
 
     // 2. Fetch Dashboard Data from Backend
-    // Using the 'Dashboard' (capital D) path as per your file structure, but ideally should be lowercase.
     fetch(`https://admin.hillway.in/api/agent/Dashboard?agentId=${user._id}`)
       .then(res => res.json())
       .then(res => {
@@ -64,6 +63,27 @@ export default function AgentDashboard() {
             <FaSignOutAlt /> Logout
           </button>
         </header>
+
+        {/* Quick Actions */}
+        {(agent?.role === 'admin' || agent?.role === 'agent') && (
+          <div className="mb-10">
+            <h2 className="text-xl font-bold text-white mb-4">Quick Actions</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <button
+                onClick={() => navigate('/blog-manager')}
+                className="flex items-center gap-4 p-6 bg-gradient-to-br from-[#D9A441]/20 to-[#D9A441]/10 border border-[#D9A441]/30 rounded-xl hover:border-[#D9A441]/50 transition group"
+              >
+                <div className="p-4 bg-[#D9A441]/20 rounded-lg group-hover:bg-[#D9A441]/30 transition">
+                  <FaBlog className="text-[#D9A441] text-2xl" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-white font-bold text-lg">Manage Blog</h3>
+                  <p className="text-white/60 text-sm">Create and edit blog posts</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
