@@ -9,6 +9,8 @@ import Tours from "./pages/Tours";
 import TourDetailsPage from "./pages/TourDetailsPage";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
+import BlogManager from "./pages/BlogManager";
+import BlogEditor from "./pages/BlogEditor";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import AgentDashboard from "./pages/AgentDashboard";
@@ -35,6 +37,11 @@ export default function App() {
           {/* Blog Routes */}
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
+          
+          {/* Admin Blog Routes */}
+          <Route path="/blog-manager" element={<BlogManager />} />
+          <Route path="/blog-editor" element={<BlogEditor />} />
+          <Route path="/blog-editor/:id" element={<BlogEditor />} />
           
           <Route path="/contact" element={<Contact />} />
           <Route path="/status" element={<BookingStatus />} />
