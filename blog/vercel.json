@@ -1,9 +1,0 @@
-{
-  "redirects": [
-    {
-      "source": "/:path*",
-      "destination": "https://hillway.in/blogs/:path*",
-      "permanent": true
-    }
-  ]
-}
