@@ -435,6 +435,7 @@ export default function BookingSidebar({ tour = {} }) {
   const [adultsPrice, setAdultsPrice] = useState(0);
   const [discountedKidsPrice, setDiscountedKidsPrice] = useState(0);
   const [discountedAdultsPrice, setDiscountedAdultsPrice] = useState(0);
+  const [priceBreakdown, setPriceBreakdown] = useState(null);
 
   useEffect(() => {
     const rates = {
@@ -507,6 +508,10 @@ export default function BookingSidebar({ tour = {} }) {
     const calculatedTotal = Math.max(0, Math.round(adultsTotal + costs.kidsPrice));
     setFinalPrice(calculatedTotal);
 
+    let dKidsPrice = Math.round(costs.kidsPrice);
+    let dAdultsPrice = adultsTotal;
+    let dTotalPrice = calculatedTotal;
+
     // Calculate discountable amount based on settings
     if (appliedCoupon) {
       let discountableAmount = 0;
@@ -525,39 +530,47 @@ export default function BookingSidebar({ tour = {} }) {
       if (appliedCoupon.discountType === 'PERCENTAGE') {
         discount = (discountableAmount * appliedCoupon.discountValue) / 100;
       } else {
-        discount = Math.min(appliedCoupon.discountValue, discountableAmount); // Can't exceed discountable amount
+        discount = Math.min(appliedCoupon.discountValue, discountableAmount);
       }
-      const finalDiscountedPrice = Math.max(0, Math.round(calculatedTotal - discount));
-      setDiscountedPrice(finalDiscountedPrice);
+      dTotalPrice = Math.max(0, Math.round(calculatedTotal - discount));
 
       // Calculate discounted kids price
-      // Kids price should have its own discount calculation based on whether basePrice is discountable
       if (costs.kidsPrice > 0 && discountSettings.basePrice) {
         let kidsDiscount = 0;
         if (appliedCoupon.discountType === 'PERCENTAGE') {
           kidsDiscount = (costs.kidsPrice * appliedCoupon.discountValue) / 100;
         } else {
-          // For flat discount, apply proportionally based on what percentage kids price is of total discountable amount
           const kidsShareOfDiscountable = discountableAmount > 0 ? costs.kidsPrice / discountableAmount : 0;
-          kidsDiscount = appliedCoupon.discountValue * kidsShareOfDiscountable;
+          kidsDiscount = discount * kidsShareOfDiscountable;
         }
-        setDiscountedKidsPrice(Math.max(0, Math.round(costs.kidsPrice - kidsDiscount)));
-      } else {
-        setDiscountedKidsPrice(Math.round(costs.kidsPrice));
+        dKidsPrice = Math.max(0, Math.round(costs.kidsPrice - kidsDiscount));
       }
 
-      // Calculate discounted adults price (total discount minus kids discount gives adults discount)
-      const adultsDiscountedTotal = finalDiscountedPrice - (costs.kidsPrice > 0 && discountSettings.basePrice
-        ? Math.max(0, Math.round(costs.kidsPrice - (appliedCoupon.discountType === 'PERCENTAGE'
-          ? (costs.kidsPrice * appliedCoupon.discountValue) / 100
-          : (discountableAmount > 0 ? appliedCoupon.discountValue * (costs.kidsPrice / discountableAmount) : 0))))
-        : costs.kidsPrice);
-      setDiscountedAdultsPrice(Math.max(0, adultsDiscountedTotal));
-    } else {
-      setDiscountedPrice(calculatedTotal);
-      setDiscountedKidsPrice(Math.round(costs.kidsPrice));
-      setDiscountedAdultsPrice(adultsTotal);
+      // Discounted adults price is total minus discounted kids
+      dAdultsPrice = dTotalPrice - dKidsPrice;
     }
+
+    setDiscountedPrice(dTotalPrice);
+    setDiscountedKidsPrice(dKidsPrice);
+    setDiscountedAdultsPrice(dAdultsPrice);
+
+    // Store enhanced price breakdown for booking data
+    setPriceBreakdown({
+      basePrice: Math.round(costs.basePrice),
+      kidsPrice: Math.round(costs.kidsPrice),
+      hotelPrice: Math.round(costs.roomCharges),
+      cabPrice: costs.transport > 0 ? Math.round(costs.transport) : 0,
+      mealPrice: Math.round(costs.meal),
+      teaPrice: Math.round(costs.tea),
+      bonfirePrice: Math.round(costs.bonfire),
+      tourGuidePrice: Math.round(costs.tourGuide),
+      comfortSeatPrice: Math.round(costs.comfortSeat),
+      panoramicRoomPrice: form.roomType === 'panoramic' ? Math.round(costs.roomCharges) : 0,
+      // Enhanced fields for display
+      adultsTotal: adultsTotal,
+      discountedAdultsTotal: dAdultsPrice,
+      discountedKidsTotal: dKidsPrice
+    });
   }, [form, tour, globalRates, appliedCoupon, discountSettings]);
 
   // Per adult price calculation (using discounted adults price)
@@ -657,6 +670,8 @@ export default function BookingSidebar({ tour = {} }) {
       totalPrice: discountedPrice,
       originalPrice: finalPrice,
       couponCode: appliedCoupon ? appliedCoupon.code : null,
+      startingPoint: startingPoints.find(p => p.name.toLowerCase() === form.startingPoint)?.name || form.startingPoint,
+      priceBreakdown: priceBreakdown,
       addons: {
         bonfire: form.bonfire,
         meal: form.meal,

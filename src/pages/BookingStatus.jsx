@@ -6,7 +6,8 @@ import {
   FaSearch, FaCheckCircle, FaTimesCircle, FaClock, FaShareAlt, FaEye,
   FaPrint, FaUser, FaCalendarAlt, FaWallet, FaRegSun, FaStickyNote,
   FaUtensils, FaRoute, FaMountain, FaHotel, FaMapPin, FaPhone,
-  FaUserFriends, FaCar, FaChevronDown, FaChevronUp, FaBed, FaCheck, FaTimes
+  FaUserFriends, FaCar, FaChevronDown, FaChevronUp, FaBed, FaCheck, FaTimes,
+  FaTicketAlt, FaMapMarkerAlt, FaUsers, FaChild
 } from "react-icons/fa";
 
 function getDatesInRange(startDate, endDate) {
@@ -441,6 +442,12 @@ export default function BookingStatus() {
                   <div className="mb-6 pr-32"><h1 className="text-2xl md:text-3xl font-black text-white font-montserrat mb-1">HillWay<span className="text-[#D9A441]">.in</span></h1><p className="text-xs text-gray-400">Your Way to the Mountains</p></div>
                   <div className="flex items-center justify-between mb-4"><div><p className="text-xs text-gray-400 mb-1">Booking ID</p><p className="text-lg font-bold text-white font-mono">#HW-{booking._id.slice(-6).toUpperCase()}</p><p className="text-xs text-gray-500 mt-1">{new Date(booking.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p></div><div className={`px-4 py-2 rounded-full border flex items-center gap-2 text-sm font-bold uppercase ${getStatusColor(booking.status)}`}>{getStatusIcon(booking.status)}{booking.status || 'Confirmed'}</div></div>
                   <h2 className="text-xl md:text-2xl font-bold text-white leading-tight">{booking.tourTitle}</h2>
+                  {/* Starting Point - Always show */}
+                  <div className="mt-3 flex items-center gap-2 text-sm">
+                    <FaMapMarkerAlt className="text-[#D9A441]" />
+                    <span className="text-gray-400">Starting from:</span>
+                    <span className="text-white font-semibold">{booking.startingPoint || 'Siliguri'}</span>
+                  </div>
                 </div>
 
                 {/* Hotel Details */}
@@ -455,9 +462,150 @@ export default function BookingStatus() {
                   <div className="lg:col-span-2 space-y-5">
                     <div className="bg-white/5 rounded-2xl p-5 border border-white/10"><div className="flex items-center gap-2 mb-4"><FaUser className="text-[#D9A441]" /><h3 className="font-bold text-white">Guest Information</h3></div><div className="space-y-3"><div><p className="text-xs text-gray-400 mb-1">Name</p><p className="text-white font-semibold">{booking.name}</p></div>{booking.phone && <div><p className="text-xs text-gray-400 mb-1">Phone</p><p className="text-white font-semibold">{booking.phone}</p></div>}{booking.email && <div><p className="text-xs text-gray-400 mb-1">Email</p><p className="text-white font-semibold text-sm break-all">{booking.email}</p></div>}</div></div>
 
-                    <div className="bg-white/5 rounded-2xl p-5 border border-white/10"><div className="flex items-center gap-2 mb-4"><FaCalendarAlt className="text-[#D9A441]" /><h3 className="font-bold text-white">Booking Details</h3></div><div className="space-y-3"><div className="flex items-center justify-between"><div className="flex items-center gap-2"><FaCalendarAlt className="text-amber-400 text-sm" /><span className="text-gray-400 text-sm">Travel Date</span></div><span className="text-white font-semibold text-sm">{new Date(booking.travelDate || booking.roomBookingFrom).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span></div><div className="flex items-center justify-between"><div className="flex items-center gap-2"><FaUserFriends className="text-cyan-400 text-sm" /><span className="text-gray-400 text-sm">Passengers</span></div><span className="text-white font-semibold text-sm">{booking.adults} Adults, {booking.children} Kids</span></div><div className="flex items-center justify-between"><div className="flex items-center gap-2"><FaCar className="text-purple-400 text-sm" /><span className="text-gray-400 text-sm">Transport</span></div><span className="text-white font-semibold text-sm capitalize">{booking.transport === 'personal' ? 'Private' : booking.transport === 'self' ? 'Self / Own' : 'Shared'}</span></div><div className="flex items-center justify-between pt-2 border-t border-white/10"><div className="flex items-center gap-2"><FaWallet className="text-green-400 text-sm" /><span className="text-gray-400 text-sm">Total Cost</span></div><span className="text-white font-bold text-base">₹{(booking.totalPrice || 0).toLocaleString()}</span></div></div></div>
+                    <div className="bg-white/5 rounded-2xl p-5 border border-white/10">
+                      <div className="flex items-center gap-2 mb-4">
+                        <FaCalendarAlt className="text-[#D9A441]" />
+                        <h3 className="font-bold text-white">Booking Details</h3>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FaCalendarAlt className="text-amber-400 text-sm" />
+                            <span className="text-gray-400 text-sm">Travel Date</span>
+                          </div>
+                          <span className="text-white font-semibold text-sm">
+                            {new Date(booking.travelDate || booking.roomBookingFrom).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FaUserFriends className="text-cyan-400 text-sm" />
+                            <span className="text-gray-400 text-sm">Passengers</span>
+                          </div>
+                          <span className="text-white font-semibold text-sm">{booking.adults} Adults, {booking.children} Kids</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FaCar className="text-purple-400 text-sm" />
+                            <span className="text-gray-400 text-sm">Transport</span>
+                          </div>
+                          <span className="text-white font-semibold text-sm capitalize">
+                            {booking.transport === 'personal' ? 'Private' : booking.transport === 'self' ? 'Self / Own' : 'Shared'}
+                          </span>
+                        </div>
+                        {/* Adults & Kids Pricing */}
 
-                    <div className="bg-white/5 rounded-2xl p-5 border border-white/10"><div className="flex items-center gap-2 mb-4"><FaWallet className="text-[#D9A441]" /><h3 className="font-bold text-white">Payment Summary</h3></div><div className="space-y-3"><div className="flex justify-between items-center"><span className="text-gray-400 text-sm">Total Cost</span><span className="text-white font-bold">₹{(booking.totalPrice || booking.totalRs || 0).toLocaleString()}</span></div><div className="flex justify-between items-center"><span className="text-gray-400 text-sm">Advance Paid</span><span className="text-green-400 font-bold">₹{(booking.paidAmount || booking.advanceRs || 0).toLocaleString()}</span></div><div className="h-px bg-white/10"></div><div className="flex justify-between items-center"><span className="text-gray-300 font-semibold">Balance Due</span><span className="text-[#D9A441] font-black text-lg">₹{((booking.totalPrice || booking.totalRs || 0) - (booking.paidAmount || booking.advanceRs || 0)).toLocaleString()}</span></div></div></div>
+                        <div className="pt-3 border-t border-white/10 space-y-2">
+                          <span className="text-gray-400 text-sm">Price Breakdown </span>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <FaUsers className="text-green-400 text-sm" />
+                              <span className="text-white text-sm">Total Price </span>
+                            </div>
+                            <span className="text-green-400 font-bold text-sm">
+                              ₹{(booking.priceBreakdown?.adultsTotal || booking.priceBreakdown?.basePrice || Math.round((booking.originalPrice || booking.totalPrice || 0) - ((tourDetails?.kidsPrice || 0) * booking.children))).toLocaleString()}
+                            </span>
+                          </div>
+                          {booking.children > 0 && (
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <FaChild className="text-pink-400 text-sm" />
+                                <span className="text-gray-400 text-sm">
+                                  Kids ({booking.children} pax)
+                                  {tourDetails?.kidsPrice && (
+                                    <span className="text-pink-300 text-xs ml-1"></span>
+                                  )}
+                                </span>
+                              </div>
+                              <span className="text-pink-400 font-bold text-sm">
+                                ₹{(booking.priceBreakdown?.kidsPrice || (tourDetails?.kidsPrice || 0) * booking.children).toLocaleString()}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Price Breakdown */}
+                        <div className="">
+
+
+                          {/* Adults Total (includes base + room + addons) */}
+                          {(booking.priceBreakdown?.adultsTotal > 0 || booking.priceBreakdown?.basePrice > 0) && (
+                            <div className="flex justify-between text-xs">
+
+                            </div>
+                          )}
+
+                          {/* Kids Price */}
+                          {(booking.priceBreakdown?.kidsPrice > 0 || (booking.children > 0 && tourDetails?.kidsPrice > 0)) && (
+                            <div className="flex justify-between text-xs">
+
+                            </div>
+                          )}
+
+
+                          {/* Subtotal - only show when there's a discount to compare */}
+                          {booking.couponCode && booking.originalPrice > booking.totalPrice && (
+                            <>
+                              <div className="flex justify-between text-xs pt-2 border-t border-white/5">
+                                <span className="text-gray-300 font-semibold">Subtotal</span>
+                                <span className="text-white font-semibold">₹{(booking.originalPrice || 0).toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between text-xs bg-purple-500/10 p-2 rounded-lg -mx-1">
+                                <span className="text-purple-400 flex items-center gap-1">
+                                  <FaTicketAlt className="text-[10px]" />
+                                  {booking.couponCode}
+                                </span>
+                                <span className="text-green-400 font-bold">- ₹{(booking.originalPrice - booking.totalPrice).toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between text-xs pt-2 border-t border-white/5">
+                                <span className="text-[#D9A441] font-bold">Grand Total</span>
+                                <span className="text-[#D9A441] font-bold">₹{(booking.totalPrice || 0).toLocaleString()}</span>
+                              </div>
+                            </>
+                          )}
+
+                          {/* Total - only when no coupon */}
+                          {(!booking.couponCode || booking.originalPrice <= booking.totalPrice) && (
+                            <div className="flex justify-between text-xs pt-2 border-t border-white/5">
+                              <span className="text-gray-300 font-semibold">Total</span>
+                              <span className="text-white font-bold">₹{(booking.totalPrice || booking.originalPrice || 0).toLocaleString()}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white/5 rounded-2xl p-5 border border-white/10">
+                      <div className="flex items-center gap-2 mb-4">
+                        <FaWallet className="text-[#D9A441]" />
+                        <h3 className="font-bold text-white">Payment Summary</h3>
+                      </div>
+                      <div className="space-y-3">
+                        {/* Total Cost */}
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-400 text-sm">Total Cost</span>
+                          <span className="text-white font-bold text-lg">₹{(booking.totalPrice || booking.totalRs || 0).toLocaleString()}</span>
+                        </div>
+                        {/* Additional Admin Discount */}
+                        {booking.additionalDiscount > 0 && (
+                          <div className="flex justify-between items-center text-red-400">
+                            <span className="text-sm italic">Admin Discount</span>
+                            <span className="font-semibold">- ₹{booking.additionalDiscount.toLocaleString()}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-400 text-sm">Advance Paid</span>
+                          <span className="text-green-400 font-bold">₹{(booking.paidAmount || booking.advanceRs || 0).toLocaleString()}</span>
+                        </div>
+                        <div className="h-px bg-white/10"></div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-300 font-semibold">Balance Due</span>
+                          <span className="text-[#D9A441] font-black text-lg">
+                            ₹{((booking.totalPrice || booking.totalRs || 0) - (booking.additionalDiscount || 0) - (booking.paidAmount || booking.advanceRs || 0)).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
 
                     {/* Important Policies Box */}
                     <div className="bg-white/5 rounded-2xl p-5 border border-white/10">

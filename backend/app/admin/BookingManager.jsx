@@ -455,8 +455,8 @@ export default function BookingManager({ bookings, tours, globalPrices, refreshD
 
                                         <td className="p-4 text-center">
                                             <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-bold ${bookingStatusBadge.color === 'green' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
-                                                    bookingStatusBadge.color === 'red' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                                                        'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                                                bookingStatusBadge.color === 'red' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                                    'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
                                                 }`}>
                                                 {bookingStatusBadge.icon} {bookingStatusBadge.label}
                                             </div>
@@ -759,8 +759,29 @@ export default function BookingManager({ bookings, tours, globalPrices, refreshD
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-2">
-                                                <div className="flex justify-between text-sm"><span className="text-gray-400">Total Price</span><span className="text-white font-bold">₹{selectedBooking.totalPrice.toLocaleString()}</span></div>
-                                                {selectedBooking.additionalDiscount > 0 && <div className="flex justify-between text-sm text-red-400"><span className="italic">Discount</span><span>- ₹{selectedBooking.additionalDiscount.toLocaleString()}</span></div>}
+                                                {/* Original Price & Coupon Discount */}
+                                                {selectedBooking.couponCode && selectedBooking.originalPrice > selectedBooking.totalPrice ? (
+                                                    <>
+                                                        <div className="flex justify-between text-sm">
+                                                            <span className="text-gray-400">Original Price</span>
+                                                            <span className="text-gray-500 line-through">₹{selectedBooking.originalPrice.toLocaleString()}</span>
+                                                        </div>
+                                                        <div className="flex justify-between items-center text-sm bg-purple-500/10 p-2 rounded-lg border border-purple-500/20">
+                                                            <div className="flex items-center gap-2">
+                                                                <FaTicketAlt className="text-purple-400 text-xs" />
+                                                                <span className="text-purple-400 font-bold">{selectedBooking.couponCode}</span>
+                                                            </div>
+                                                            <span className="text-purple-400 font-bold">- ₹{(selectedBooking.originalPrice - selectedBooking.totalPrice).toLocaleString()}</span>
+                                                        </div>
+                                                        <div className="flex justify-between text-sm">
+                                                            <span className="text-gray-400">After Coupon</span>
+                                                            <span className="text-white font-bold">₹{selectedBooking.totalPrice.toLocaleString()}</span>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <div className="flex justify-between text-sm"><span className="text-gray-400">Total Price</span><span className="text-white font-bold">₹{selectedBooking.totalPrice.toLocaleString()}</span></div>
+                                                )}
+                                                {selectedBooking.additionalDiscount > 0 && <div className="flex justify-between text-sm text-red-400"><span className="italic">Admin Discount</span><span>- ₹{selectedBooking.additionalDiscount.toLocaleString()}</span></div>}
                                                 <div className="flex justify-between text-sm text-green-400"><span className="font-bold">Total Paid</span><span className="font-bold">₹{(selectedBooking.paidAmount || 0).toLocaleString()}</span></div>
                                                 <div className="flex justify-between text-sm text-yellow-400 border-t border-white/10 pt-2"><span className="font-black uppercase">Balance Due</span><span className="font-black">₹{(selectedBooking.totalPrice - (selectedBooking.additionalDiscount || 0) - (selectedBooking.paidAmount || 0)).toLocaleString()}</span></div>
                                             </div>
