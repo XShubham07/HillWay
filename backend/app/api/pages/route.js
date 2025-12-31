@@ -10,11 +10,26 @@ export async function GET(request) {
 
     try {
         if (slug) {
+            // Normalize slug to lowercase (model stores as lowercase)
+            const normalizedSlug = slug.toLowerCase().trim();
+
             // Fetch specific page by slug, populate tours
-            const page = await Page.findOne({ slug, isActive: true }).populate('selectedTours');
+            const page = await Page.findOne({
+                slug: normalizedSlug,
+                isActive: true
+            }).populate('selectedTours');
+
             if (!page) {
+                // Debug: Check if page exists but is inactive
+                const inactivePage = await Page.findOne({ slug: normalizedSlug });
+                if (inactivePage) {
+                    console.log(`⚠️ Page "${normalizedSlug}" exists but isActive: ${inactivePage.isActive}`);
+                } else {
+                    console.log(`❌ Page "${normalizedSlug}" does not exist in database`);
+                }
                 return NextResponse.json({ success: false, error: 'Page not found' }, { status: 404 });
             }
+
             return NextResponse.json({ success: true, data: page });
         } else {
             // Fetch all pages (for admin list)
