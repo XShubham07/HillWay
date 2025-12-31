@@ -259,8 +259,8 @@ const FilterSection = ({ activeTag, setActiveTag, activeLocation, setActiveLocat
         <button
           onClick={() => toggleMenu('location')}
           className={`flex items-center gap-3 px-6 py-3 rounded-full text-sm font-bold transition-all border ${activeMenu === 'location' || activeLocation !== 'All'
-              ? 'bg-[#D9A441] text-black border-[#D9A441] shadow-[0_0_20px_rgba(217,164,65,0.3)]'
-              : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10'
+            ? 'bg-[#D9A441] text-black border-[#D9A441] shadow-[0_0_20px_rgba(217,164,65,0.3)]'
+            : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10'
             }`}
         >
           <FaMapMarkerAlt />
@@ -273,8 +273,8 @@ const FilterSection = ({ activeTag, setActiveTag, activeLocation, setActiveLocat
         <button
           onClick={() => toggleMenu('type')}
           className={`flex items-center gap-3 px-6 py-3 rounded-full text-sm font-bold transition-all border ${activeMenu === 'type' || activeTag !== 'All'
-              ? 'bg-[#D9A441] text-black border-[#D9A441] shadow-[0_0_20px_rgba(217,164,65,0.3)]'
-              : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10'
+            ? 'bg-[#D9A441] text-black border-[#D9A441] shadow-[0_0_20px_rgba(217,164,65,0.3)]'
+            : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10'
             }`}
         >
           <FaTags />
@@ -366,6 +366,33 @@ export default function Tours() {
   // NEW: Global pricing state
   const [globalPricing, setGlobalPricing] = useState({ standardRoomPrice: 1500 });
 
+  // SEO Metadata state
+  const [seoMetadata, setSeoMetadata] = useState({
+    title: "All Tours - HillWay | Discover Your Next Adventure",
+    description: "Browse our curated selection of premium tours in Sikkim and Northeast India. Find the perfect package for your dream vacation.",
+    keywords: "tours, sikkim, darjeeling, travel packages, hillway, adventure tours"
+  });
+
+  // FETCH SEO METADATA FROM BACKEND
+  useEffect(() => {
+    const fetchSeoData = async () => {
+      try {
+        const res = await fetch('https://admin.hillway.in/api/page-seo?page=tours');
+        const data = await res.json();
+        if (data.success && data.data) {
+          setSeoMetadata({
+            title: data.data.title || seoMetadata.title,
+            description: data.data.description || seoMetadata.description,
+            keywords: data.data.keywords || seoMetadata.keywords
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch SEO metadata:', error);
+      }
+    };
+    fetchSeoData();
+  }, []);
+
   // AUTO-SELECT LOCATION FROM REDIRECT
   useEffect(() => {
     if (locationState.state && locationState.state.location) {
@@ -438,7 +465,7 @@ export default function Tours() {
   const isMobile = windowWidth < 1024;
 
   // Updated onView to use slug if available
-  const onView = (p) => navigate(`/tours/${p.slug || p.id}`);
+  const onView = (p) => navigate(`/tours/${p.slug || p._id || p.id}`);
 
   // Derived unique locations
   const availableLocations = useMemo(() => {
@@ -460,8 +487,9 @@ export default function Tours() {
 
       {/* --- PAGE METADATA --- */}
       <SEO
-        title="All Tours - HillWay | Discover Your Next Adventure"
-        description="Browse our curated selection of premium tours in Sikkim and Northeast India. Find the perfect package for your dream vacation."
+        title={seoMetadata.title}
+        description={seoMetadata.description}
+        keywords={seoMetadata.keywords}
       />
 
       <SunriseDepthBackground />

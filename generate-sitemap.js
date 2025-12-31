@@ -40,13 +40,15 @@ async function generate() {
   console.log('🔄 Starting SEO Generation with Custom Rules...');
 
   // Fetch Dynamic Data
-  const [toursData, blogsData] = await Promise.all([
+  const [toursData, blogsData, pagesData] = await Promise.all([
     fetchJson(`${API_BASE}/tours`),
-    fetchJson(`${API_BASE}/blogs?published=true`)
+    fetchJson(`${API_BASE}/blogs?published=true`),
+    fetchJson(`${API_BASE}/pages`) // NEW: Fetch dynamic pages
   ]);
 
   const tours = toursData.success ? toursData.data : [];
   const blogs = blogsData.success ? blogsData.data : [];
+  const pages = pagesData.success ? pagesData.data : []; // NEW: Dynamic SEO pages
 
   // Start XML
   let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -73,7 +75,7 @@ async function generate() {
   </url>`;
   });
 
-  // Dynamic Tours (Treat as Packages -> Weekly)
+  // Dynamic Tours (Using slug field)
   tours.forEach(tour => {
     const slug = tour.slug || tour._id;
     sitemap += `
@@ -82,6 +84,20 @@ async function generate() {
     <lastmod>${tour.updatedAt ? new Date(tour.updatedAt).toISOString() : new Date().toISOString()}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+  </url>`;
+  });
+
+  // NEW: Dynamic SEO Pages (Root level URLs using slug)
+  pages.forEach(page => {
+    if (!page.isActive) return; // Skip inactive pages
+    const slug = page.slug;
+    if (!slug) return;
+    sitemap += `
+  <url>
+    <loc>${DOMAIN}/${slug}</loc>
+    <lastmod>${page.updatedAt ? new Date(page.updatedAt).toISOString() : new Date().toISOString()}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
   </url>`;
   });
 
@@ -125,6 +141,9 @@ async function generate() {
   // Write Sitemap
   fs.writeFileSync(SITEMAP_PATH, sitemap);
   console.log(`✅ Sitemap generated at: ${SITEMAP_PATH}`);
+  console.log(`   - ${tours.length} tours`);
+  console.log(`   - ${pages.length} dynamic pages`);
+  console.log(`   - ${blogs.length} blogs`);
 
   // Write Robots.txt
   const robots = `# https://www.robotstxt.org/robotstxt.html

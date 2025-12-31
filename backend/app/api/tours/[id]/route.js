@@ -15,13 +15,13 @@ export async function GET(request, { params }) {
   await dbConnect();
   try {
     const { id } = await params;
-    
+
     // Check if 'id' looks like a Mongo ID. If yes, search by _id, otherwise search by slug
     let query = isValidObjectId(id) ? { _id: id } : { slug: id };
 
     const tour = await Tour.findOne(query);
     if (!tour) return NextResponse.json({ success: false }, { status: 404 });
-    
+
     return NextResponse.json({ success: true, data: tour });
   } catch (error) {
     return NextResponse.json({ success: false }, { status: 400 });
@@ -35,8 +35,8 @@ export async function PUT(request, { params }) {
     const { id } = await params;
     const body = await request.json();
 
-    // Regenerate slug if title is updated
-    if (body.title) {
+    // Only regenerate slug from title if slug is empty/not provided
+    if (!body.slug && body.title) {
       body.slug = slugify(body.title);
     }
 

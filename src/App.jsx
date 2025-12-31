@@ -11,6 +11,7 @@ import Tours from "./pages/Tours";
 import TourDetailsPage from "./pages/TourDetailsPage";
 import Blogs from "./pages/Blogs";
 import BlogsPost from "./pages/BlogsPost";
+import DynamicPage from "./pages/DynamicPage";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import AgentDashboard from "./pages/AgentDashboard";
@@ -60,6 +61,8 @@ export default function App() {
           <Route path="/blogs" element={<Blogs />} />
           <Route path="/blogs/:slug" element={<BlogsPost />} />
 
+
+
           <Route path="/contact" element={<Contact />} />
           <Route path="/status" element={<BookingStatus />} />
           <Route path="/reviews" element={<AllReviews />} />
@@ -69,6 +72,9 @@ export default function App() {
           {/* Auth Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/agent-dashboard" element={<AgentDashboard />} />
+
+          {/* Dynamic Pages (Root Catch-all) */}
+          <Route path="/:slug" element={<DynamicPage />} />
         </Routes>
         <Footer />
       </SmoothScroll>

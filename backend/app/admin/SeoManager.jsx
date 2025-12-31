@@ -5,7 +5,8 @@ import { FaSearch, FaSave, FaSpinner, FaGlobe } from 'react-icons/fa';
 export default function SeoManager() {
     const PAGES = [
         { id: 'home', label: 'Home Page' },
-        { id: 'destinations', label: 'Destinations Page' }
+        { id: 'destinations', label: 'Destinations Page' },
+        { id: 'tours', label: 'Tours Page' }
     ];
 
     const [activePage, setActivePage] = useState('home');

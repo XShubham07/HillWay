@@ -10,6 +10,8 @@ import Features from "../components/Features";
 import ReviewsCarousel from "../components/ReviewsCarousel";
 import { FaArrowRight, FaCompass } from "react-icons/fa";
 import { DESTINATION_DATA } from "../data/destinationsData";
+import FAQItem from "../components/FAQItem";
+import { Helmet } from "react-helmet-async";
 
 // --- 1. DATA PREP (MEMOIZED) ---
 const HIGHLIGHT_IDS = ["gangtok", "zuluk", "ravangla"];
@@ -172,6 +174,19 @@ export default function Home() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [featuredTours, setFeaturedTours] = useState([]);
+  const [faqs, setFaqs] = useState([]);
+
+  useEffect(() => {
+    // Fetch Home Page FAQs from dedicated endpoint
+    fetch("/api/home-faq")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.data) {
+          setFaqs(data.data);
+        }
+      })
+      .catch((err) => console.error("Failed to load home FAQs", err));
+  }, []);
 
 
 
@@ -321,7 +336,44 @@ export default function Home() {
           </div>
         </section>
 
-        {/* --- SECTION 5: FINAL CTA --- */}
+        {/* --- SECTION 5: FAQ --- */}
+        {faqs.length > 0 && (
+          <section className="py-10 md:py-16 px-4 md:px-6 relative z-10">
+            <div className="max-w-7xl mx-auto">
+              <SectionHeader
+                tag="Common Queries"
+                title="Frequently Asked"
+                highlightedText=" Questions"
+              />
+
+              <div className="space-y-4 mt-6 max-w-4xl">
+                {faqs.map((faq, idx) => (
+                  <FAQItem key={idx} question={faq.question} answer={faq.answer} variant="home" />
+                ))}
+              </div>
+
+              {/* JSON-LD SCHEMA FOR FAQ */}
+              <Helmet>
+                <script type="application/ld+json">
+                  {JSON.stringify({
+                    "@context": "https://schema.org",
+                    "@type": "FAQPage",
+                    "mainEntity": faqs.map(faq => ({
+                      "@type": "Question",
+                      "name": faq.question,
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": faq.answer
+                      }
+                    }))
+                  })}
+                </script>
+              </Helmet>
+            </div>
+          </section>
+        )}
+
+        {/* --- SECTION 6: FINAL CTA --- */}
         <section className="py-16 px-4 relative">
           <div className="max-w-5xl mx-auto relative rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-emerald-900 to-[#022c22] border border-white/10 p-8 md:p-16 text-center">
             <div className="absolute inset-0 bg-[url('/mountain.webp')] bg-cover bg-center opacity-20 mix-blend-overlay" />

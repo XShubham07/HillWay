@@ -878,35 +878,35 @@ export default function BookingSidebar({ tour = {} }) {
       {/* Transport/RoomType */}
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white/5 p-2 rounded-xl border border-white/5 flex flex-col justify-center">
+          <div className="bg-white/5 p-2 rounded-xl border border-white/5 flex flex-col justify-center isolate">
             <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 text-center">Transport</label>
-            <div className="flex bg-black/30 rounded-lg p-1 relative">
+            <div className="flex bg-black/30 rounded-lg p-1 relative transform-gpu">
               <motion.div
                 layout
-                className="absolute inset-y-1 bg-[#D9A441] rounded-md shadow-md"
+                className="absolute inset-y-1 bg-[#D9A441] rounded-md shadow-md z-[1]"
                 initial={false}
                 animate={getTransportSliderStyle()}
               />
-              <button onClick={() => handle('transport', 'self')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Self</button>
-              <button onClick={() => handle('transport', 'sharing')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Sharing</button>
-              <button onClick={() => handle('transport', 'personal')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Cab</button>
+              <button onClick={() => handle('transport', 'self')} className="flex-1 relative z-[2] text-[10px] font-bold py-1.5 text-center transition-colors text-white">Self</button>
+              <button onClick={() => handle('transport', 'sharing')} className="flex-1 relative z-[2] text-[10px] font-bold py-1.5 text-center transition-colors text-white">Sharing</button>
+              <button onClick={() => handle('transport', 'personal')} className="flex-1 relative z-[2] text-[10px] font-bold py-1.5 text-center transition-colors text-white">Cab</button>
             </div>
           </div>
 
-          <div className="bg-white/5 p-2 rounded-xl border border-white/5 flex flex-col justify-center">
+          <div className="bg-white/5 p-2 rounded-xl border border-white/5 flex flex-col justify-center isolate">
             <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 text-center">Room Type</label>
-            <div className="flex bg-black/30 rounded-lg p-1 relative">
+            <div className="flex bg-black/30 rounded-lg p-1 relative transform-gpu">
               <motion.div
                 layout
-                className="absolute inset-y-1 bg-[#D9A441] rounded-md shadow-md"
+                className="absolute inset-y-1 bg-[#D9A441] rounded-md shadow-md z-[1]"
                 initial={false}
                 animate={{
                   left: form.roomType === 'standard' ? 4 : '50%',
                   width: 'calc(50% - 4px)'
                 }}
               />
-              <button onClick={() => handle('roomType', 'standard')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Standard</button>
-              <button onClick={() => handle('roomType', 'panoramic')} className="flex-1 relative z-10 text-[10px] font-bold py-1.5 text-center transition-colors text-white">Panaromoic</button>
+              <button onClick={() => handle('roomType', 'standard')} className="flex-1 relative z-[2] text-[10px] font-bold py-1.5 text-center transition-colors text-white">Standard</button>
+              <button onClick={() => handle('roomType', 'panoramic')} className="flex-1 relative z-[2] text-[10px] font-bold py-1.5 text-center transition-colors text-white">Panaromoic</button>
             </div>
           </div>
         </div>
@@ -1010,21 +1010,57 @@ export default function BookingSidebar({ tour = {} }) {
             )}
           </div>
 
+          {/* Right Column: Show Adults Total only when kids selected, otherwise Grand Total */}
           <div className="text-right flex flex-col items-end">
-            <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1">Adults Total</p>
-            {appliedCoupon && adultsPrice !== discountedAdultsPrice ? (
-              <div className="flex flex-col items-end">
-                <span className="text-xs text-gray-500 line-through decoration-red-500/80">
-                  ₹{adultsPrice.toLocaleString("en-IN")}
-                </span>
-                <span className="text-lg font-bold text-white">
-                  ₹{discountedAdultsPrice.toLocaleString("en-IN")}
-                </span>
-              </div>
+            {Number(form.children) > 0 ? (
+              <>
+                <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1">Adults Total</p>
+                {appliedCoupon && adultsPrice !== discountedAdultsPrice ? (
+                  <div className="flex flex-col items-end">
+                    <span className="text-xs text-gray-500 line-through decoration-red-500/80">
+                      ₹{adultsPrice.toLocaleString("en-IN")}
+                    </span>
+                    <span className="text-lg font-bold text-white">
+                      ₹{discountedAdultsPrice.toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-lg font-bold text-white">
+                    ₹{adultsPrice.toLocaleString("en-IN")}
+                  </span>
+                )}
+              </>
             ) : (
-              <span className="text-lg font-bold text-white">
-                ₹{adultsPrice.toLocaleString("en-IN")}
-              </span>
+              <>
+                <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1">Grand Total</p>
+                {appliedCoupon ? (
+                  <div className="flex flex-col items-end">
+                    <span className="text-gray-500 text-xs font-semibold line-through decoration-red-500/80 mb-0.5">
+                      ₹{finalPrice.toLocaleString()}
+                    </span>
+                    <motion.div
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-emerald-400 text-[11px] font-bold mb-1 flex items-center gap-1 bg-emerald-900/20 px-2 py-0.5 rounded-full border border-emerald-500/20"
+                    >
+                      <span>Saved ₹{(finalPrice - discountedPrice).toLocaleString()}</span>
+                      <span className="animate-bounce">🎉</span>
+                    </motion.div>
+                    <motion.span
+                      key={discountedPrice}
+                      initial={{ scale: 0.9 }}
+                      animate={{ scale: 1 }}
+                      className="text-2xl font-bold text-white tracking-wide"
+                    >
+                      ₹{discountedPrice.toLocaleString("en-IN")}
+                    </motion.span>
+                  </div>
+                ) : (
+                  <span className="text-2xl font-bold text-white tracking-wide">
+                    ₹{finalPrice.toLocaleString("en-IN")}
+                  </span>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -1055,38 +1091,43 @@ export default function BookingSidebar({ tour = {} }) {
           </div>
         )}
 
-        {/* Grand Total Section */}
-        <div className="flex justify-between items-end mb-6 pt-3 border-t border-white/10">
-          <p className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Grand Total</p>
+        {/* Grand Total Section - Only show when kids are selected */}
+        {Number(form.children) > 0 && (
+          <div className="flex justify-between items-end mb-6 pt-3 border-t border-white/10">
+            <p className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Grand Total</p>
 
-          {appliedCoupon ? (
-            <div className="flex flex-col items-end">
-              <span className="text-gray-500 text-xs font-semibold line-through decoration-red-500/80 mb-0.5">
-                ₹{finalPrice.toLocaleString()}
+            {appliedCoupon ? (
+              <div className="flex flex-col items-end">
+                <span className="text-gray-500 text-xs font-semibold line-through decoration-red-500/80 mb-0.5">
+                  ₹{finalPrice.toLocaleString()}
+                </span>
+                <motion.div
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-emerald-400 text-[11px] font-bold mb-1 flex items-center gap-1 bg-emerald-900/20 px-2 py-0.5 rounded-full border border-emerald-500/20"
+                >
+                  <span>Saved ₹{(finalPrice - discountedPrice).toLocaleString()}</span>
+                  <span className="animate-bounce">🎉</span>
+                </motion.div>
+                <motion.span
+                  key={discountedPrice}
+                  initial={{ scale: 0.9 }}
+                  animate={{ scale: 1 }}
+                  className="text-2xl font-bold text-white tracking-wide"
+                >
+                  ₹{discountedPrice.toLocaleString("en-IN")}
+                </motion.span>
+              </div>
+            ) : (
+              <span className="text-2xl font-bold text-white tracking-wide">
+                ₹{finalPrice.toLocaleString("en-IN")}
               </span>
-              <motion.div
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-emerald-400 text-[11px] font-bold mb-1 flex items-center gap-1 bg-emerald-900/20 px-2 py-0.5 rounded-full border border-emerald-500/20"
-              >
-                <span>Saved ₹{(finalPrice - discountedPrice).toLocaleString()}</span>
-                <span className="animate-bounce">🎉</span>
-              </motion.div>
-              <motion.span
-                key={discountedPrice}
-                initial={{ scale: 0.9 }}
-                animate={{ scale: 1 }}
-                className="text-2xl font-bold text-white tracking-wide"
-              >
-                ₹{discountedPrice.toLocaleString("en-IN")}
-              </motion.span>
-            </div>
-          ) : (
-            <span className="text-2xl font-bold text-white tracking-wide">
-              ₹{finalPrice.toLocaleString("en-IN")}
-            </span>
-          )}
-        </div>
+            )}
+          </div>
+        )}
+
+        {/* Spacer when no kids - for consistent layout */}
+        {Number(form.children) === 0 && <div className="mb-6" />}
 
         {/* Terms Checkbox */}
         <div className="flex items-start gap-3 mb-4 px-1">
@@ -1181,7 +1222,7 @@ export default function BookingSidebar({ tour = {} }) {
           <div className="flex-1">
             <p className="text-[9px] text-gray-400 uppercase font-bold tracking-widest mb-0.5">Starting From</p>
             <div className="flex items-baseline gap-2">
-              <span className="text-xl font-black text-[#D9A441] leading-none">?{perHeadPrice.toLocaleString("en-IN")}</span>
+              <span className="text-xl font-black text-[#D9A441] leading-none">₹{perHeadPrice.toLocaleString("en-IN")}</span>
               <span className="text-[10px] text-gray-500">/ Person</span>
             </div>
           </div>

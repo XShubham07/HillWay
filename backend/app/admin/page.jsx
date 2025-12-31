@@ -15,10 +15,14 @@ import TourManager from './TourManager';
 import EnquiryManager from './EnquiryManager';
 import BlogManager from './BlogManager';
 import SeoManager from './SeoManager';
+import PageManager from './PageManager';
+import HomeFaqManager from './HomeFaqManager';
+import SitemapGenerator from './SitemapGenerator';
 
 export default function AdminDashboard({ onLogout }) {
   // Set 'dashboard' as the default active tab
   const [activeTab, setActiveTab] = useState('dashboard');
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -50,13 +54,13 @@ export default function AdminDashboard({ onLogout }) {
         fetch('/api/enquiries')
       ]);
 
-      const d1 = await resTours.json(); if (d1.success) setTours(d1.data);
-      const d2 = await resPrices.json(); if (d2.success) setGlobalPrices(d2.data);
-      const d3 = await resBookings.json(); if (d3.success) setBookings(d3.data);
-      const d4 = await resCoupons.json(); if (d4.success) setCoupons(d4.data);
-      const d5 = await resAgents.json(); if (d5.success) setAgents(d5.data);
-      const d6 = await resReviews.json(); if (d6.success) setAllReviews(d6.data);
-      const d7 = await resEnquiries.json(); if (d7.success) setEnquiries(d7.data);
+      if (resTours.ok) { const d1 = await resTours.json(); if (d1.success) setTours(d1.data); }
+      if (resPrices.ok) { const d2 = await resPrices.json(); if (d2.success) setGlobalPrices(d2.data); }
+      if (resBookings.ok) { const d3 = await resBookings.json(); if (d3.success) setBookings(d3.data); }
+      if (resCoupons.ok) { const d4 = await resCoupons.json(); if (d4.success) setCoupons(d4.data); }
+      if (resAgents.ok) { const d5 = await resAgents.json(); if (d5.success) setAgents(d5.data); }
+      if (resReviews.ok) { const d6 = await resReviews.json(); if (d6.success) setAllReviews(d6.data); }
+      if (resEnquiries.ok) { const d7 = await resEnquiries.json(); if (d7.success) setEnquiries(d7.data); }
     } catch (err) { console.error("Fetch Error:", err); }
     setLoading(false);
   };
@@ -199,7 +203,10 @@ export default function AdminDashboard({ onLogout }) {
     { id: 'agents', label: 'Agents', icon: <FaUserSecret /> },
     { id: 'coupons', label: 'Coupons', icon: <FaTicketAlt /> },
     { id: 'reviews', label: 'Reviews', icon: <FaCommentDots /> },
+    { id: 'pages', label: 'Pages (SEO)' },
+    { id: 'home-faq', label: 'Home FAQs', icon: <FaQuestionCircle /> },
     { id: 'seo', label: 'SEO Manager', icon: <FaSearch /> },
+    { id: 'sitemap', label: 'Sitemap', icon: <FaRocket /> },
     { id: 'pricing', label: 'Global Pricing & Settings', icon: <FaTag /> },
   ];
 
@@ -495,7 +502,16 @@ export default function AdminDashboard({ onLogout }) {
         {/* 8. SEO MANAGER */}
         {activeTab === 'seo' && <SeoManager />}
 
-        {/* 9. AGENTS */}
+        {/* 9. PAGE MANAGER */}
+        {activeTab === 'pages' && <PageManager />}
+
+        {/* HOME FAQ MANAGER */}
+        {activeTab === 'home-faq' && <HomeFaqManager />}
+
+        {/* SITEMAP GENERATOR */}
+        {activeTab === 'sitemap' && <SitemapGenerator />}
+
+        {/* 10. AGENTS */}
         {activeTab === 'agents' && (
           <div className="max-w-6xl mx-auto">
             <h1 className="text-3xl font-bold text-white mb-6">Manage Agents</h1>

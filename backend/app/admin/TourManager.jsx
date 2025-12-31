@@ -31,7 +31,8 @@ export default function TourManager({ tours, globalPrices, refreshData }) {
             tourManagerFee: 5000
         },
         inclusions: [], itinerary: [], faqs: [], reviews: [], tags: [],
-        seo: { title: '', description: '', keywords: '' }
+        seo: { title: '', description: '', keywords: '' },
+        slug: '' // ADDED: Custom slug field
     });
     const [form, setForm] = useState(getInitialForm());
 
@@ -67,7 +68,8 @@ export default function TourManager({ tours, globalPrices, refreshData }) {
             pricing: { ...defaults.pricing, ...(tour.pricing || {}) },
             tags: tour.tags || [],
             itinerary: tour.itinerary || [],
-            seo: { ...defaults.seo, ...(tour.seo || {}) }
+            seo: { ...defaults.seo, ...(tour.seo || {}) },
+            slug: tour.slug || '' // ADDED
         });
         setEditingId(tour._id);
         setView('editor');
@@ -256,6 +258,7 @@ export default function TourManager({ tours, globalPrices, refreshData }) {
                         <section>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div><label className="block text-sm font-medium text-gray-300 mb-1">Tour Title</label><input className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.title} onChange={e => updateField('title', e.target.value)} required /></div>
+                                <div><label className="block text-sm font-medium text-gray-300 mb-1">URL Slug</label><input className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white font-mono lowercase" placeholder="e.g. gangtok-sikkim-tour" value={form.slug || ''} onChange={e => updateField('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} /><p className="text-xs text-gray-500 mt-1">* Used in URL: hillway.in/tours/<span className="text-cyan-400">{form.slug || 'your-slug'}</span></p></div>
                                 <div><label className="block text-sm font-medium text-gray-300 mb-1">Subtitle</label><input className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.subtitle} onChange={e => updateField('subtitle', e.target.value)} /></div>
                                 <div><label className="block text-sm font-medium text-gray-300 mb-1">Location</label><input className="w-full bg-black/30 border border-gray-600 rounded-lg p-3 text-white" value={form.location} onChange={e => updateField('location', e.target.value)} required /></div>
                                 <div className="col-span-2 md:col-span-1">
